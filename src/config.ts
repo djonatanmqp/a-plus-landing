@@ -5,9 +5,10 @@ const testimonials = defineCollection({
   schema: z.object({
     clientName: z.string(),
     serviceType: z.string(),
-    beforeImage: z.string(), // Caminho da imagem
-    afterImage: z.string(),  // Caminho da imagem
-    date: z.date().optional(),
+    beforeImage: z.string(),
+    afterImage: z.string(),
+    // z.coerce.date() intercepta a string com aspas e a transforma em um objeto Date
+    date: z.coerce.date().optional(),
   }),
 });
 

@@ -1,5 +1,9 @@
 ---
 // src/components/TestimonialCard.astro
+// IMPORTAÇÃO DOS ÍCONES UNIFICADOS
+import CalendarIcon from "~icons/mdi/calendar-blank";
+import MapMarkerIcon from "~icons/mdi/map-marker";
+
 const { data } = Astro.props;
 
 const beforePath = `/uploads/${data.beforeImage}`;
@@ -43,14 +47,32 @@ const dateDisplay = data.date
         </div>
     </div>
 
-    <span class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest"
-        >{data.serviceType}</span
+    <span
+        class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest"
     >
-    {dateDisplay ? (
-        <span class="block text-[10px] uppercase tracking-widest text-gray-400 mt-1">
-            {dateDisplay}
-        </span>
-    ) : null}
+        {data.serviceType}
+    </span>
+
+    <div class="flex items-center gap-4 mt-1">
+        {
+            dateDisplay ? (
+                <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
+                    <CalendarIcon class="w-3.5 h-3.5 text-gray-400" />
+                    {dateDisplay}
+                </span>
+            ) : null
+        }
+
+        {
+            data.city && data.state ? (
+                <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
+                    <MapMarkerIcon class="w-3.5 h-3.5 text-gray-400" />
+                    {data.city}, {data.state}
+                </span>
+            ) : null
+        }
+    </div>
+
     <h3 class="font-bold text-lg mt-2 text-[#0b3c5d] leading-tight">
         {data.clientName}
     </h3>

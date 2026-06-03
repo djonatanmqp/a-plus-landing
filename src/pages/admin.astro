@@ -1,5 +1,21 @@
 ---
-import { parseCookies, validateAdminToken, readServicesConfig, listTestimonials, SESSION_COOKIE_NAME } from "../lib/admin.ts";
+// src/pages/admin.astro
+import {
+  parseCookies,
+  validateAdminToken,
+  readServicesConfig,
+  listTestimonials,
+  SESSION_COOKIE_NAME,
+  ADMIN_USER,
+  ADMIN_PASSWORD,
+} from "../lib/admin.ts";
+import Layout from "../layouts/Layout.astro";
+
+// IMPORTAÇÃO DOS ÍCONES UNIFICADOS (Coleção MDI)
+import LogoutIcon from "~icons/mdi/logout";
+import CloudUploadIcon from "~icons/mdi/cloud-upload";
+import PlusIcon from "~icons/mdi/plus";
+import ImageIcon from "~icons/mdi/image";
 
 const cookies = parseCookies(Astro.request.headers.get("cookie"));
 const isLoggedIn = validateAdminToken(cookies[SESSION_COOKIE_NAME]);
@@ -7,171 +23,274 @@ const servicesData = isLoggedIn ? await readServicesConfig() : [];
 const testimonials = isLoggedIn ? await listTestimonials() : [];
 const message = Astro.url.searchParams.get("message") ?? "";
 ---
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin | A-Plus Landing</title>
-    <link rel="stylesheet" href="/styles/global.css" />
-  </head>
-  <body class="min-h-screen bg-slate-50 text-slate-900">
-    <main class="max-w-6xl mx-auto p-6">
-      <a href="/" class="inline-block text-sm text-slate-600 hover:text-slate-900 mb-6">← Voltar ao site</a>
-      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+<Layout title="Admin | A-Plus Landing">
+  <header class="border-b bg-white">
+    <div
+      class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-4">
+        <img src="/logo.png" alt="A-Plus logo" class="w-20 h-auto" />
         <div>
-          <h1 class="text-3xl font-bold text-[#0b3c5d]">Painel Administrativo</h1>
-          <p class="text-sm text-slate-600 mt-1">Gerencie galerias e depoimentos sem banco de dados.</p>
+          <div class="text-lg font-extrabold text-[#0b3c5d] leading-none">
+            A-PLUS PAVERS & GRASS
+          </div>
+          <div class="text-sm text-slate-600">Control Panel</div>
         </div>
-        {isLoggedIn ? (
+      </div>
+      <a href="/" class="text-sm text-slate-600 hover:text-slate-900"
+        >← Back to site</a
+      >
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6">
+    <div
+      class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <h1 class="text-3xl font-bold text-[#0b3c5d]">Admin Panel</h1>
+        <p class="text-sm text-slate-600 mt-1">
+          Manage galleries and testimonials without a database.
+        </p>
+      </div>
+      {
+        isLoggedIn && (
           <form method="POST" action="/admin/api/logout">
             <button
               type="submit"
-              class="rounded-full bg-[#0b3c5d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
+              class="flex items-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
             >
-              Sair
+              <LogoutIcon class="w-4 h-4" />
+              Sign Out
             </button>
           </form>
-        ) : null}
-      </div>
+        )
+      }
+    </div>
 
-      {message ? (
+    {
+      message && (
         <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-slate-800">
           {message}
         </div>
-      ) : null}
+      )
+    }
 
-      {!isLoggedIn ? (
+    {
+      !isLoggedIn ? (
         <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">Entrar</h2>
+          <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">Login</h2>
           <form method="POST" action="/admin/api/login" class="grid gap-4">
             <label class="grid gap-2 text-sm text-slate-700">
-              Usuário
+              Username{" "}
               <input
                 name="username"
                 type="text"
                 required
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
               />
             </label>
             <label class="grid gap-2 text-sm text-slate-700">
-              Senha
+              Password{" "}
               <input
                 name="password"
                 type="password"
                 required
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3"
               />
             </label>
             <button
               type="submit"
-              class="rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
+              class="rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white"
             >
-              Entrar
+              Sign In
             </button>
           </form>
-          <p class="mt-4 text-xs text-slate-500">Use as credenciais definidas em <code class="rounded bg-slate-100 px-2 py-1">.env</code>.</p>
         </section>
       ) : (
         <div class="space-y-8">
           <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 class="text-2xl font-semibold text-[#0b3c5d]">Galerias de serviços</h2>
-                <p class="text-sm text-slate-600">Envie imagens para hero, cover ou adiciona novas fotos ao serviço.</p>
-              </div>
-              <span class="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-700">{servicesData.length} serviços configurados</span>
-            </div>
-
-            <form method="POST" action="/admin/api/service" enctype="multipart/form-data" class="grid gap-5">
-              <label class="grid gap-2 text-sm text-slate-700">
-                Serviço
-                <select name="serviceId" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20">
-                  <option value="">Escolha um serviço</option>
-                  {servicesData.map((service) => (
-                    <option value={service.id}>{service.title}</option>
-                  ))}
-                </select>
-              </label>
+            <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-6">
+              Service Galleries
+            </h2>
+            <form
+              method="POST"
+              action="/admin/api/service"
+              enctype="multipart/form-data"
+              class="grid gap-5"
+            >
+              <select
+                name="serviceId"
+                required
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm"
+              >
+                <option value="">Select a service</option>
+                {servicesData.map((s) => (
+                  <option value={s.id}>{s.title}</option>
+                ))}
+              </select>
 
               <div class="grid gap-4 md:grid-cols-2">
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Hero image
-                  <input type="file" name="heroImage" accept="image/*" class="text-sm text-slate-600" />
-                </label>
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Cover image
-                  <input type="file" name="coverImage" accept="image/*" class="text-sm text-slate-600" />
-                </label>
+                {["heroImage", "coverImage"].map((name) => (
+                  <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
+                    {name
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                    <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
+                      <img
+                        src=""
+                        alt="Preview"
+                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200"
+                        onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden')"
+                      />
+                      <div class="flex items-center gap-3 text-slate-400">
+                        <ImageIcon class="w-6 h-6 text-slate-400" />
+                        <span class="text-xs truncate max-w-[150px]">
+                          No file chosen
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        name={name}
+                        accept="image/*"
+                        class="hidden"
+                        onchange="const reader = new FileReader(); const img = this.parentElement.querySelector('img'); const span = this.parentElement.querySelector('span'); reader.onload = (e) => { img.src = e.target.result; }; reader.readAsDataURL(this.files[0]); span.textContent = this.files[0].name;"
+                      />
+                    </div>
+                  </label>
+                ))}
               </div>
-
-              <label class="grid gap-2 text-sm text-slate-700">
-                Imagens de galeria (múltiplas)
-                <input type="file" name="galleryImages" accept="image/*" multiple class="text-sm text-slate-600" />
+              <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
+                Add Gallery Photos
+                <div class="relative flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
+                  <div class="flex items-center gap-3 text-slate-400">
+                    <ImageIcon class="w-6 h-6 text-slate-400" />
+                    <span class="text-xs truncate max-w-[200px]">
+                      No files chosen
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    name="galleryImages"
+                    accept="image/*"
+                    multiple
+                    class="hidden"
+                    onchange="this.parentElement.querySelector('span').textContent = this.files.length + ' file(s) selected'"
+                  />
+                </div>
               </label>
-
-              <button type="submit" class="w-full rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]">
-                Atualizar serviço
+              <button
+                type="submit"
+                class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
+              >
+                <CloudUploadIcon class="w-4 h-4" />
+                Update Service
               </button>
             </form>
           </section>
 
           <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 class="text-2xl font-semibold text-[#0b3c5d]">Depoimentos</h2>
-                <p class="text-sm text-slate-600">Crie depoimentos com fotos Before/After e data do serviço no formato mês/ano.</p>
-              </div>
-              <span class="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-700">{testimonials.length} depoimentos</span>
-            </div>
-
-            <form method="POST" action="/admin/api/testimonial" enctype="multipart/form-data" class="grid gap-5">
+            <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-6">
+              Testimonials
+            </h2>
+            <form
+              method="POST"
+              action="/admin/api/testimonial"
+              enctype="multipart/form-data"
+              class="grid gap-5"
+            >
               <div class="grid gap-4 md:grid-cols-2">
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Cliente
-                  <input name="clientName" type="text" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20" />
-                </label>
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Serviço
-                  <select name="serviceType" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20">
-                    <option value="">Escolha um serviço</option>
-                    {servicesData.map((service) => (
-                      <option value={service.title}>{service.title}</option>
-                    ))}
-                    <option value="Other">Outro</option>
-                  </select>
-                </label>
+                <input
+                  name="clientName"
+                  placeholder="Client Name"
+                  type="text"
+                  required
+                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                />
+                <select
+                  name="serviceType"
+                  required
+                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                >
+                  <option value="">Select Service</option>
+                  {servicesData.map((s) => (
+                    <option value={s.title}>{s.title}</option>
+                  ))}
+                </select>
               </div>
 
               <div class="grid gap-4 md:grid-cols-2">
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Mês/Ano do serviço
-                  <input name="date" type="month" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20" />
-                </label>
-                <div class="grid gap-4">
-                  <label class="grid gap-2 text-sm text-slate-700">
-                    Foto Before
-                    <input name="beforeImage" type="file" accept="image/*" required class="text-sm text-slate-600" />
-                  </label>
-                  <label class="grid gap-2 text-sm text-slate-700">
-                    Foto After
-                    <input name="afterImage" type="file" accept="image/*" required class="text-sm text-slate-600" />
-                  </label>
-                </div>
+                <input
+                  name="city"
+                  placeholder="City"
+                  type="text"
+                  required
+                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                />
+                <input
+                  name="state"
+                  placeholder="State"
+                  type="text"
+                  required
+                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                />
               </div>
 
-              <label class="grid gap-2 text-sm text-slate-700">
-                Depoimento
-                <textarea name="message" rows="5" required class="w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm leading-6 focus:border-[#328cc1] focus:outline-none focus:ring-2 focus:ring-[#328cc1]/20"></textarea>
-              </label>
+              <input
+                name="date"
+                type="month"
+                required
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+              />
 
-              <button type="submit" class="w-full rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]">
-                Adicionar depoimento
+              <div class="grid gap-4 md:grid-cols-2">
+                {["beforeImage", "afterImage"].map((name) => (
+                  <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
+                    {name === "beforeImage" ? "Before Photo" : "After Photo"}
+                    <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
+                      <img
+                        src=""
+                        alt="Preview"
+                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200"
+                        onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden')"
+                      />
+                      <div class="flex items-center gap-3 text-slate-400">
+                        <ImageIcon class="w-6 h-6 text-slate-400" />
+                        <span class="text-xs truncate max-w-[150px]">
+                          No file chosen
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        name={name}
+                        accept="image/*"
+                        required
+                        class="hidden"
+                        onchange="const reader = new FileReader(); const img = this.parentElement.querySelector('img'); const span = this.parentElement.querySelector('span'); reader.onload = (e) => { img.src = e.target.result; }; reader.readAsDataURL(this.files[0]); span.textContent = this.files[0].name;"
+                      />
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <textarea
+                name="message"
+                placeholder="Testimonial text..."
+                rows="4"
+                required
+                class="w-full rounded-3xl border border-slate-300 px-4 py-3 text-sm"
+              />
+              <button
+                type="submit"
+                class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
+              >
+                <PlusIcon class="w-4 h-4" />
+                Add Testimonial
               </button>
             </form>
           </section>
         </div>
-      )}
-    </main>
-  </body>
-</html>
+      )
+    }
+  </main>
+</Layout>

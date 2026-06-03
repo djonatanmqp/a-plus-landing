@@ -1,14 +1,111 @@
 ---
 // src/components/Testimonials.astro
-import { getCollection } from "astro:content";
+import fs from "fs/promises";
+import path from "path";
 import TestimonialCard from "./TestimonialCard.astro";
 
-// Busca todos os arquivos dentro de src/content/testimonials/
-const allTestimonials = (await getCollection("testimonials")).sort((a, b) => {
+// IMPORTAÇÃO DOS ÍCONES UNIFICADOS
+import CloseIcon from "~icons/mdi/close";
+import CalendarIcon from "~icons/mdi/calendar-blank";
+import MapMarkerIcon from "~icons/mdi/map-marker";
+
+function parseFrontmatter(raw: string) {
+    const data: Record<string, string> = {};
+    raw.split(/\r?\n/).forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) return;
+        const match = /^([^:]+):\s*(?:"((?:\\.|[^"])+)"|(.*))$/.exec(trimmed);
+        if (!match) return;
+        const key = match[1].trim();
+        const value =
+            match[2] !== undefined
+                ? match[2].replace(/\\"/g, '"')
+                : match[3].trim();
+        data[key] = value;
+    });
+    return data;
+}
+
+function parseMarkdown(fileContent: string) {
+    const match = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)$/m.exec(
+        fileContent,
+    );
+    if (!match) {
+        return { frontmatter: {}, body: fileContent.trim() };
+    }
+    return {
+        frontmatter: parseFrontmatter(match[1]),
+        body: match[2].trim(),
+    };
+}
+
+const testimonialsDir: string = path.join(
+    process.cwd(),
+    "src/content/testimonials",
+);
+const fileNames: string[] = await fs.readdir(testimonialsDir);
+const allTestimonials = (
+    await Promise.all(
+        fileNames
+            .filter((fileName: string) => fileName.endsWith(".md"))
+            .map(async (fileName: string) => {
+                const raw = await fs.readFile(
+                    path.join(testimonialsDir, fileName),
+                    "utf8",
+                );
+                const { frontmatter, body } = parseMarkdown(raw);
+                const slug = fileName.replace(/\.md$/, "");
+                return { id: slug, data: frontmatter, body };
+            }),
+    )
+).sort((a: { data: { date?: string } }, b: { data: { date?: string } }) => {
     const aDate = a.data.date ? new Date(a.data.date).valueOf() : 0;
     const bDate = b.data.date ? new Date(b.data.date).valueOf() : 0;
     return bDate - aDate;
 });
+
+const testimonialsJson = JSON.stringify(allTestimonials);
+const testimonialsScript = `
+const testimonials = ${testimonialsJson};
+const modal = document.getElementById("testimonial-modal");
+const closeModalButton = document.getElementById("testimonial-modal-close");
+const serviceEl = document.getElementById("testimonial-modal-service");
+const clientEl = document.getElementById("testimonial-modal-client");
+const dateEl = document.getElementById("testimonial-modal-date");
+const locEl = document.getElementById("testimonial-modal-location");
+const bodyEl = document.getElementById("testimonial-modal-body");
+const beforeImg = document.getElementById("testimonial-modal-before");
+const afterImg = document.getElementById("testimonial-modal-after");
+
+function openModal(testimonial) {
+    if (!testimonial) return;
+    serviceEl.textContent = testimonial.data.serviceType || "";
+    clientEl.textContent = testimonial.data.clientName || "";
+    dateEl.querySelector('span').textContent = testimonial.data.date ? new Date(testimonial.data.date).toLocaleString("en-US", { month: "long", year: "numeric" }) : "";
+    locEl.querySelector('span').textContent = testimonial.data.city && testimonial.data.state ? testimonial.data.city + ", " + testimonial.data.state : "";
+    bodyEl.textContent = testimonial.body || "";
+    beforeImg.src = \`/uploads/\${testimonial.data.beforeImage}\`;
+    afterImg.src = \`/uploads/\${testimonial.data.afterImage}\`;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.body.style.overflow = "";
+}
+
+document.getElementById("testimonials-grid").addEventListener("click", (event) => {
+    const card = event.target.closest("[data-testimonial-id]");
+    if (!card) return;
+    openModal(testimonials.find(t => t.id === card.getAttribute("data-testimonial-id")));
+});
+
+closeModalButton.addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+`;
 ---
 
 <section id="testimonials" class="max-w-6xl mx-auto px-4 py-12">
@@ -17,18 +114,92 @@ const allTestimonials = (await getCollection("testimonials")).sort((a, b) => {
     >
         What Our Clients Say
     </h2>
-
-    {
-        allTestimonials.length > 0 ? (
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {allTestimonials.map((testimonial: any) => (
-                    <TestimonialCard data={testimonial.data}>
-                        {testimonial.body}
-                    </TestimonialCard>
-                ))}
-            </div>
-        ) : (
-            <p class="text-gray-500 italic text-center">No testimonials yet.</p>
-        )
-    }
+    <div
+        class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+        id="testimonials-grid"
+    >
+        {
+            allTestimonials.map((t: any) => (
+                <article
+                    class="testimonial-card cursor-pointer rounded-3xl border border-slate-200 bg-white p-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    data-testimonial-id={t.id}
+                >
+                    <TestimonialCard data={t.data}>{t.body}</TestimonialCard>
+                </article>
+            ))
+        }
+    </div>
 </section>
+
+<div
+    id="testimonial-modal"
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4"
+>
+    <div
+        class="relative w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white px-6 py-8 shadow-2xl sm:px-8"
+    >
+        <!-- Botão Fechar com Ícone Unificado -->
+        <button
+            id="testimonial-modal-close"
+            class="absolute right-4 top-4 rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200 transition-colors"
+            aria-label="Close modal"
+        >
+            <CloseIcon class="w-5 h-5" />
+        </button>
+        <div class="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
+            <div class="space-y-2">
+                <div class="text-slate-500 text-xs uppercase tracking-[0.3em]">
+                    Service
+                </div>
+                <div
+                    id="testimonial-modal-service"
+                    class="text-xl font-bold text-[#0b3c5d]"
+                >
+                </div>
+                <div
+                    id="testimonial-modal-client"
+                    class="text-sm uppercase tracking-[0.25em] text-[#328cc1] mb-4"
+                >
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <div
+                        id="testimonial-modal-date"
+                        class="flex items-center gap-2 text-sm text-slate-500"
+                    >
+                        <CalendarIcon class="w-4 h-4 text-slate-400" />
+                        <span></span>
+                    </div>
+                    <div
+                        id="testimonial-modal-location"
+                        class="flex items-center gap-2 text-sm text-slate-500"
+                    >
+                        <MapMarkerIcon class="w-4 h-4 text-slate-400" />
+                        <span></span>
+                    </div>
+                </div>
+                <div
+                    id="testimonial-modal-body"
+                    class="text-slate-700 text-sm leading-relaxed mt-4"
+                >
+                </div>
+            </div>
+            <div class="grid gap-4">
+                <img
+                    id="testimonial-modal-before"
+                    src=""
+                    alt="Before"
+                    class="w-full h-64 object-cover rounded-3xl border border-slate-200"
+                />
+                <img
+                    id="testimonial-modal-after"
+                    src=""
+                    alt="After"
+                    class="w-full h-64 object-cover rounded-3xl border border-slate-200"
+                />
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" set:html={testimonialsScript} />

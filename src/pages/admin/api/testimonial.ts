@@ -12,7 +12,7 @@ export async function POST({ request }: { request: Request }) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Autentica%C3%A7%C3%A3o+necess%C3%A1ria",
+        location: "/admin?message=Authentication+required",
       },
     });
   }
@@ -20,14 +20,16 @@ export async function POST({ request }: { request: Request }) {
   const formData = await request.formData();
   const clientName = (formData.get("clientName") ?? "").toString().trim();
   const serviceType = (formData.get("serviceType") ?? "").toString().trim();
+  const city = (formData.get("city") ?? "").toString().trim();
+  const state = (formData.get("state") ?? "").toString().trim();
   const message = (formData.get("message") ?? "").toString().trim();
   const monthValue = (formData.get("date") ?? "").toString().trim();
 
-  if (!clientName || !serviceType || !message || !monthValue) {
+  if (!clientName || !serviceType || !city || !state || !message || !monthValue) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Preencha+todos+os+dados+do+depoimento",
+        location: "/admin?message=Fill+in+all+the+testimonial+details",
       },
     });
   }
@@ -38,7 +40,7 @@ export async function POST({ request }: { request: Request }) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Envie+as+imagens+before+e+after",
+        location: "/admin?message=Upload+both+before+and+after+images",
       },
     });
   }
@@ -62,14 +64,14 @@ export async function POST({ request }: { request: Request }) {
   const beforeImagePath = `testimonials/${slug}/${beforeName}`;
   const afterImagePath = `testimonials/${slug}/${afterName}`;
 
-  const markdown = `---\nclientName: "${clientName.replace(/"/g, '\\"')}"\nserviceType: "${serviceType.replace(/"/g, '\\"')}"\nbeforeImage: "${beforeImagePath}"\nafterImage: "${afterImagePath}"\ndate: "${dateString}"\n---\n${message.replace(/\r\n?/g, "\n").trim()}\n`;
+  const markdown = `---\nclientName: "${clientName.replace(/"/g, '\\"')}"\nserviceType: "${serviceType.replace(/"/g, '\\"')}"\ncity: "${city.replace(/"/g, '\\"')}"\nstate: "${state.replace(/"/g, '\\"')}"\nbeforeImage: "${beforeImagePath}"\nafterImage: "${afterImagePath}"\ndate: "${dateString}"\n---\n${message.replace(/\r\n?/g, "\n").trim()}\n`;
   const testimonialFile = path.join(process.cwd(), "src/content/testimonials", `${slug}.md`);
   await fs.writeFile(testimonialFile, markdown, "utf8");
 
   return new Response(null, {
     status: 303,
     headers: {
-      location: "/admin?message=Depoimento+adicionado+com+sucesso",
+      location: "/admin?message=Testimonial+added+successfully!",
     },
   });
 }

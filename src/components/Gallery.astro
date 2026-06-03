@@ -1,5 +1,6 @@
 ---
 import servicesData from "../data/services.json";
+import MagnifyIcon from "~icons/mdi/magnify";
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-6">
@@ -27,14 +28,17 @@ import servicesData from "../data/services.json";
                             <img
                                 src={service.coverImage[0]}
                                 alt={service.title}
-                                data-image-variants={JSON.stringify(service.coverImage)}
+                                data-image-variants={JSON.stringify(
+                                    service.coverImage,
+                                )}
                                 data-fallback-label={`${service.title} Cover`}
                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 onerror="this.onerror=null; tryNextImageVariant(this);"
                             />
                             <div class="absolute inset-0 bg-[#0b3c5d]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span class="bg-white text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
-                                    View Gallery 🔍
+                                <span class="inline-flex items-center gap-1.5 bg-white/65 text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
+                                    View Gallery
+                                    <MagnifyIcon class="w-4 h-4" />
                                 </span>
                             </div>
                         </div>
@@ -153,30 +157,34 @@ import servicesData from "../data/services.json";
                 serviceData.images && serviceData.images.length > 0
                     ? serviceData.images
                     : [
-                          [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`],
+                          [
+                              `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`,
+                          ],
                       ];
 
-            projectImages.forEach((imgUrl: string | string[], index: number) => {
-                const imgWrapper = document.createElement("div");
-                imgWrapper.className =
-                    "rounded-lg overflow-hidden border border-gray-100 aspect-video shadow-sm bg-gray-50";
+            projectImages.forEach(
+                (imgUrl: string | string[], index: number) => {
+                    const imgWrapper = document.createElement("div");
+                    imgWrapper.className =
+                        "rounded-lg overflow-hidden border border-gray-100 aspect-video shadow-sm bg-gray-50";
 
-                const variants = Array.isArray(imgUrl) ? imgUrl : [imgUrl];
-                const img = document.createElement("img");
-                img.src = variants[0];
-                img.alt = `${serviceData.title} view ${index + 1}`;
-                img.dataset.imageVariants = JSON.stringify(variants);
-                img.dataset.fallbackLabel = `${serviceData.title} Image ${index + 1}`;
-                img.className =
-                    "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
+                    const variants = Array.isArray(imgUrl) ? imgUrl : [imgUrl];
+                    const img = document.createElement("img");
+                    img.src = variants[0];
+                    img.alt = `${serviceData.title} view ${index + 1}`;
+                    img.dataset.imageVariants = JSON.stringify(variants);
+                    img.dataset.fallbackLabel = `${serviceData.title} Image ${index + 1}`;
+                    img.className =
+                        "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
 
-                img.onerror = () => {
-                    tryNextImageVariant(img);
-                };
+                    img.onerror = () => {
+                        tryNextImageVariant(img);
+                    };
 
-                imgWrapper.appendChild(img);
-                modalImagesGrid.appendChild(imgWrapper);
-            });
+                    imgWrapper.appendChild(img);
+                    modalImagesGrid.appendChild(imgWrapper);
+                },
+            );
 
             modal.showModal();
             setTimeout(() => {

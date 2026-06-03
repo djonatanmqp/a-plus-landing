@@ -5,7 +5,7 @@ export async function POST() {
     status: 303,
     headers: {
       "set-cookie": `${SESSION_COOKIE_NAME}=deleted; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=0`,
-      location: "/admin?message=Desconectado+com+sucesso",
+      location: "/admin?message=You+have+been+logged+out.",
     },
   });
 }

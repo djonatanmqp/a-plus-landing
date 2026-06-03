@@ -1,75 +1,99 @@
 ---
 // src/components/Contact.astro
+import Phone from "~icons/mdi/phone";
+import Video from "~icons/mdi/video";
+import Email from "~icons/mdi/email";
+import Facebook from "~icons/simple-icons/facebook";
+import Instagram from "~icons/simple-icons/instagram";
+import Tiktok from "~icons/simple-icons/tiktok";
+import GoogleIcon from "~icons/simple-icons/google";
 ---
 
 <section id="contact" class="max-w-6xl mx-auto px-4 py-6">
     <div
-        class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 relative overflow-hidden"
+        class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 grid md:grid-cols-2 gap-10"
     >
-        <div
-            class="absolute bottom-0 right-0 w-32 h-32 opacity-[0.03] pointer-events-none select-none"
-        >
-            <img
-                src="/paver-pattern.png"
-                alt=""
-                class="w-full h-full object-cover"
-            />
-        </div>
+        <!-- Coluna Esquerda: Contatos e Redes -->
+        <div>
+            <h2 class="text-2xl font-extrabold text-[#0b3c5d] mb-2">
+                Contact Us
+            </h2>
+            <p
+                class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-8"
+            >
+                Contact us for a free estimate
+            </p>
 
-        <h2 class="text-2xl font-extrabold text-[#0b3c5d] mb-2">Contact Us</h2>
-        <p
-            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6"
-        >
-            Contact us for a free estimate
-        </p>
-
-        <div
-            class="space-y-3 text-sm sm:text-base font-semibold text-[#328cc1]"
-        >
-            <p class="flex items-center gap-2">
-                <span class="text-gray-400 select-none">📞</span>
+            <div
+                class="space-y-4 text-sm sm:text-base font-semibold text-[#328cc1]"
+            >
                 <a
                     href="tel:4071234567"
-                    class="hover:underline text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
-                    >(407) 123-4567</a
+                    class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
-            </p>
-            <p class="flex items-center gap-2">
-                <span class="text-gray-400 select-none">✉️</span>
+                    <Phone class="w-5 h-5 text-gray-400" /> (407) 123-4567
+                </a>
+                <a
+                    href="facetime:4071234567"
+                    class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
+                >
+                    <Video class="w-5 h-5 text-gray-400" /> FaceTime
+                </a>
                 <a
                     href="mailto:info@apluspaversgrass.com"
-                    class="hover:underline text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
-                    >info@apluspaversgrass.com</a
+                    class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
-            </p>
-            <p class="flex items-center gap-2">
-                <span class="text-gray-400 select-none">📸</span>
+                    <Email class="w-5 h-5 text-gray-400" /> info@apluspaversgrass.com
+                </a>
+            </div>
+
+            <div class="flex gap-5 mt-8 pt-6 border-t border-gray-100">
+                <!-- Google -->
+                <a
+                    href="https://search.google.com/local/writereview?placeid=YOUR_GOOGLE_PLACE_ID"
+                    target="_blank"
+                    class="text-gray-400 hover:text-[#4285F4] transition-colors"
+                    aria-label="Google Reviews"
+                >
+                    <GoogleIcon class="w-8 h-8" />
+                </a>
                 <a
                     href="#"
-                    class="hover:underline text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
-                    >Instagram @apluspaversgrass</a
+                    class="text-gray-400 hover:text-[#1877F2] transition-colors"
+                    aria-label="Facebook"
                 >
-            </p>
+                    <Facebook class="w-8 h-8" />
+                </a>
+                <a
+                    href="#"
+                    class="text-gray-400 hover:text-[#E1306C] transition-colors"
+                    aria-label="Instagram"
+                >
+                    <Instagram class="w-8 h-8" />
+                </a>
+                <a
+                    href="#"
+                    class="text-gray-400 hover:text-[#000000] transition-colors"
+                    aria-label="TikTok"
+                >
+                    <Tiktok class="w-8 h-8" />
+                </a>
+            </div>
         </div>
 
+        <!-- Coluna Direita: Mapa -->
         <div
-            class="flex justify-end gap-5 mt-6 pt-4 border-t border-gray-100 text-gray-400 font-medium text-sm"
+            class="w-full h-64 md:h-auto min-h-[250px] rounded-xl overflow-hidden border border-gray-100 shadow-inner"
         >
-            <a
-                href="#"
-                class="hover:text-[#0b3c5d] transition-colors flex items-center gap-1"
-                >🌐 Facebook</a
+            <iframe
+                width="100%"
+                height="100%"
+                style="border:0"
+                loading="lazy"
+                allowfullscreen
+                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3603.139030919199!2d-49.2667508!3d-25.433615!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dce46a273e9351%3A0xad2ebcf125af3ab0!2sSenac%20Paran%C3%A1%20-%20Faculdade%20Senac!5e0!3m2!1spt-BR!2sbr!4v1780514801679!5m2!1spt-BR!2sbr"
             >
-            <a
-                href="#"
-                class="hover:text-[#0b3c5d] transition-colors flex items-center gap-1"
-                >📸 Instagram</a
-            >
-            <a
-                href="#"
-                class="hover:text-[#0b3c5d] transition-colors flex items-center gap-1"
-                >🎵 TikTok</a
-            >
+            </iframe>
         </div>
     </div>
 </section>

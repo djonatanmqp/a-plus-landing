@@ -17,7 +17,7 @@ export async function POST({ request }: { request: Request }) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Autentica%C3%A7%C3%A3o+necess%C3%A1ria",
+        location: "/admin?message=Authentication+required",
       },
     });
   }
@@ -28,7 +28,7 @@ export async function POST({ request }: { request: Request }) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Selecione+um+servi%C3%A7o",
+        location: "/admin?message=Select+a+service",
       },
     });
   }
@@ -39,7 +39,7 @@ export async function POST({ request }: { request: Request }) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Servi%C3%A7o+n%C3%A3o+encontrado",
+        location: "/admin?message=Service+not+found",
       },
     });
   }
@@ -69,12 +69,21 @@ export async function POST({ request }: { request: Request }) {
   if (Array.isArray(galleryFiles)) {
     for (const file of galleryFiles) {
       if (!file || !file.size) continue;
+
       const ext = path.extname(file.name) || ".jpg";
+      // Nome único para evitar conflitos
       const fileName = `gallery-${Date.now()}-${sanitizeFileName(file.name)}`;
       const destination = path.join(serviceDir, fileName);
+
       await saveUploadedBlob(file, destination);
-      service.images = service.images || [];
-      service.images.push([`/services/${serviceId}/${fileName}`]);
+
+      // Ajuste: Garante que service.images seja um array de strings (plano)
+      if (!Array.isArray(service.images)) {
+        service.images = [];
+      }
+
+      // Push da string diretamente, não de um array
+      service.images.push(`/services/${serviceId}/${fileName}`);
     }
   }
 
@@ -83,7 +92,7 @@ export async function POST({ request }: { request: Request }) {
   return new Response(null, {
     status: 303,
     headers: {
-      location: "/admin?message=Servi%C3%A7o+atualizado+com+sucesso",
+      location: "/admin?message=Service+updated+successfully.",
     },
   });
 }

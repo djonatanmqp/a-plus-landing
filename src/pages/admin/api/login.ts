@@ -9,7 +9,7 @@ export async function POST({ request }: { request: Request }) {
     return new Response(null, {
       status: 303,
       headers: {
-        location: "/admin?message=Credenciais+inv%C3%A1lidas",
+        location: "/admin?message=Invalid+credentials",
       },
     });
   }
@@ -19,7 +19,7 @@ export async function POST({ request }: { request: Request }) {
     status: 303,
     headers: {
       "set-cookie": `${SESSION_COOKIE_NAME}=${token}; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}`,
-      location: "/admin?message=Login+realizado+com+sucesso",
+      location: "/admin?message=Login+successful!",
     },
   });
 }

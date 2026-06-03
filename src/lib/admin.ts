@@ -2,6 +2,24 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
+// Carrega `.env` manualmente se as variáveis de ambiente não estiverem presentes.
+// Isso ajuda em ambientes onde o processo não carregou o .env automaticamente.
+try {
+  const envPath = path.join(process.cwd(), ".env");
+  // top-level await: ler arquivo e popular process.env se necessário
+  await fs.access(envPath);
+  const raw = await fs.readFile(envPath, "utf8");
+  raw.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) return;
+    const [key, ...rest] = trimmed.split("=");
+    const value = rest.join("=").trim().replace(/^"|"$/g, "");
+    if (process.env[key] === undefined) process.env[key] = value;
+  });
+} catch (e) {
+  // arquivo .env não encontrado ou erro de leitura — sem ação
+}
+
 export const ADMIN_USER = process.env.ADMIN_USER ?? "admin";
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Str0ngP@ssw0rd!2026";
 const COOKIE_SECRET = process.env.ADMIN_COOKIE_SECRET ?? "change-this-secret-to-a-long-random-value";
