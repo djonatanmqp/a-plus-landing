@@ -1,38 +1,13 @@
 ---
 // src/components/Hero.astro
-const servicesCarousel = [
-    {
-        title: "Driveway Pavers",
-        description:
-            "Premium paver installation for modern and durable driveways.",
-        imageVariants: [
-            "/services/driveways/hero.jpg",
-            "/services/driveways/hero.webp",
-            "/services/driveways/hero.png",
-        ],
-        galleryId: "driveways",
-    },
-    {
-        title: "Patio & Walkways",
-        description: "Transform your backyard with beautiful custom patios.",
-        imageVariants: [
-            "/services/patios/hero.jpg",
-            "/services/patios/hero.webp",
-            "/services/patios/hero.png",
-        ],
-        galleryId: "patios",
-    },
-    {
-        title: "Artificial Turf & Sod",
-        description: "Flawless green lawns tailored for Orlando weather.",
-        imageVariants: [
-            "/services/lawn/hero.webp",
-            "/services/lawn/hero.jpg",
-            "/services/lawn/hero.png",
-        ],
-        galleryId: "lawn",
-    },
-];
+import servicesData from "../data/services.json";
+
+const servicesCarousel = servicesData.map((service) => ({
+    title: service.title,
+    description: service.description,
+    imageVariants: service.heroImage?.length ? service.heroImage : service.coverImage,
+    galleryId: service.id,
+}));
 ---
 
 <section class="block bg-white p-0 m-0 overflow-hidden select-none">
@@ -169,7 +144,7 @@ const servicesCarousel = [
     <div class="max-w-6xl mx-auto px-0 sm:px-4 pb-6 relative group block overflow-visible">
         <div
             id="carousel-wrapper"
-            class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-none sm:rounded-lg shadow-xl aspect-[16/9] md:aspect-[21/9] no-scrollbar -mt-6 sm:-mt-8"
+            class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-none sm:rounded-lg shadow-xl aspect-[16/9] md:aspect-[21/9] no-scrollbar"
         >
                 {
                     servicesCarousel.map((service, index) => (

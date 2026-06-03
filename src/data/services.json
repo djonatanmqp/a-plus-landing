@@ -1,0 +1,88 @@
+[
+  {
+    "id": "driveways",
+    "title": "Driveway Pavers",
+    "description": "Premium paver installation for modern and durable driveways.",
+    "heroImage": [
+      "/services/driveways/hero.jpg",
+      "/services/driveways/hero.webp",
+      "/services/driveways/hero.png"
+    ],
+    "coverImage": [
+      "/services/driveways/cover.jpg",
+      "/services/driveways/cover.webp",
+      "/services/driveways/cover.png"
+    ],
+    "images": [
+      [
+        "/services/driveways/projeto1.jpg",
+        "/services/driveways/projeto1.webp",
+        "/services/driveways/projeto1.png"
+      ],
+      [
+        "/services/driveways/projeto2.jpg",
+        "/services/driveways/projeto2.webp",
+        "/services/driveways/projeto2.png"
+      ],
+      [
+        "/services/driveways/projeto3.jpg",
+        "/services/driveways/projeto3.webp",
+        "/services/driveways/projeto3.png"
+      ]
+    ]
+  },
+  {
+    "id": "patios",
+    "title": "Patio & Walkways",
+    "description": "Transform your backyard with beautiful custom patios.",
+    "heroImage": [
+      "/services/patios/hero.jpg",
+      "/services/patios/hero.webp",
+      "/services/patios/hero.png"
+    ],
+    "coverImage": [
+      "/services/patios/cover.jpg",
+      "/services/patios/cover.webp",
+      "/services/patios/cover.png"
+    ],
+    "images": [
+      [
+        "/services/patios/foto1.jpg",
+        "/services/patios/foto1.webp",
+        "/services/patios/foto1.png"
+      ],
+      [
+        "/services/patios/foto2.jpg",
+        "/services/patios/foto2.webp",
+        "/services/patios/foto2.png"
+      ]
+    ]
+  },
+  {
+    "id": "lawn",
+    "title": "Artificial Turf & Sod",
+    "description": "Flawless green lawns tailored for Orlando weather.",
+    "heroImage": [
+      "/services/lawn/hero.webp",
+      "/services/lawn/hero.jpg",
+      "/services/lawn/hero.png"
+    ],
+    "coverImage": [
+      "/services/lawn/cover.webp",
+      "/services/lawn/cover.jpg",
+      "/services/lawn/cover.png"
+    ],
+    "images": [
+      [
+        "/services/lawn/antes.webp",
+        "/services/lawn/antes.jpg",
+        "/services/lawn/antes.png"
+      ],
+      [
+        "/services/lawn/depois.webp",
+        "/services/lawn/depois.jpg",
+        "/services/lawn/depois.png"
+      ]
+    ]
+  }
+]

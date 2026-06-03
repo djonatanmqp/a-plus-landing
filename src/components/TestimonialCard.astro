@@ -2,9 +2,14 @@
 // src/components/TestimonialCard.astro
 const { data } = Astro.props;
 
-// O cliente preenche apenas o nome do arquivo no .md
 const beforePath = `/uploads/${data.beforeImage}`;
 const afterPath = `/uploads/${data.afterImage}`;
+const dateDisplay = data.date
+    ? new Date(data.date).toLocaleString("en-US", {
+          month: "long",
+          year: "numeric",
+      })
+    : null;
 ---
 
 <div
@@ -41,7 +46,12 @@ const afterPath = `/uploads/${data.afterImage}`;
     <span class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest"
         >{data.serviceType}</span
     >
-    <h3 class="font-bold text-lg mt-1 text-[#0b3c5d] leading-tight">
+    {dateDisplay ? (
+        <span class="block text-[10px] uppercase tracking-widest text-gray-400 mt-1">
+            {dateDisplay}
+        </span>
+    ) : null}
+    <h3 class="font-bold text-lg mt-2 text-[#0b3c5d] leading-tight">
         {data.clientName}
     </h3>
 
