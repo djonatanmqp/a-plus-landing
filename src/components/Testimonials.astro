@@ -1,0 +1,30 @@
+---
+// src/components/Testimonials.astro
+import { getCollection } from "astro:content";
+import TestimonialCard from "./TestimonialCard.astro";
+
+// Busca todos os arquivos dentro de src/content/testimonials/
+const allTestimonials = await getCollection("testimonials");
+---
+
+<section id="testimonials" class="max-w-6xl mx-auto px-4 py-12">
+    <h2
+        class="text-3xl font-extrabold text-[#0b3c5d] mb-8 text-center md:text-left"
+    >
+        What Our Clients Say
+    </h2>
+
+    {
+        allTestimonials.length > 0 ? (
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {allTestimonials.map((testimonial: any) => (
+                    <TestimonialCard data={testimonial.data}>
+                        {testimonial.body}
+                    </TestimonialCard>
+                ))}
+            </div>
+        ) : (
+            <p class="text-gray-500 italic text-center">No testimonials yet.</p>
+        )
+    }
+</section>

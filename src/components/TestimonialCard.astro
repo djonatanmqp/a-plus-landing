@@ -1,0 +1,51 @@
+---
+// src/components/TestimonialCard.astro
+const { data } = Astro.props;
+
+// O cliente preenche apenas o nome do arquivo no .md
+const beforePath = `/uploads/${data.beforeImage}`;
+const afterPath = `/uploads/${data.afterImage}`;
+---
+
+<div
+    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full"
+>
+    <!-- Imagens: Antes (Esquerda) e Depois (Direita) lado a lado -->
+    <div class="flex gap-3 mb-4">
+        <div class="w-1/2">
+            <p
+                class="text-[9px] uppercase font-bold text-gray-400 mb-1 tracking-wider"
+            >
+                Before
+            </p>
+            <img
+                src={beforePath}
+                alt="Before"
+                class="w-full h-32 object-cover rounded shadow-sm border border-gray-100"
+            />
+        </div>
+        <div class="w-1/2">
+            <p
+                class="text-[9px] uppercase font-bold text-gray-400 mb-1 tracking-wider"
+            >
+                After
+            </p>
+            <img
+                src={afterPath}
+                alt="After"
+                class="w-full h-32 object-cover rounded shadow-sm border border-gray-100"
+            />
+        </div>
+    </div>
+
+    <span class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest"
+        >{data.serviceType}</span
+    >
+    <h3 class="font-bold text-lg mt-1 text-[#0b3c5d] leading-tight">
+        {data.clientName}
+    </h3>
+
+    <div class="text-gray-600 mt-3 text-sm leading-relaxed flex-grow italic">
+        <slot />
+    </div>
+</div>

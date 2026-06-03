@@ -1,0 +1,345 @@
+---
+// src/components/Hero.astro
+const servicesCarousel = [
+    {
+        title: "Driveway Pavers",
+        description:
+            "Premium paver installation for modern and durable driveways.",
+        imageVariants: [
+            "/services/driveways/hero.jpg",
+            "/services/driveways/hero.webp",
+            "/services/driveways/hero.png",
+        ],
+        galleryId: "driveways",
+    },
+    {
+        title: "Patio & Walkways",
+        description: "Transform your backyard with beautiful custom patios.",
+        imageVariants: [
+            "/services/patios/hero.jpg",
+            "/services/patios/hero.webp",
+            "/services/patios/hero.png",
+        ],
+        galleryId: "patios",
+    },
+    {
+        title: "Artificial Turf & Sod",
+        description: "Flawless green lawns tailored for Orlando weather.",
+        imageVariants: [
+            "/services/lawn/hero.webp",
+            "/services/lawn/hero.jpg",
+            "/services/lawn/hero.png",
+        ],
+        galleryId: "lawn",
+    },
+];
+---
+
+<section class="block bg-white p-0 m-0 overflow-hidden select-none">
+    <!-- 1. Header isolado em seu próprio contêiner -->
+    <header
+        class="relative z-40 text-white py-5 px-4 sm:px-6 lg:px-8 pb-0 border-b-4 border-[#328cc1] bg-repeat bg-center"
+        style="background-image: linear-gradient(rgba(128, 128, 128, 0.50), rgba(128, 128, 128, 0.50)), url('/paver-pattern.png'); background-size: auto, 180px;"
+    >
+        <div
+            class="max-w-6xl mx-auto flex flex-row items-center justify-between gap-4 sm:gap-6 relative"
+        >
+            <!-- Lado Esquerdo: Logo e Título Dinâmico -->
+            <div class="flex items-center justify-start relative flex-1">
+                <!-- Logo Oficial da Empresa (Vazada metade para baixo) -->
+                <div class="absolute bottom-0 left-0 z-30 translate-y-1/2">
+                    <img
+                        src="/logo.png"
+                        alt="A-Plus Pavers & Grass LLC Logo"
+                        class="w-20 sm:w-28 md:w-36 h-auto drop-shadow-lg transition-transform duration-300 hover:scale-105"
+                    />
+                </div>
+
+                <!-- Título e Subtítulo sem hífen e com quebra elegante -->
+                <div
+                    class="pl-24 sm:pl-32 md:pl-44 py-1 relative z-10 flex flex-col justify-center"
+                >
+                    <h1
+                        class="m-0 p-0 tracking-tight leading-none"
+                        style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
+                    >
+                        <!-- Título Principal com tamanho expandido -->
+                        <span
+                            class="text-[#0b3c5d] text-lg sm:text-2xl md:text-3xl font-black block"
+                        >
+                            A-PLUS PAVERS & GRASS
+                        </span>
+                        <!-- Subtítulo menor posicionado logo abaixo -->
+                        <span
+                            class="text-[#2b3a42] font-bold text-[10px] sm:text-sm md:text-base tracking-wider block mt-1 sm:mt-1.5 uppercase"
+                        >
+                            Your Premier Choice for Orlando
+                        </span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Menu de Navegação Desktop & Botão Hamburguer Mobile (Continua igual...) -->
+            <div class="relative z-50 flex items-center">
+                <!-- ... restante do código de navegação e carrossel permanece idêntico ... -->
+
+                <div class="relative z-50 flex items-center">
+                    <nav
+                        class="hidden md:flex items-center gap-6 font-bold text-sm uppercase tracking-wider text-[#0b3c5d]"
+                    >
+                        <a
+                            href="#services"
+                            class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
+                            >Services</a
+                        >
+                        <a
+                            href="#gallery-driveways"
+                            class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
+                            >Gallery</a
+                        >
+                        <a
+                            href="#contact"
+                            class="hover:text-[#328cc1] transition-colors drop-shadow-sm bg-[#0b3c5d] text-white px-4 py-2 rounded shadow-sm"
+                            >Contact Us</a
+                        >
+                    </nav>
+
+                    <button
+                        id="menu-toggle"
+                        class="md:hidden flex flex-col justify-between w-6 h-4 text-white focus:outline-none bg-black/20 p-2 box-content rounded"
+                        aria-label="Toggle navigation menu"
+                    >
+                        <span
+                            class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 origin-left line-1"
+                        ></span>
+                        <span
+                            class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 line-2"
+                        ></span>
+                        <span
+                            class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 origin-left line-3"
+                        ></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            id="mobile-menu"
+            class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm pointer-events-none opacity-0 transition-all duration-300 md:hidden"
+        >
+            <div
+                class="absolute right-0 top-0 h-full w-64 bg-white shadow-2xl p-6 flex flex-col translate-x-full transition-transform duration-300 ease-out menu-content"
+            >
+                <div
+                    class="flex justify-between items-center mb-8 border-b pb-4"
+                >
+                    <span class="font-extrabold text-[#0b3c5d] text-lg"
+                        >Navigation</span
+                    >
+                    <button
+                        id="menu-close"
+                        class="text-2xl text-gray-400 hover:text-black leading-none focus:outline-none"
+                        >&times;</button
+                    >
+                </div>
+                <nav
+                    class="flex flex-col gap-5 text-base font-bold uppercase tracking-wider text-[#0b3c5d]"
+                >
+                    <a
+                        href="#services"
+                        class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
+                        >Our Services</a
+                    >
+                    <a
+                        href="#gallery-driveways"
+                        class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
+                        >Photo Gallery</a
+                    >
+                    <a
+                        href="#contact"
+                        class="mobile-link bg-[#0b3c5d] text-white text-center py-3 rounded-md shadow mt-4 block"
+                        >Get Free Estimate 📞</a
+                    >
+                </nav>
+            </div>
+        </div>
+
+    </header>
+
+    <div class="max-w-6xl mx-auto px-0 sm:px-4 pb-6 relative group block overflow-visible">
+        <div
+            id="carousel-wrapper"
+            class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-none sm:rounded-lg shadow-xl aspect-[16/9] md:aspect-[21/9] no-scrollbar -mt-6 sm:-mt-8"
+        >
+                {
+                    servicesCarousel.map((service, index) => (
+                        <div
+                            id={`slide-${index}`}
+                            class="w-full h-full flex-shrink-0 snap-start relative"
+                        >
+                            <img
+                                src={service.imageVariants[0]}
+                                alt={service.title}
+                                data-image-variants={JSON.stringify(service.imageVariants)}
+                                data-fallback-label={service.title}
+                                class="w-full h-full object-cover"
+                                onerror="this.onerror=null; tryNextImageVariant(this);"
+                            />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                            <div class="absolute bottom-6 left-6 right-6 md:left-12 md:bottom-10 text-white max-w-lg">
+                                <span class="text-[#d9b310] font-bold text-xs uppercase tracking-widest bg-black/40 px-2 py-1 rounded">
+                                    Our Services
+                                </span>
+                                <h2 class="text-xl sm:text-3xl font-extrabold mt-2 tracking-tight">
+                                    {service.title}
+                                </h2>
+                                <p class="text-xs sm:text-sm text-gray-200 mt-1 mb-4 hidden sm:block">
+                                    {service.description}
+                                </p>
+                                <a
+                                    href={`#gallery-${service.galleryId}`}
+                                    class="bg-[#328cc1] hover:bg-[#0b3c5d] text-white font-bold py-2.5 px-5 sm:py-3 sm:px-6 rounded-md shadow-lg transition-all inline-block text-xs uppercase tracking-wider border border-white/20"
+                                >
+                                    View {service.title} Gallery
+                                </a>
+                            </div>
+                        </div>
+                    ))
+                }
+            </div>
+
+            <button
+                id="prev-btn"
+                class="absolute left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#328cc1] text-white p-2 rounded-full hidden md:block opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >◀</button
+            >
+            <button
+                id="next-btn"
+                class="absolute right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#328cc1] text-white p-2 rounded-full hidden md:block opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >▶</button
+            >
+        </div>
+    </div>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animação do botão hamburguer se transformando em X */
+        .menu-active .line-1 {
+            transform: rotate(45deg) translate(2px, 1px);
+        }
+        .menu-active .line-2 {
+            opacity: 0;
+        }
+        .menu-active .line-3 {
+            transform: rotate(-45deg) translate(2px, -1px);
+        }
+    </style>
+
+    <script>
+        const tryNextImageVariant = (img: HTMLImageElement) => {
+            const variants = JSON.parse(img.dataset.imageVariants || "[]");
+            const currentIndex = Number(img.dataset.variantIndex || 0);
+
+            if (currentIndex < variants.length - 1) {
+                img.dataset.variantIndex = String(currentIndex + 1);
+                img.src = variants[currentIndex + 1];
+                return;
+            }
+
+            img.src = `https://placehold.co/1200x500?text=${encodeURIComponent(img.dataset.fallbackLabel || "Image")}+Showcase`;
+        };
+
+        // Script do Carrossel (Mantido idêntico)
+        const wrapper = document.getElementById("carousel-wrapper");
+        const prevBtn = document.getElementById("prev-btn");
+        const nextBtn = document.getElementById("next-btn");
+
+        if (wrapper && prevBtn && nextBtn) {
+            const autoplayInterval = 5000;
+            const nextSlide = () => {
+                const maxScrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
+                if (wrapper.scrollLeft >= maxScrollLeft - 10) {
+                    wrapper.scrollLeft = 0;
+                } else {
+                    wrapper.scrollLeft += wrapper.clientWidth;
+                }
+            };
+            const prevSlide = () => {
+                if (wrapper.scrollLeft <= 0) {
+                    wrapper.scrollLeft =
+                        wrapper.scrollWidth - wrapper.clientWidth;
+                } else {
+                    wrapper.scrollLeft -= wrapper.clientWidth;
+                }
+            };
+            nextBtn.addEventListener("click", () => {
+                nextSlide();
+                resetAutoplay();
+            });
+            prevBtn.addEventListener("click", () => {
+                prevSlide();
+                resetAutoplay();
+            });
+            let autoPlayTimer = setInterval(nextSlide, autoplayInterval);
+            const resetAutoplay = () => {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = setInterval(nextSlide, autoplayInterval);
+            };
+            wrapper.addEventListener("mouseenter", () =>
+                clearInterval(autoPlayTimer),
+            );
+            wrapper.addEventListener("mouseleave", () => {
+                autoPlayTimer = setInterval(nextSlide, autoplayInterval);
+            });
+        }
+
+        // Lógica do Menu Hamburguer Mobile
+        const toggleBtn = document.getElementById("menu-toggle");
+        const closeBtn = document.getElementById("menu-close");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const menuContent = mobileMenu?.querySelector(".menu-content");
+        const mobileLinks = document.querySelectorAll(".mobile-link");
+
+        if (toggleBtn && mobileMenu && menuContent && closeBtn) {
+            const openMenu = () => {
+                toggleBtn.classList.add("menu-active");
+                mobileMenu.classList.remove("pointer-events-none", "opacity-0");
+                mobileMenu.classList.add("opacity-100");
+                menuContent.classList.remove("translate-x-full");
+                menuContent.classList.add("translate-x-0");
+            };
+
+            const closeMenu = () => {
+                toggleBtn.classList.remove("menu-active");
+                mobileMenu.classList.add("pointer-events-none", "opacity-0");
+                mobileMenu.classList.remove("opacity-100");
+                menuContent.classList.remove("translate-x-0");
+                menuContent.classList.add("translate-x-full");
+            };
+
+            toggleBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                toggleBtn.classList.contains("menu-active")
+                    ? closeMenu()
+                    : openMenu();
+            });
+
+            closeBtn.addEventListener("click", closeMenu);
+            mobileMenu.addEventListener("click", (e) => {
+                if (e.target === mobileMenu) closeMenu();
+            });
+
+            // Fecha o menu automaticamente ao clicar em qualquer link (Scroll rápido)
+            mobileLinks.forEach((link) =>
+                link.addEventListener("click", closeMenu),
+            );
+        }
+    </script>
+</section>
