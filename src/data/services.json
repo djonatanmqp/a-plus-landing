@@ -2,7 +2,24 @@
   {
     "id": "driveways",
     "title": "Driveway Pavers",
-    "description": "Premium paver installation for modern and durable driveways.",
+    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
+    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
+    "features": [
+      "Custom driveway designs with premium pavers",
+      "Durable stone and concrete solutions for Florida weather",
+      "Professional grading and base installation",
+      "Fast local service in Orlando and surrounding areas"
+    ],
+    "faq": [
+      {
+        "question": "How long does driveway paver installation take?",
+        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
+      },
+      {
+        "question": "Do you handle permits and site preparation?",
+        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
+      }
+    ],
     "heroImage": [
       "/services/driveways/hero.jpg",
       "/services/driveways/hero.webp",
@@ -34,7 +51,24 @@
   {
     "id": "patios",
     "title": "Patio & Walkways",
-    "description": "Transform your backyard with beautiful custom patios.",
+    "description": "Transform your Orlando backyard with beautiful custom patios, walkways, and outdoor living spaces.",
+    "details": "We build custom patios and walkways that improve your outdoor living space, using materials and designs made for Orlando homes.",
+    "features": [
+      "Custom patio layouts and stonework",
+      "Walkway design for gardens and backyards",
+      "Materials chosen for Florida durability",
+      "Smooth project planning and installation"
+    ],
+    "faq": [
+      {
+        "question": "Can you install a patio near my pool?",
+        "answer": "Yes. We design patios and walkways that work around pools, decks and existing landscape elements in Orlando yards."
+      },
+      {
+        "question": "What materials do you recommend for walkways?",
+        "answer": "We recommend premium pavers and natural stone that are slip-resistant and suited to Florida sun and rain."
+      }
+    ],
     "heroImage": [
       "/services/patios/hero.jpg",
       "/services/patios/hero.webp",
@@ -61,7 +95,24 @@
   {
     "id": "lawn",
     "title": "Artificial Turf & Sod",
-    "description": "Flawless green lawns tailored for Orlando weather.",
+    "description": "Flawless green lawns and sod installation built for Orlando heat, humidity, and high performance.",
+    "details": "Our turf and sod installs are designed for Orlando conditions, giving your lawn a lush, low-maintenance finish that stays green year-round.",
+    "features": [
+      "Artificial turf solutions for Florida homes",
+      "Sod installation with proper drainage",
+      "Low-maintenance lawn alternatives",
+      "Fast local service and attractive results"
+    ],
+    "faq": [
+      {
+        "question": "Is artificial turf a good choice for Orlando?",
+        "answer": "Yes. Our turf systems are selected for heat resistance, drainage and minimal maintenance in Florida climates."
+      },
+      {
+        "question": "Can you install both turf and sod?",
+        "answer": "We offer both artificial turf and natural sod installation depending on your preference and property conditions."
+      }
+    ],
     "heroImage": [
       "/services/lawn/hero.webp",
       "/services/lawn/hero.jpg",

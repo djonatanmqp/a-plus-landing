@@ -1,18 +1,29 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Header from '../components/Header.astro'; // Importado com sucesso
 import Hero from "../components/Hero.astro";
 import Services from "../components/Services.astro";
 import Gallery from "../components/Gallery.astro";
-import Testimonials from "../components/Testimonials.astro"; // Novo componente
+import Testimonials from "../components/Testimonials.astro";
+import FAQ from "../components/FAQ.astro";
 import Contact from "../components/Contact.astro";
 import Footer from "../components/Footer.astro";
 ---
 
-<Layout title="A-Plus Pavers & Grass LLC">
-    <Hero />
-    <Services />
-    <Gallery />
-    <Testimonials /> <!-- Inserido antes do contato para dar credibilidade -->
-    <Contact />
+<Layout
+    title="A-Plus Pavers & Grass | Orlando Driveways, Patios & Turf"
+    description="A-Plus Pavers & Grass LLC creates premium driveway pavers, patios, walkways and artificial turf for Orlando, FL homeowners and businesses."
+>
+    {/* O Header fica aqui, no topo absoluto, passando as propriedades de Home */}
+    <Header isHome={true} showServicesLinks={true} />
+
+    <main id="main-content" class="space-y-16">
+        <Hero />
+        <Services />
+        <Gallery />
+        <Testimonials />
+        <FAQ />
+        <Contact />
+    </main>
     <Footer />
 </Layout>

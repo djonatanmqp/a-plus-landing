@@ -3,7 +3,7 @@ import servicesData from "../data/services.json";
 import MagnifyIcon from "~icons/mdi/magnify";
 ---
 
-<section class="max-w-6xl mx-auto px-4 py-6">
+<section class="max-w-6xl mx-auto px-4 py-2">
     <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
         <h2
             class="text-3xl font-extrabold text-[#0b3c5d] mb-4 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-12 after:h-1 after:bg-[#328cc1] pb-2"
@@ -28,6 +28,7 @@ import MagnifyIcon from "~icons/mdi/magnify";
                             <img
                                 src={service.coverImage[0]}
                                 alt={service.title}
+                                loading="lazy"
                                 data-image-variants={JSON.stringify(
                                     service.coverImage,
                                 )}
@@ -46,6 +47,12 @@ import MagnifyIcon from "~icons/mdi/magnify";
                             <h3 class="font-bold text-lg text-[#0b3c5d] group-hover:text-[#328cc1] transition-colors">
                                 {service.title}
                             </h3>
+                            <a
+                                href={`/services/${service.id}`}
+                                class="mt-4 inline-flex items-center justify-center rounded-full bg-[#328cc1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
+                            >
+                                Learn more
+                            </a>
                         </div>
                     </div>
                 ))

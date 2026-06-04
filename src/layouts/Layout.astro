@@ -2,9 +2,14 @@
 // src/layouts/Layout.astro
 interface Props {
 	title: string;
+	description?: string;
 }
 
-const { title } = Astro.props;
+const { title, description } = Astro.props;
+
+const origin = new URL(Astro.request.url).origin;
+const currentUrl = new URL(Astro.request.url).href;
+const metaDescription = description ?? "A-Plus Pavers & Grass LLC delivers premium driveway pavers, patios, walkways, artificial turf and sod installation across Orlando, FL.";
 
 // Força a inclusão dos estilos globais do Tailwind caso a automação tenha pulado
 import '../styles/global.css';
@@ -14,13 +19,95 @@ import '../styles/global.css';
 <html lang="en" class="scroll-smooth">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Premier choice for pavers and grass in Orlando" />
+		<meta name="description" content={metaDescription} />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="theme-color" content="#0b3c5d" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="canonical" href={currentUrl} />
 		<title>{title}</title>
+		<!-- Assinatura Técnica (Meta Tags) -->
+    	<meta name="author" content="Djonatan M. Q. Piehowiak - Full Stack Developer & UX/UI Designer" />
+    	<meta name="designer" content="Djonatan M. Q. Piehowiak" />
+    	<meta name="reply-to" content="djonatan.piehowiak@gmail.com" />
+
+    	<!-- Comentário direto no HTML (Aparece ao "Exibir código fonte da página") -->
+    	<!-- 
+        	DESIGN & DEVELOPMENT BY:
+        	- Name: Djonatan M. Q. Piehowiak
+        	- Role: Web Developer & UX/UI Designer
+        	- Contact: djonatan.piehowiak@gmail.com
+    	-->
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={metaDescription} />
+		<meta property="og:url" content={currentUrl} />
+		<meta property="og:site_name" content="A-Plus Pavers & Grass LLC" />
+		<meta property="og:image" content="/logo.png" />
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={metaDescription} />
+		<meta property="twitter:image" content="/logo.png" />
+		<meta name="robots" content="index, follow" />
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+		<script type="application/ld+json">
+		{JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "LocalBusiness",
+			"name": "A-Plus Pavers & Grass LLC",
+			"image": [
+				"/logo.png"
+			],
+			"@id": currentUrl,
+			"url": currentUrl,
+			"telephone": "(407) 123-4567",
+			"email": "info@apluspaversgrass.com",
+			"address": {
+				"@type": "PostalAddress",
+				"streetAddress": "Orlando Service Area",
+				"addressLocality": "Orlando",
+				"addressRegion": "FL",
+				"postalCode": "32801",
+				"addressCountry": "US"
+			},
+			"geo": {
+				"@type": "GeoCoordinates",
+				"latitude": 28.538336,
+				"longitude": -81.379234
+			},
+			"areaServed": {
+				"@type": "GeoCircle",
+				"geoMidpoint": {
+					"@type": "GeoCoordinates",
+					"latitude": 28.538336,
+					"longitude": -81.379234
+				},
+				"geoRadius": 50
+			},
+			"openingHoursSpecification": [
+				{
+					"@type": "OpeningHoursSpecification",
+					"dayOfWeek": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					],
+					"opens": "08:00",
+					"closes": "18:00"
+				},
+				{
+					"@type": "OpeningHoursSpecification",
+					"dayOfWeek": ["Saturday"],
+					"opens": "09:00",
+					"closes": "16:00"
+				}
+			],
+			"sameAs": []
+		})}
+		</script>
 	</head>
 	<body class="bg-gray-50 text-gray-800 font-['Montserrat',sans-serif] antialiased">
 		<slot />
