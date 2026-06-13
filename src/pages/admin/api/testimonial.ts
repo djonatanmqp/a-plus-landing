@@ -2,61 +2,27 @@ import fs from "fs/promises";
 import path from "path";
 import { ensureDir, parseCookies, sanitizeSlug, validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
 
-const allowedImageExtensions = [".png", ".jpg", ".jpeg", ".webp", ".gif"] as const;
-
-function sanitizeFileName(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
+// 🚀 Restrito unicamente para JPG / JPEG
+const allowedImageExtensions = [".jpg", ".jpeg"] as const;
 
 function safeImageExtension(fileName: string) {
   const ext = path.extname(fileName).toLowerCase();
   return allowedImageExtensions.includes(ext as any) ? ext : ".jpg";
 }
 
+// 🚀 Assinatura binária restrita apenas ao formato JPEG/JPG
 function isImageSignature(buffer: ArrayBuffer) {
   const bytes = new Uint8Array(buffer);
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return true;
-  if (
-    bytes.length >= 8 &&
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47 &&
-    bytes[4] === 0x0d &&
-    bytes[5] === 0x0a &&
-    bytes[6] === 0x1a &&
-    bytes[7] === 0x0a
-  )
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return true;
-  if (
-    bytes.length >= 6 &&
-    bytes[0] === 0x47 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x38 &&
-    (bytes[4] === 0x37 || bytes[4] === 0x39) &&
-    bytes[5] === 0x61
-  )
-    return true;
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
-  )
-    return true;
+  }
   return false;
 }
 
 async function validateImageFile(file: any) {
   const buffer = Buffer.from(await file.arrayBuffer());
   if (!isImageSignature(buffer.buffer)) {
-    throw new Error("Invalid image file");
+    throw new Error("Invalid image file. Only JPG/JPEG is allowed.");
   }
   return buffer;
 }
@@ -114,6 +80,7 @@ export async function POST({ request }: { request: Request }) {
   const uploadsDir = path.join(process.cwd(), "public/uploads/testimonials", slug);
   await ensureDir(uploadsDir);
 
+  // 🚀 Força o uso estrito das extensões validadas como JPG
   const beforeExt = safeImageExtension(beforeFile.name);
   const afterExt = safeImageExtension(afterFile.name);
   const beforeName = `before${beforeExt}`;
@@ -122,13 +89,14 @@ export async function POST({ request }: { request: Request }) {
   const beforeDestination = path.join(uploadsDir, beforeName);
   const afterDestination = path.join(uploadsDir, afterName);
 
+  // Validação dos blocos binários (Garante segurança contra falsificações de extensão)
   const beforeBuffer = await validateImageFile(beforeFile);
   const afterBuffer = await validateImageFile(afterFile);
   await fs.writeFile(beforeDestination, beforeBuffer);
   await fs.writeFile(afterDestination, afterBuffer);
 
-  const beforeImagePath = `testimonials/${slug}/${beforeName}`;
-  const afterImagePath = `testimonials/${slug}/${afterName}`;
+  const beforeImagePath = `uploads/testimonials/${slug}/${beforeName}`;
+  const afterImagePath = `uploads/testimonials/${slug}/${afterName}`;
 
   const safeClientName = clientName.replace(/"/g, '\\"').replace(/\r?\n/g, " ");
   const safeServiceType = serviceType.replace(/"/g, '\\"').replace(/\r?\n/g, " ");

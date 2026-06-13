@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
 import servicesData from "../data/services.json";
 
 const breadcrumbData = [
@@ -25,7 +26,9 @@ const breadcrumbData = [
         <div class="grid gap-6 md:grid-cols-3">
             {
                 servicesData.map((service) => {
-                    const cover = service.coverImage?.[0] ?? null;
+                    // 🚀 AJUSTE AQUI: Consome o caminho direto como string do JSON
+                    const cover = service.coverImage ?? null;
+                    
                     return (
                         <article class="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
                             {cover ? (
@@ -78,4 +81,5 @@ const breadcrumbData = [
             }
         </div>
     </div>
+    <Footer />
 </Layout>

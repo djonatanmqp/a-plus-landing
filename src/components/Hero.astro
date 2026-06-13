@@ -5,9 +5,7 @@ import servicesData from "../data/services.json";
 const servicesCarousel = servicesData.map((service) => ({
     title: service.title,
     description: service.description,
-    imageVariants: service.heroImage?.length
-        ? service.heroImage
-        : service.coverImage,
+    image: service.heroImage || service.coverImage || "", // Lê o caminho direto do JSON
     galleryId: service.id,
 }));
 ---
@@ -26,18 +24,19 @@ const servicesCarousel = servicesData.map((service) => ({
                         id={`slide-${index}`}
                         class="w-full h-full flex-shrink-0 snap-start relative"
                     >
+                        {/* Tag <img> pura e limpa focada apenas no arquivo padrão */}
                         <img
-                            src={service.imageVariants[0]}
+                            src={service.image}
                             alt={service.title}
-                            data-image-variants={JSON.stringify(
-                                service.imageVariants,
-                            )}
-                            data-fallback-label={service.title}
                             class="w-full h-full object-cover"
-                            onerror="this.onerror=null; tryNextImageVariant(this);"
+                            loading={index === 0 ? "eager" : "lazy"}
                         />
+
+                        {/* Camada de Gradiente para Contraste do Texto */}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                        <div class="absolute bottom-6 left-6 right-6 md:left-12 md:bottom-10 text-white max-w-lg">
+
+                        {/* Conteúdo do Slide */}
+                        <div class="absolute bottom-6 left-6 right-6 md:left-12 md:bottom-10 text-white max-w-lg z-10">
                             <span class="text-[#d9b310] font-bold text-xs uppercase tracking-widest bg-black/40 px-2 py-1 rounded">
                                 Our Services
                             </span>
@@ -59,6 +58,7 @@ const servicesCarousel = servicesData.map((service) => ({
             }
         </div>
 
+        {/* Botões de Navegação (Desktop) */}
         <button
             id="prev-btn"
             class="absolute left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#328cc1] text-white p-2 rounded-full hidden md:block opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -80,33 +80,9 @@ const servicesCarousel = servicesData.map((service) => ({
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-
-    /* Animação do botão hamburguer se transformando em X */
-    .menu-active .line-1 {
-        transform: rotate(45deg) translate(2px, 1px);
-    }
-    .menu-active .line-2 {
-        opacity: 0;
-    }
-    .menu-active .line-3 {
-        transform: rotate(-45deg) translate(2px, -1px);
-    }
 </style>
 
 <script>
-    const tryNextImageVariant = (img: HTMLImageElement) => {
-        const variants = JSON.parse(img.dataset.imageVariants || "[]");
-        const currentIndex = Number(img.dataset.variantIndex || 0);
-
-        if (currentIndex < variants.length - 1) {
-            img.dataset.variantIndex = String(currentIndex + 1);
-            img.src = variants[currentIndex + 1];
-            return;
-        }
-
-        img.src = `https://placehold.co/1200x500?text=${encodeURIComponent(img.dataset.fallbackLabel || "Image")}+Showcase`;
-    };
-
     // Script do Carrossel (Mantido idêntico)
     const wrapper = document.getElementById("carousel-wrapper");
     const prevBtn = document.getElementById("prev-btn");
@@ -114,6 +90,7 @@ const servicesCarousel = servicesData.map((service) => ({
 
     if (wrapper && prevBtn && nextBtn) {
         const autoplayInterval = 5000;
+
         const nextSlide = () => {
             const maxScrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
             if (wrapper.scrollLeft >= maxScrollLeft - 10) {
@@ -122,13 +99,15 @@ const servicesCarousel = servicesData.map((service) => ({
                 wrapper.scrollLeft += wrapper.clientWidth;
             }
         };
+
         const prevSlide = () => {
             if (wrapper.scrollLeft <= 0) {
-                wrapper.scrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
+                wrapper.scrollWidth - wrapper.clientWidth;
             } else {
                 wrapper.scrollLeft -= wrapper.clientWidth;
             }
         };
+
         nextBtn.addEventListener("click", () => {
             nextSlide();
             resetAutoplay();
@@ -137,11 +116,14 @@ const servicesCarousel = servicesData.map((service) => ({
             prevSlide();
             resetAutoplay();
         });
+
         let autoPlayTimer = setInterval(nextSlide, autoplayInterval);
+
         const resetAutoplay = () => {
             clearInterval(autoPlayTimer);
             autoPlayTimer = setInterval(nextSlide, autoplayInterval);
         };
+
         wrapper.addEventListener("mouseenter", () =>
             clearInterval(autoPlayTimer),
         );
@@ -150,7 +132,7 @@ const servicesCarousel = servicesData.map((service) => ({
         });
     }
 
-    // Lógica do Menu Hamburguer Mobile
+    // Lógica do Menu Mobile
     const toggleBtn = document.getElementById("menu-toggle");
     const closeBtn = document.getElementById("menu-close");
     const mobileMenu = document.getElementById("mobile-menu");
@@ -186,7 +168,6 @@ const servicesCarousel = servicesData.map((service) => ({
             if (e.target === mobileMenu) closeMenu();
         });
 
-        // Fecha o menu automaticamente ao clicar em qualquer link (Scroll rápido)
         mobileLinks.forEach((link) =>
             link.addEventListener("click", closeMenu),
         );

@@ -25,16 +25,13 @@ import MagnifyIcon from "~icons/mdi/magnify";
                         data-service={JSON.stringify(service)}
                     >
                         <div class="relative overflow-hidden aspect-video">
+                            {/* 🚀 Adicionado 'onerror' para caso a capa em JPG dê 404 */}
                             <img
-                                src={service.coverImage[0]}
+                                src={service.coverImage}
                                 alt={service.title}
                                 loading="lazy"
-                                data-image-variants={JSON.stringify(
-                                    service.coverImage,
-                                )}
-                                data-fallback-label={`${service.title} Cover`}
                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                onerror="this.onerror=null; tryNextImageVariant(this);"
+                                onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}';`}
                             />
                             <div class="absolute inset-0 bg-[#0b3c5d]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <span class="inline-flex items-center gap-1.5 bg-white/65 text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
@@ -127,20 +124,6 @@ import MagnifyIcon from "~icons/mdi/magnify";
 </style>
 
 <script>
-    const tryNextImageVariant = (img: HTMLImageElement) => {
-        const variants = JSON.parse(img.dataset.imageVariants || "[]");
-        const currentIndex = Number(img.dataset.variantIndex || 0);
-
-        if (currentIndex < variants.length - 1) {
-            img.dataset.variantIndex = String(currentIndex + 1);
-            img.src = variants[currentIndex + 1];
-            return;
-        }
-
-        const fallbackLabel = img.dataset.fallbackLabel || "Image";
-        img.src = `https://placehold.co/600x400?text=${encodeURIComponent(fallbackLabel)}`;
-    };
-
     const triggers = document.querySelectorAll(".gallery-trigger");
     const modal = document.getElementById("gallery-modal") as HTMLDialogElement;
     const modalTitle = document.getElementById("modal-title");
@@ -160,38 +143,32 @@ import MagnifyIcon from "~icons/mdi/magnify";
             modalDescription.textContent = serviceData.description;
             modalImagesGrid.innerHTML = "";
 
+            // Se a array de imagens estiver completamente vazia no JSON, usa o placeholder padrão
             const projectImages =
                 serviceData.images && serviceData.images.length > 0
                     ? serviceData.images
-                    : [
-                          [
-                              `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`,
-                          ],
-                      ];
+                    : [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`];
 
-            projectImages.forEach(
-                (imgUrl: string | string[], index: number) => {
-                    const imgWrapper = document.createElement("div");
-                    imgWrapper.className =
-                        "rounded-lg overflow-hidden border border-gray-100 aspect-video shadow-sm bg-gray-50";
+            projectImages.forEach((imgUrl: string, index: number) => {
+                const imgWrapper = document.createElement("div");
+                imgWrapper.className =
+                    "rounded-lg overflow-hidden border border-gray-100 aspect-video shadow-sm bg-gray-50";
 
-                    const variants = Array.isArray(imgUrl) ? imgUrl : [imgUrl];
-                    const img = document.createElement("img");
-                    img.src = variants[0];
-                    img.alt = `${serviceData.title} view ${index + 1}`;
-                    img.dataset.imageVariants = JSON.stringify(variants);
-                    img.dataset.fallbackLabel = `${serviceData.title} Image ${index + 1}`;
-                    img.className =
-                        "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
+                const img = document.createElement("img");
+                img.src = imgUrl;
+                img.alt = `${serviceData.title} view ${index + 1}`;
+                img.className =
+                    "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
 
-                    img.onerror = () => {
-                        tryNextImageVariant(img);
-                    };
+                // 🚀 Proteção interna do modal: Se o link do JSON quebrar (404), substitui pelo placehold.co
+                img.onerror = () => {
+                    img.onerror = null; // Evita loop infinito
+                    img.src = `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Image+${index + 1}`;
+                };
 
-                    imgWrapper.appendChild(img);
-                    modalImagesGrid.appendChild(imgWrapper);
-                },
-            );
+                imgWrapper.appendChild(img);
+                modalImagesGrid.appendChild(imgWrapper);
+            });
 
             modal.showModal();
             setTimeout(() => {

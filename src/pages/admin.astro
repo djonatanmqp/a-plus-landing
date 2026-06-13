@@ -4,9 +4,7 @@ import {
   parseCookies,
   validateAdminToken,
   readServicesConfig,
-  listTestimonials,
   SESSION_COOKIE_NAME,
-  ADMIN_USER,
 } from "../lib/admin.ts";
 import Layout from "../layouts/Layout.astro";
 
@@ -19,7 +17,6 @@ import ImageIcon from "~icons/mdi/image";
 const cookies = parseCookies(Astro.request.headers.get("cookie"));
 const isLoggedIn = validateAdminToken(cookies[SESSION_COOKIE_NAME]);
 const servicesData = isLoggedIn ? await readServicesConfig() : [];
-const testimonials = isLoggedIn ? await listTestimonials() : [];
 const message = Astro.url.searchParams.get("message") ?? "";
 ---
 
@@ -114,7 +111,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
               Service Galleries
             </h2>
             <p class="text-sm text-slate-600 mb-6">
-              Upload images per service to update the public service page gallery and the service overview visuals on the site.
+              Upload images per service to update the public gallery. <strong class="text-[#0b3c5d]">Note: Only JPG/JPEG images are allowed.</strong>
             </p>
             <form
               method="POST"
@@ -128,7 +125,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                 class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm"
               >
                 <option value="">Select a service</option>
-                {servicesData.map((s) => (
+                {servicesData.map((s: any) => (
                   <option value={s.id}>{s.title}</option>
                 ))}
               </select>
@@ -138,47 +135,44 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
                     {name
                       .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (str) => str.toUpperCase())}
+                      .replace(/^./, (str) => str.toUpperCase())} (JPG)
                     <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
                       <img
                         src=""
                         alt="Preview"
-                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200"
-                        onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden')"
+                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200 fn-preview-img"
                       />
-                      <div class="flex items-center gap-3 text-slate-400">
+                      <div class="flex items-center gap-3 text-slate-400 fn-placeholder-box">
                         <ImageIcon class="w-6 h-6 text-slate-400" />
-                        <span class="text-xs truncate max-w-[150px]">
+                        <span class="text-xs truncate max-w-[150px] fn-filename-text">
                           No file chosen
                         </span>
                       </div>
                       <input
                         type="file"
                         name={name}
-                        accept="image/*"
-                        class="hidden"
-                        onchange="const reader = new FileReader(); const img = this.parentElement.querySelector('img'); const span = this.parentElement.querySelector('span'); reader.onload = (e) => { img.src = e.target.result; }; reader.readAsDataURL(this.files[0]); span.textContent = this.files[0].name;"
+                        accept=".jpg, .jpeg"
+                        class="hidden fn-file-input"
                       />
                     </div>
                   </label>
                 ))}
               </div>
               <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
-                Add Gallery Photos
+                Add Gallery Photos (JPG only - Will append to current photos)
                 <div class="relative flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
                   <div class="flex items-center gap-3 text-slate-400">
                     <ImageIcon class="w-6 h-6 text-slate-400" />
-                    <span class="text-xs truncate max-w-[200px]">
+                    <span class="text-xs truncate max-w-[200px] fn-gallery-text">
                       No files chosen
                     </span>
                   </div>
                   <input
                     type="file"
                     name="galleryImages"
-                    accept="image/*"
+                    accept=".jpg, .jpeg"
                     multiple
-                    class="hidden"
-                    onchange="this.parentElement.querySelector('span').textContent = this.files.length + ' file(s) selected'"
+                    class="hidden fn-gallery-input"
                   />
                 </div>
               </label>
@@ -216,7 +210,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                 >
                   <option value="">Select Service</option>
-                  {servicesData.map((s) => (
+                  {servicesData.map((s: any) => (
                     <option value={s.title}>{s.title}</option>
                   ))}
                 </select>
@@ -249,27 +243,25 @@ const message = Astro.url.searchParams.get("message") ?? "";
               <div class="grid gap-4 md:grid-cols-2">
                 {["beforeImage", "afterImage"].map((name) => (
                   <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
-                    {name === "beforeImage" ? "Before Photo" : "After Photo"}
+                    {name === "beforeImage" ? "Before Photo" : "After Photo"} (JPG)
                     <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
                       <img
                         src=""
                         alt="Preview"
-                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200"
-                        onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden')"
+                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200 fn-preview-img"
                       />
-                      <div class="flex items-center gap-3 text-slate-400">
+                      <div class="flex items-center gap-3 text-slate-400 fn-placeholder-box">
                         <ImageIcon class="w-6 h-6 text-slate-400" />
-                        <span class="text-xs truncate max-w-[150px]">
+                        <span class="text-xs truncate max-w-[150px] fn-filename-text">
                           No file chosen
                         </span>
                       </div>
                       <input
                         type="file"
                         name={name}
-                        accept="image/*"
+                        accept=".jpg, .jpeg"
                         required
-                        class="hidden"
-                        onchange="const reader = new FileReader(); const img = this.parentElement.querySelector('img'); const span = this.parentElement.querySelector('span'); reader.onload = (e) => { img.src = e.target.result; }; reader.readAsDataURL(this.files[0]); span.textContent = this.files[0].name;"
+                        class="hidden fn-file-input"
                       />
                     </div>
                   </label>
@@ -296,3 +288,53 @@ const message = Astro.url.searchParams.get("message") ?? "";
     }
   </main>
 </Layout>
+
+{/* 🚀 Script encapsulado para gerenciar os comportamentos sem usar strings inline problemáticas */}
+<script>
+  // 1. Gerenciador de Previews Individuais (Hero, Cover, Before, After)
+  const fileInputs = document.querySelectorAll('.fn-file-input');
+  fileInputs.forEach((input) => {
+    input.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (!target.files || target.files.length === 0) return;
+
+      const file = target.files[0];
+      const parent = target.parentElement;
+      if (!parent) return;
+
+      const img = parent.querySelector('.fn-preview-img') as HTMLImageElement;
+      const placeholder = parent.querySelector('.fn-placeholder-box') as HTMLElement;
+      const filenameSpan = parent.querySelector('.fn-filename-text') as HTMLElement;
+
+      if (img && placeholder && filenameSpan) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            img.src = event.target.result as string;
+            img.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+          }
+        };
+        reader.readAsDataURL(file);
+        filenameSpan.textContent = file.name;
+      }
+    });
+  });
+
+  // 2. Gerenciador de Feedback da Galeria Múltipla
+  const galleryInputs = document.querySelectorAll('.fn-gallery-input');
+  galleryInputs.forEach((input) => {
+    input.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (!target.files) return;
+
+      const parent = target.parentElement;
+      if (!parent) return;
+
+      const textSpan = parent.querySelector('.fn-gallery-text');
+      if (textSpan) {
+        textSpan.textContent = `${target.files.length} file(s) selected`;
+      }
+    });
+  });
+</script>

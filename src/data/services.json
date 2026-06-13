@@ -1,7 +1,7 @@
 [
   {
     "id": "driveways",
-    "title": "Driveway Pavers",
+    "title": "Driveways",
     "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
     "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
     "features": [
@@ -20,32 +20,41 @@
         "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
       }
     ],
-    "heroImage": [
-      "/services/driveways/hero.jpg",
-      "/services/driveways/hero.webp",
-      "/services/driveways/hero.png"
-    ],
-    "coverImage": [
-      "/services/driveways/cover.jpg",
-      "/services/driveways/cover.webp",
-      "/services/driveways/cover.png"
-    ],
+    "heroImage": "/services/driveways/hero.jpg",
+    "coverImage": "/services/driveways/cover.jpg",
     "images": [
-      [
-        "/services/driveways/projeto1.jpg",
-        "/services/driveways/projeto1.webp",
-        "/services/driveways/projeto1.png"
-      ],
-      [
-        "/services/driveways/projeto2.jpg",
-        "/services/driveways/projeto2.webp",
-        "/services/driveways/projeto2.png"
-      ],
-      [
-        "/services/driveways/projeto3.jpg",
-        "/services/driveways/projeto3.webp",
-        "/services/driveways/projeto3.png"
-      ]
+      "/services/driveways/projeto1.jpg",
+      "/services/driveways/projeto2.jpg",
+      "/services/driveways/projeto3.jpg"
+    ]
+  },
+  {
+    "id": "pools",
+    "title": "Pool Decks",
+    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
+    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
+    "features": [
+      "Custom driveway designs with premium pavers",
+      "Durable stone and concrete solutions for Florida weather",
+      "Professional grading and base installation",
+      "Fast local service in Orlando and surrounding areas"
+    ],
+    "faq": [
+      {
+        "question": "How long does driveway paver installation take?",
+        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
+      },
+      {
+        "question": "Do you handle permits and site preparation?",
+        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
+      }
+    ],
+    "heroImage": "/services/pools/hero.jpg",
+    "coverImage": "/services/pools/cover.jpg",
+    "images": [
+      "/services/pools/projeto1.jpg",
+      "/services/pools/projeto2.jpg",
+      "/services/pools/projeto3.jpg"
     ]
   },
   {
@@ -69,27 +78,41 @@
         "answer": "We recommend premium pavers and natural stone that are slip-resistant and suited to Florida sun and rain."
       }
     ],
-    "heroImage": [
-      "/services/patios/hero.jpg",
-      "/services/patios/hero.webp",
-      "/services/patios/hero.png"
-    ],
-    "coverImage": [
-      "/services/patios/cover.jpg",
-      "/services/patios/cover.webp",
-      "/services/patios/cover.png"
-    ],
+    "heroImage": "/services/patios/hero.jpg",
+    "coverImage": "/services/patios/cover.jpg",
     "images": [
-      [
-        "/services/patios/foto1.jpg",
-        "/services/patios/foto1.webp",
-        "/services/patios/foto1.png"
-      ],
-      [
-        "/services/patios/foto2.jpg",
-        "/services/patios/foto2.webp",
-        "/services/patios/foto2.png"
-      ]
+      "/services/patios/projeto1.jpg",
+      "/services/patios/projeto2.jpg",
+      "/services/patios/projeto3.jpg"
+    ]
+  },
+  {
+    "id": "pergolas",
+    "title": "Pergolas & Summer Kitchens",
+    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
+    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
+    "features": [
+      "Custom driveway designs with premium pavers",
+      "Durable stone and concrete solutions for Florida weather",
+      "Professional grading and base installation",
+      "Fast local service in Orlando and surrounding areas"
+    ],
+    "faq": [
+      {
+        "question": "How long does driveway paver installation take?",
+        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
+      },
+      {
+        "question": "Do you handle permits and site preparation?",
+        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
+      }
+    ],
+    "heroImage": "/services/pergolas/hero.jpg",
+    "coverImage": "/services/pergolas/cover.jpg",
+    "images": [
+      "/services/pergolas/projeto1.jpg",
+      "/services/pergolas/projeto2.jpg",
+      "/services/pergolas/projeto3.jpg"
     ]
   },
   {
@@ -113,27 +136,41 @@
         "answer": "We offer both artificial turf and natural sod installation depending on your preference and property conditions."
       }
     ],
-    "heroImage": [
-      "/services/lawn/hero.webp",
-      "/services/lawn/hero.jpg",
-      "/services/lawn/hero.png"
-    ],
-    "coverImage": [
-      "/services/lawn/cover.webp",
-      "/services/lawn/cover.jpg",
-      "/services/lawn/cover.png"
-    ],
+    "heroImage": "/services/lawn/hero.jpg",
+    "coverImage": "/services/lawn/cover.jpg",
     "images": [
-      [
-        "/services/lawn/antes.webp",
-        "/services/lawn/antes.jpg",
-        "/services/lawn/antes.png"
-      ],
-      [
-        "/services/lawn/depois.webp",
-        "/services/lawn/depois.jpg",
-        "/services/lawn/depois.png"
-      ]
+      "/services/lawn/projeto1.jpg",
+      "/services/lawn/projeto2.jpg",
+      "/services/lawn/projeto3.jpg"
+    ]
+  },
+  {
+    "id": "others",
+    "title": "Other Services",
+    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
+    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
+    "features": [
+      "Custom driveway designs with premium pavers",
+      "Durable stone and concrete solutions for Florida weather",
+      "Professional grading and base installation",
+      "Fast local service in Orlando and surrounding areas"
+    ],
+    "faq": [
+      {
+        "question": "How long does driveway paver installation take?",
+        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
+      },
+      {
+        "question": "Do you handle permits and site preparation?",
+        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
+      }
+    ],
+    "heroImage": "/services/others/hero.jpg",
+    "coverImage": "/services/others/cover.jpg",
+    "images": [
+      "/services/others/projeto1.jpg",
+      "/services/others/projeto2.jpg",
+      "/services/others/projeto3.jpg"
     ]
   }
 ]
