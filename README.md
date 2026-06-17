@@ -27,6 +27,7 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 
 ```text
 /
+├── preview/                 # PDFs de auditoria visual e capturas gerados via Puppeteer (automatizado)
 ├── public/                  # Ativos estáticos públicos acessíveis diretamente via URL
 │   ├── services/            # Pastas de armazenamento de assets gerenciados por serviço (uploads)
 │   │   ├── driveways/       # Imagens dedicadas para Driveways
