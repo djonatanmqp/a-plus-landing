@@ -27,28 +27,28 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 
 ```text
 /
-├── public/              # Ativos estáticos e uploads de imagens
-│   ├── services
-│   │   ├── driveways
-│   │   ├── lawn
-│   │   ├── others
-│   │   ├── patios
-│   │   ├── pergolas
-│   │   └── pools
-│   └── uploads
-│       └── testimonials
-├── src/
-│   ├── components/      # UI components (TestimonialCard, Gallery, Contact)
-│   ├── content/         # Dados de depoimentos (.md)
-│   ├── data/
-│   ├── layouts/         # Estrutura base da página
-│   ├── lib/             # Lógica de Auth e manipulação de arquivos
-│   └── pages/           # Rotas institucionais e endpoints da API Admin
-│   │   ├── admin
-│   │   │   └── api
-│   │   └── services
-│   ├── styles
-│   └── types
+├── public/                  # Ativos estáticos públicos acessíveis diretamente via URL
+│   ├── services/            # Pastas de armazenamento de assets gerenciados por serviço (uploads)
+│   │   ├── driveways/       # Imagens dedicadas para Driveways
+│   │   ├── lawn/            # Imagens dedicadas para Artificial Lawn / Gramados
+│   │   ├── others/          # Imagens para serviços secundários ou complementares
+│   │   ├── patios/          # Imagens dedicadas para Patios & Walkways
+│   │   ├── pergolas/        # Imagens dedicadas para Pergolas & Woodwork
+│   │   └── pools/           # Imagens dedicadas para Pool Decks & Remodeling
+│   └── uploads/             # Destino central de uploads gerados dinamicamente via painel
+│       └── testimonials/    # Fotos organizadas por slugs (before.jpg e after.jpg) dos clientes
+├── src/                     # Código-fonte da aplicação compilado pelo Astro
+│   ├── components/          # UI components reutilizáveis (TestimonialCard, Gallery, Contact, Header, Footer)
+│   ├── content/             # Coleções de dados locais baseados em Markdown (.md) para depoimentos
+│   ├── data/                # Arquivos estáticos de configuração estrutural da aplicação (ex: services.json)
+│   ├── layouts/             # Estruturas base de renderização HTML (Layout.astro) compartilhadas entre páginas
+│   ├── lib/                 # Funções utilitárias do back-end (Auth, JWT, leitura/escrita de arquivos com fs/promises)
+│   └── pages/               # Sistema de roteamento baseado em arquivos da aplicação (Páginas e API Endpoints)
+│   │   ├── admin/           # Interface visual do painel de controle administrativo (/admin.astro)
+│   │   │   └── api/         # Endpoints de API server-side (POST de login, logout, service e testimonial)
+│   │   └── services/        # Rotas públicas de serviços, contendo a rota dinâmica [id].astro para páginas individuais
+│   ├── styles/              # Configurações globais de estilização CSS e integrações do Tailwind CSS
+│   └── types/               # Definições de tipagem global TypeScript para tipar serviços e depoimentos
 └── package.json
 ```
 
