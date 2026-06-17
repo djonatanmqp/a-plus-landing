@@ -6,7 +6,7 @@
 ![unplugin-icons](https://img.shields.io/badge/unplugin--icons-v0.19.0-646CFF?style=for-the-badge&logo=unplugin&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-v20.14.0-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 
-Este repositório contém a solução digital completa para a **A-Plus Pavers & Grass**, localizada em Orlando, Flórida. O projeto integra um site institucional de alta performance com foco em conversão e um painel administrativo exclusivo para gestão de conteúdo sem a necessidade de um banco de dados relacional.
+Este repositório contém a solução digital completa para a **A-Plus Pavers & Grass LLC.**, localizada em Orlando, Flórida. O projeto integra um site institucional de alta performance com foco em conversão e um painel administrativo exclusivo para gestão de conteúdo sem a necessidade de um banco de dados relacional.
 
 ## 🏗 Visão Geral da Solução
 
