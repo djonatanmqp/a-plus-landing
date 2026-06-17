@@ -6,7 +6,7 @@
 ![unplugin-icons](https://img.shields.io/badge/unplugin--icons-v0.19.0-646CFF?style=for-the-badge&logo=unplugin&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-v20.14.0-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 
-Este repositório contém a solução digital completa para a **A-Plus Pavers & Grass**, localizada em Orlando, Flórida. O projeto integra um site institucional de alta performance com foco em conversão e um painel administrativo exclusivo para gestão de conteúdo sem banco de dados.
+Este repositório contém a solução digital completa para a **A-Plus Pavers & Grass**, localizada em Orlando, Flórida. O projeto integra um site institucional de alta performance com foco em conversão e um painel administrativo exclusivo para gestão de conteúdo sem a necessidade de um banco de dados relacional.
 
 ## 🏗 Visão Geral da Solução
 
@@ -17,11 +17,12 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 
 ## 🛠 Tecnologias Utilizadas
 
-* **Framework:** [Astro](https://astro.build/) (Renderização estática e performance).
-* **Estilização:** [Tailwind CSS](https://tailwindcss.com/) (Componentização e responsividade).
-* **Gestão de Dados:** Sistema baseado em File System (Node.js) com Markdown e JSON.
-* **Ícones:** [unplugin-icons](https://github.com/antfu/unplugin-icons) (Material Design & Simple Icons).
-* **Linguagens:** TypeScript e Astro (JSX/TSX).
+* **Framework:** [Astro](https://astro.build/) (Renderização estática e performance baseada em ilhas).
+* **Estilização:** [Tailwind CSS](https://tailwindcss.com/) (Classes utilitárias e responsividade).
+* **Gestão de Dados:** Sistema baseado em File System local (Node.js) com Markdown e JSON.
+* **Auditoria Visual:** [Puppeteer](https://pptr.dev/) (Geração automatizada de capturas em PDF).
+* **Ícones:** [unplugin-icons](https://github.com/antfu/unplugin-icons) (Material Design Icons).
+* **Linguagens:** TypeScript e Astro Core.
 
 ## 📂 Estrutura do Projeto
 
@@ -50,6 +51,7 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 │   │   └── services/        # Rotas públicas de serviços, contendo a rota dinâmica [id].astro para páginas individuais
 │   ├── styles/              # Configurações globais de estilização CSS e integrações do Tailwind CSS
 │   └── types/               # Definições de tipagem global TypeScript para tipar serviços e depoimentos
+├── gerar-pdf.js             # Script do Puppeteer para geração de relatórios visuais
 └── package.json
 ```
 
@@ -63,11 +65,15 @@ Todos os comandos devem ser executados na raiz do projeto:
 | `npm run dev` | Inicia o servidor local (`localhost:4321`) |
 | `npm run build` | Compila o projeto para produção |
 | `npm run preview` | Testa a versão de produção localmente |
+| `node gerar-pdf.js` | Executa a varredura do Puppeteer e gera os relatórios em `/preview` |
+
+⚠️ **Nota para a Auditoria:** Antes de rodar node gerar-pdf.js, certifique-se de que o servidor local do Astro está de fato rodando em background através do comando `npm run dev`.
 
 ## 🚀 Como acessar o painel
 
-1. O painel administrativo encontra-se na rota `/admin`.
-2. A autenticação é gerenciada internamente via `SESSION_COOKIE_NAME` configurada no arquivo `lib/admin.ts`.
+1. O painel encontra-se acessível de forma padrão na rota `/admin`.
+2. A validação de identidade e controle de privilégios é realizada via rotas HTTP Server-Side e cookies criptografados gerenciados em `src/lib/admin.ts`.
+3. Certifique-se de configurar as credenciais administrativas e o nome do token (`SESSION_COOKIE_NAME`) antes do deploy definitivo de produção.
 
 ## 👀 Mais informações
 
