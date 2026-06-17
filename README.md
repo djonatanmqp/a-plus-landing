@@ -28,13 +28,29 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 ```text
 /
 ├── public/              # Ativos estáticos e uploads de imagens
+│   ├── services
+│   │   ├── driveways
+│   │   ├── lawn
+│   │   ├── others
+│   │   ├── patios
+│   │   ├── pergolas
+│   │   └── pools
+│   └── uploads
+│       └── testimonials
 ├── src/
 │   ├── components/      # UI components (TestimonialCard, Gallery, Contact)
 │   ├── content/         # Dados de depoimentos (.md)
+│   ├── data/
 │   ├── layouts/         # Estrutura base da página
 │   ├── lib/             # Lógica de Auth e manipulação de arquivos
 │   └── pages/           # Rotas institucionais e endpoints da API Admin
+│   │   ├── admin
+│   │   │   └── api
+│   │   └── services
+│   ├── styles
+│   └── types
 └── package.json
+```
 
 ## 🧞 Comandos de Desenvolvimento
 
@@ -58,4 +74,4 @@ Caso precise de assistência técnica ou documentação sobre os componentes, co
 
 ---
 
-*Desenvolvido para A-Plus Pavers & Grass - Orlando, FL.*
+*Desenvolvido para A-Plus Pavers & Grass LLC. - Orlando, FL.*
