@@ -3,6 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import servicesData from "../../data/services.json";
+import company from "../../data/company.json"; // 🚀 Importa os dados globais da empresa
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 
@@ -12,9 +13,9 @@ if (!service) {
     throw new Error(`Service not found: ${Astro.params.id}`);
 }
 
-// 2. Define os metadados da página baseados no serviço encontrado
-const pageTitle = `${service.title} Orlando | A-Plus Pavers & Grass`;
-const pageDescription = `${service.description} Learn how A-Plus delivers quality installation, local service and long-lasting results for Orlando homes.`;
+// 2. Define os metadados da página baseados no serviço encontrado e dados globais
+const pageTitle = `${service.title} | ${company.address.serviceArea} | ${company.name}`;
+const pageDescription = `${service.description} Learn how ${company.name} delivers quality installation and long-lasting results for homes in ${company.address.serviceArea}.`;
 const galleryImages = Array.isArray(service.images) ? service.images : [];
 const coverImage = service.coverImage ?? null;
 
@@ -48,23 +49,24 @@ const breadcrumbData = [
                     <h1
                         class="mt-3 text-4xl font-extrabold text-[#0b3c5d] leading-tight"
                     >
-                        {service.title} in Orlando
+                        {service.title} in {company.address.serviceArea}
                     </h1>
                     <p
                         class="mt-4 text-gray-600 leading-relaxed text-base sm:text-lg"
                     >
                         {service.details}
                     </p>
+
                     <div class="mt-8 grid gap-4 sm:grid-cols-2">
                         <a
-                            href="tel:4071234567"
+                            href={`tel:${company.contact.phoneRaw}`}
                             class="inline-flex items-center justify-center gap-3 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
                         >
                             <Phone class="w-5 h-5 text-gray-400" />
                             Call now
                         </a>
                         <a
-                            href="facetime:4071234567"
+                            href={`facetime:${company.contact.facetime}`}
                             class="inline-flex items-center justify-center gap-3 rounded-full border border-[#328cc1] bg-white px-5 py-3 text-sm font-semibold text-[#328cc1] transition hover:bg-[#ebf4ff]"
                         >
                             <Video class="w-5 h-5 text-gray-400" />
@@ -91,7 +93,7 @@ const breadcrumbData = [
                                         📷
                                     </div>
                                     <p class="text-sm font-semibold text-[#0b3c5d]">
-                                        Nenhuma imagem disponível ainda para este serviço.
+                                        No image available yet for this service.
                                     </p>
                                 </div>
                             </div>
@@ -105,7 +107,7 @@ const breadcrumbData = [
             class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100 mb-10"
         >
             <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-6">
-                Why Orlando homeowners choose this service
+                Why homeowners in {company.address.serviceArea} choose this service
             </h2>
             <ul class="grid gap-4 text-gray-600 text-base sm:grid-cols-2">
                 {
@@ -118,7 +120,6 @@ const breadcrumbData = [
             </ul>
         </section>
 
-        {/* 🚀 SEÇÃO DE GALERIA ATUALIZADA: MÁXIMO 6 IMAGENS + DETECTOR DE MODAL */}
         <section
             class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100 mb-10"
         >
@@ -148,8 +149,13 @@ const breadcrumbData = [
                                     id="open-gallery-modal"
                                     class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#0b3c5d] bg-white px-6 py-3 text-sm font-bold text-[#0b3c5d] transition hover:bg-[#0b3c5d] hover:text-white group"
                                 >
-                                    <span>View All Photos (+{galleryImages.length - 6})</span>
-                                    <span class="transform transition-transform group-hover:translate-x-1">→</span>
+                                    <span>
+                                        View All Photos (+
+                                        {galleryImages.length - 6})
+                                    </span>
+                                    <span class="transform transition-transform group-hover:translate-x-1">
+                                        →
+                                    </span>
                                 </button>
                             </div>
                         )}
@@ -159,11 +165,11 @@ const breadcrumbData = [
                         <div class="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#dbeafe] text-[#328cc1] text-lg">
                             📷
                         </div>
-                        <p class="text-lg font-semibold">Galeria em breve</p>
+                        <p class="text-lg font-semibold">Gallery coming soon</p>
                         <p class="mt-2 text-sm text-gray-600 max-w-xl mx-auto">
-                            Ainda não temos imagens desse serviço. Faça o upload
-                            pela área administrativa e elas aparecerão aqui e na
-                            página de serviços.
+                            We don't have images for this service yet. Upload
+                            them through the admin area and they will appear
+                            here and on the services page.
                         </p>
                     </div>
                 )
@@ -197,11 +203,10 @@ const breadcrumbData = [
             class="rounded-3xl bg-[#eef6ff] p-8 text-center border border-[#dbeafe]"
         >
             <h3 class="text-2xl font-extrabold text-[#0b3c5d] mb-4">
-                Ready for a local Orlando estimate?
+                Ready for an estimate in {company.address.serviceArea}?
             </h3>
             <p class="text-gray-700 mb-6">
-                Call now or send us a message to schedule a free project review
-                in the Orlando area.
+                Call now or send us a message to schedule a free project review.
             </p>
             <div
                 class="md:inline-flex items-center gap-6 font-bold text-sm uppercase tracking-wider text-[#0b3c5d]"
@@ -215,7 +220,6 @@ const breadcrumbData = [
         </div>
     </main>
 
-    {/* 🚀 MODAL ESTRUTURAL DA GALERIA COMPLETA */}
     {
         galleryImages.length > 6 && (
             <div
@@ -229,7 +233,8 @@ const breadcrumbData = [
                                 {service.title} — Full Gallery
                             </h3>
                             <p class="text-sm text-gray-500 mt-1">
-                                Showing all {galleryImages.length} project photos
+                                Showing all {galleryImages.length} project
+                                photos
                             </p>
                         </div>
                         <button
@@ -262,25 +267,23 @@ const breadcrumbData = [
     <Footer />
 </Layout>
 
-{/* 🚀 SCRIPT DE COMPORTAMENTO INTERATIVO DO MODAL */}
 <script>
-    const modal = document.getElementById('gallery-modal');
-    const openBtn = document.getElementById('open-gallery-modal');
-    const closeBtn = document.getElementById('close-gallery-modal');
+    const modal = document.getElementById("gallery-modal");
+    const openBtn = document.getElementById("open-gallery-modal");
+    const closeBtn = document.getElementById("close-gallery-modal");
 
     if (openBtn && modal) {
-        openBtn.addEventListener('click', () => {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
+        openBtn.addEventListener("click", () => {
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.style.overflow = "hidden";
         });
     }
 
-    const triggers = document.querySelectorAll('.js-gallery-trigger');
+    const triggers = document.querySelectorAll(".js-gallery-trigger");
     if (triggers.length > 0 && modal && openBtn) {
-        triggers.forEach(trigger => {
-            trigger.addEventListener('click', () => {
-                // Instancia o mesmo gatilho do botão de ver tudo
+        triggers.forEach((trigger) => {
+            trigger.addEventListener("click", () => {
                 (openBtn as HTMLButtonElement).click();
             });
         });
@@ -288,19 +291,19 @@ const breadcrumbData = [
 
     if (closeBtn && modal) {
         const closeModal = () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            document.body.style.overflow = "";
         };
 
-        closeBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener("click", closeModal);
 
-        modal.addEventListener('click', (e) => {
+        modal.addEventListener("click", (e) => {
             if (e.target === modal) closeModal();
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !modal.classList.contains("hidden")) {
                 closeModal();
             }
         });

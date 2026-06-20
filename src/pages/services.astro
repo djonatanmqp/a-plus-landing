@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import servicesData from "../data/services.json";
+import company from "../data/company.json"; // 🚀 Importa os dados globais da empresa
 
 const breadcrumbData = [
     { label: "Home", href: "/" },
@@ -11,12 +12,12 @@ const breadcrumbData = [
 ---
 
 <Layout
-    title="Our Orlando Services | A-Plus Pavers & Grass"
-    description="A-Plus Pavers & Grass offers Orlando driveway pavers, patio installations, walkways and artificial turf solutions with fast local estimates."
+    title={`Our Services | ${company.name}`}
+    description={company.description}
 >
     <Header
         headerTitle="Our Services"
-        headerSubtitle="Explore what we can do for your property in Orlando"
+        headerSubtitle={`Explore what we can do for your property in ${company.address.serviceArea}`}
         breadcrumb={breadcrumbData}
         isHome={false}
         showServicesLinks={false}
@@ -26,9 +27,8 @@ const breadcrumbData = [
         <div class="grid gap-6 md:grid-cols-3">
             {
                 servicesData.map((service) => {
-                    // 🚀 AJUSTE AQUI: Consome o caminho direto como string do JSON
                     const cover = service.coverImage ?? null;
-                    
+
                     return (
                         <article class="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
                             {cover ? (

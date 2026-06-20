@@ -3,95 +3,84 @@
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 import Email from "~icons/mdi/email";
+import MapMarker from "~icons/mdi/map-marker";
 import Facebook from "~icons/simple-icons/facebook";
 import Instagram from "~icons/simple-icons/instagram";
 import Tiktok from "~icons/simple-icons/tiktok";
 import GoogleIcon from "~icons/simple-icons/google";
+
+// 🚀 Importa os dados centralizados da empresa
+import company from "../data/company.json";
 ---
 
 <section id="contact" class="max-w-6xl mx-auto px-4 py-2">
-    <div
-        class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 grid md:grid-cols-2 gap-10"
-    >
-        <!-- Coluna Esquerda: Contatos e Redes -->
+    <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 grid md:grid-cols-2 gap-10">
+        
         <div>
             <h2 class="text-2xl font-extrabold text-[#0b3c5d] mb-2">
                 Contact Us
             </h2>
-            <p
-                class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-8"
-            >
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-8">
                 Contact us for a free estimate
             </p>
 
-            <div
-                class="space-y-4 text-sm sm:text-base font-semibold text-[#328cc1]"
-            >
+            <div class="space-y-4 text-sm sm:text-base font-semibold text-[#328cc1]">
                 <a
-                    href="tel:3214963060"
+                    href={company.links.googleReview.replace('writereview?placeid=', '?q=')} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-start gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
+                >
+                    <MapMarker class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                    <span>{company.address.full}</span>
+                </a>
+
+                <a
+                    href={`tel:${company.contact.phoneRaw}`}
                     class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
-                    <Phone class="w-5 h-5 text-gray-400" /> (321) 496-3060
+                    <Phone class="w-5 h-5 text-gray-400" /> {company.contact.phone}
                 </a>
+
                 <a
-                    href="facetime:4071234567"
+                    href={`facetime:${company.contact.facetime}`}
                     class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
                     <Video class="w-5 h-5 text-gray-400" /> FaceTime
                 </a>
+
                 <a
-                    href="mailto:info@apluspaversgrass.com"
+                    href={`mailto:${company.contact.email}`}
                     class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
-                    <Email class="w-5 h-5 text-gray-400" /> info@apluspaversgrass.com
+                    <Email class="w-5 h-5 text-gray-400" /> {company.contact.email}
                 </a>
             </div>
 
             <div class="flex gap-5 mt-8 pt-6 border-t border-gray-100">
-                <!-- Google -->
-                <a
-                    href="https://search.google.com/local/writereview?placeid=YOUR_GOOGLE_PLACE_ID"
-                    target="_blank"
-                    class="text-gray-400 hover:text-[#4285F4] transition-colors"
-                    aria-label="Google Reviews"
-                >
+                <a href={company.links.googleReview} target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-[#4285F4] transition-colors" aria-label="Google Reviews">
                     <GoogleIcon class="w-8 h-8" />
                 </a>
-                <a
-                    href="#"
-                    class="text-gray-400 hover:text-[#1877F2] transition-colors"
-                    aria-label="Facebook"
-                >
+                <a href={company.links.facebook} class="text-gray-400 hover:text-[#1877F2] transition-colors" aria-label="Facebook">
                     <Facebook class="w-8 h-8" />
                 </a>
-                <a
-                    href="#"
-                    class="text-gray-400 hover:text-[#E1306C] transition-colors"
-                    aria-label="Instagram"
-                >
+                <a href={company.links.instagram} class="text-gray-400 hover:text-[#E1306C] transition-colors" aria-label="Instagram">
                     <Instagram class="w-8 h-8" />
                 </a>
-                <a
-                    href="#"
-                    class="text-gray-400 hover:text-[#000000] transition-colors"
-                    aria-label="TikTok"
-                >
+                <a href={company.links.tiktok} class="text-gray-400 hover:text-[#000000] transition-colors" aria-label="TikTok">
                     <Tiktok class="w-8 h-8" />
                 </a>
             </div>
         </div>
 
-        <!-- Coluna Direita: Mapa -->
-        <div
-            class="w-full h-64 md:h-auto min-h-[250px] rounded-xl overflow-hidden border border-gray-100 shadow-inner"
-        >
+        <div class="w-full h-64 md:h-auto min-h-[250px] rounded-xl overflow-hidden border border-gray-100 shadow-inner">
             <iframe
                 width="100%"
                 height="100%"
                 style="border:0"
                 loading="lazy"
                 allowfullscreen
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3504.4342840658737!2d-80.83389902450197!3d28.556719075706205!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88e74df4e89827c7%3A0x62929890360ad056!2sA%20Plus%20Pavers%20%26%20Design!5e0!3m2!1spt-BR!2sbr!4v1780753437133!5m2!1spt-BR!2sbr"
+                src={company.links.googleMapsEmbed}
                 referrerpolicy="no-referrer-when-downgrade"
             >
             </iframe>

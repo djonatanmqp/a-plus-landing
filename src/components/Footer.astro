@@ -1,5 +1,6 @@
 ---
 // src/components/Footer.astro
+import company from "../data/company.json";
 import ArrowUp from "~icons/mdi/chevron-up";
 ---
 
@@ -7,28 +8,24 @@ import ArrowUp from "~icons/mdi/chevron-up";
     <div
         class="bg-gray-50 border border-gray-200/60 text-[11px] sm:text-xs text-gray-500 p-5 rounded-lg flex flex-row justify-between items-center gap-4 px-6"
     >
-        {/* Lado Esquerdo: Logo e Copyright (Não quebra mais) */}
         <div class="flex items-center gap-3 min-w-0 shrink">
             <img
                 src="/logo.png"
-                alt="A-Plus Logo"
+                alt={`${company.name} Logo`}
                 class="h-6 w-auto opacity-70 grayscale hover:grayscale-0 transition-all shrink-0"
             />
-            <p class="truncate">&copy; 2026 | A-Plus Pavers & Grass LLC. All rights reserved.</p>
+            <p class="truncate">&copy; {new Date().getFullYear()} | {company.name}. All rights reserved.</p>
         </div>
 
-        {/* Lado Direito: Agrupamento de Contatos + Botão "Top" (Mantido em linha) */}
         <div class="flex items-center gap-6 shrink-0">
             
-            {/* Bloco de Informações (Escondido no mobile, aparece no desktop) */}
             <div
                 class="hidden sm:block text-right text-gray-400 leading-normal font-medium"
             >
-                <span>(321) 496-3060 &nbsp;|&nbsp; info@apluspaversgrass.com</span><br />
-                <span>Orlando, Florida</span>
+                <span>{company.contact.phone} &nbsp;|&nbsp; {company.contact.email}</span><br />
+                <span>{company.address.city}, {company.address.state}</span>
             </div>
 
-            {/* Botão "Back to Top" (Sempre visível na mesma linha) */}
             <div
                 class="flex flex-col items-center justify-center text-sm text-gray-500 gap-0.5 shrink-0"
             >
