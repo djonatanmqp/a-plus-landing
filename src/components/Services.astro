@@ -1,5 +1,6 @@
 ---
 // src/components/Services.astro
+import services from "../data/services.json";
 ---
 
 <section id="services" class="max-w-6xl mx-auto px-4 pt-6">
@@ -22,37 +23,35 @@
             Our Services
         </h2>
 
-        <div
-            class="space-y-6 text-gray-600 leading-relaxed text-base sm:text-lg"
-        >
-            <div class="flex items-start gap-3">
-                <span class="text-[#328cc1] text-xl select-none">▪</span>
-                <p>
-                    Professional paver installation for driveways, patios and
-                    walkways in Orlando, Winter Park, Lake Nona and surrounding
-                    areas.
-                </p>
+        <!-- Loop dinâmico lendo o arquivo JSON -->
+        <div class="space-y-6">
+            {services.map((service) => (
+                <div class="flex items-start gap-3">
+                    <!-- Alinha o marcador ao topo do título -->
+                    <span class="text-[#328cc1] text-xl select-none leading-none mt-1">▪</span>
+                    
+                    <div class="flex-1">
+                        <!-- Título do serviço em uma linha própria -->
+                        <h3 class="text-[#0b3c5d] font-bold text-base sm:text-lg leading-snug">
+                            {service.title}
+                        </h3>
+                        
+                        <!-- Tagline na linha de baixo com recuo (ml-4) -->
+                        <p class="text-gray-600 text-sm sm:text-base ml-4 mt-1 leading-relaxed">
+                            {service.tagline}
+                        </p>
+                    </div>
+                </div>
+            ))}
+
+            <div class="pt-4">
+                <a
+                    href="/services"
+                    class="inline-flex items-center justify-center rounded-full bg-[#328cc1] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
+                >
+                    All Services
+                </a>
             </div>
-            <div class="flex items-start gap-3">
-                <span class="text-[#328cc1] text-xl select-none">▪</span>
-                <p>
-                    Expert artificial turf and sod installation designed for
-                    Florida heat, humidity, and modern lawn performance.
-                </p>
-            </div>
-            <div class="flex items-start gap-3">
-                <span class="text-[#328cc1] text-xl select-none">▪</span>
-                <p>
-                    Fast, reliable service with local Orlando project estimates
-                    and dedicated customer care.
-                </p>
-            </div>
-            <a
-                href={`/services`}
-                class="mt-4 inline-flex items-center justify-center rounded-full bg-[#328cc1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
-            >
-                All Services
-            </a>
         </div>
     </div>
 </section>

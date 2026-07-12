@@ -1,204 +1,155 @@
 ---
 import servicesData from "../data/services.json";
 import MagnifyIcon from "~icons/mdi/magnify";
+import ZoomModal from "./ZoomModal.astro";
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-2">
     <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
-        <h2
-            class="text-3xl font-extrabold text-[#0b3c5d] mb-4 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-12 after:h-1 after:bg-[#328cc1] pb-2"
-        >
+        <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-4 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-12 after:h-1 after:bg-[#328cc1] pb-2">
             Photo Gallery
         </h2>
-        <p
-            class="text-xs text-gray-500 mb-8 font-semibold uppercase tracking-wider"
-        >
+        <p class="text-xs text-gray-500 mb-8 font-semibold uppercase tracking-wider">
             Click on a service to view full project gallery
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {
-                servicesData.map((service) => (
-                    <div
-                        id={`gallery-${service.id}`}
-                        class="gallery-trigger group cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
-                        data-service={JSON.stringify(service)}
-                    >
-                        <div class="relative overflow-hidden aspect-video">
-                            {/* 🚀 Adicionado 'onerror' para caso a capa em JPG dê 404 */}
-                            <img
-                                src={service.coverImage}
-                                alt={service.title}
-                                loading="lazy"
-                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}';`}
-                            />
-                            <div class="absolute inset-0 bg-[#0b3c5d]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span class="inline-flex items-center gap-1.5 bg-white/65 text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
-                                    View Gallery
-                                    <MagnifyIcon class="w-4 h-4" />
-                                </span>
-                            </div>
-                        </div>
-                        <div class="p-4 bg-white border-t border-gray-100">
-                            <h3 class="font-bold text-lg text-[#0b3c5d] group-hover:text-[#328cc1] transition-colors">
-                                {service.title}
-                            </h3>
-                            <a
-                                href={`/services/${service.id}`}
-                                class="mt-4 inline-flex items-center justify-center rounded-full bg-[#328cc1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
-                            >
-                                Learn more
-                            </a>
+            {servicesData.map((service) => (
+                <div
+                    id={`gallery-${service.id}`}
+                    class="gallery-trigger group cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
+                    data-service={JSON.stringify(service)}
+                >
+                    <div class="relative overflow-hidden aspect-video">
+                        <img
+                            src={service.coverImage}
+                            alt={service.title}
+                            loading="lazy"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}';`}
+                        />
+                        <div class="absolute inset-0 bg-[#0b3c5d]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="inline-flex items-center gap-1.5 bg-white/65 text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
+                                View Gallery
+                                <MagnifyIcon class="w-4 h-4" />
+                            </span>
                         </div>
                     </div>
-                ))
-            }
+                    <div class="p-4 bg-white border-t border-gray-100">
+                        <h3 class="font-bold text-lg text-[#0b3c5d] group-hover:text-[#328cc1] transition-colors">
+                            {service.title}
+                        </h3>
+                        <a
+                            href={`/services/${service.id}`}
+                            class="js-learn-more mt-4 inline-flex items-center justify-center rounded-full bg-[#328cc1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
+                        >
+                            Learn more
+                        </a>
+                    </div>
+                </div>
+            ))}
         </div>
     </div>
 </section>
 
-<dialog
-    id="gallery-modal"
-    class="fixed inset-0 m-auto rounded-xl p-0 w-11/12 max-w-2xl overflow-hidden shadow-2xl border border-gray-100/50 outline-none bg-white opacity-0 transition-all duration-300 scale-95"
->
+<!-- Modal Principal -->
+<dialog id="gallery-modal" class="fixed inset-0 m-auto rounded-xl p-0 w-11/12 max-w-2xl overflow-hidden shadow-2xl border border-gray-100/50 outline-none bg-white opacity-0 transition-all duration-300 scale-95">
     <div class="flex flex-col bg-white max-h-[85vh]">
-        <div
-            class="flex justify-between items-center bg-[#0b3c5d] text-white p-5 sm:px-6"
-        >
-            <h3 id="modal-title" class="font-extrabold text-xl tracking-tight">
-                Service Details
-            </h3>
-            <button
-                id="close-modal"
-                class="text-white/80 hover:text-[#d9b310] text-3xl font-light transition-colors focus:outline-none leading-none pb-1"
-                aria-label="Close modal">&times;</button
-            >
+        <div class="flex justify-between items-center bg-[#0b3c5d] text-white p-5 sm:px-6">
+            <h3 id="modal-title" class="font-extrabold text-xl tracking-tight">Service Details</h3>
+            <button id="close-modal" class="text-white/80 hover:text-[#d9b310] text-3xl font-light transition-colors focus:outline-none leading-none pb-1" aria-label="Close modal">&times;</button>
         </div>
-
         <div class="p-6 overflow-y-auto space-y-6 no-scrollbar">
-            <p
-                id="modal-description"
-                class="text-gray-600 leading-relaxed text-sm sm:text-base"
-            >
-            </p>
-
+            <p id="modal-description" class="text-gray-600 leading-relaxed text-sm sm:text-base"></p>
             <div>
-                <h4
-                    class="font-bold text-xs uppercase tracking-wider text-gray-400 mb-4"
-                >
-                    Project Portfolio
-                </h4>
-                <div
-                    id="modal-images-grid"
-                    class="grid grid-cols-2 sm:grid-cols-3 gap-3"
-                >
-                </div>
+                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-400 mb-4">Project Portfolio</h4>
+                <div id="modal-images-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
             </div>
         </div>
     </div>
 </dialog>
 
+<ZoomModal />
+
 <style>
-    dialog::backdrop {
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    dialog.modal-open {
-        opacity: 1;
-        transform: scale(1);
-    }
-    dialog.modal-open::backdrop {
-        opacity: 1;
-    }
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s ease; }
+    dialog.modal-open { opacity: 1; transform: scale(1); }
+    dialog.modal-open::backdrop { opacity: 1; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <script>
-    const triggers = document.querySelectorAll(".gallery-trigger");
-    const modal = document.getElementById("gallery-modal") as HTMLDialogElement;
-    const modalTitle = document.getElementById("modal-title");
-    const modalDescription = document.getElementById("modal-description");
-    const modalImagesGrid = document.getElementById("modal-images-grid");
-    const closeModal = document.getElementById("close-modal");
+    const initGallery = () => {
+        const triggers = document.querySelectorAll(".gallery-trigger");
+        const modal = document.getElementById("gallery-modal") as HTMLDialogElement;
+        const modalTitle = document.getElementById("modal-title");
+        const modalDescription = document.getElementById("modal-description");
+        const modalImagesGrid = document.getElementById("modal-images-grid");
+        const closeModal = document.getElementById("close-modal");
+        const learnMoreBtns = document.querySelectorAll(".js-learn-more");
 
-    if (
-        modal &&
-        modalTitle &&
-        modalDescription &&
-        modalImagesGrid &&
-        closeModal
-    ) {
-        const openModalEvent = (serviceData: any) => {
-            modalTitle.textContent = serviceData.title;
-            modalDescription.textContent = serviceData.description;
-            modalImagesGrid.innerHTML = "";
+        if (modal && modalTitle && modalDescription && modalImagesGrid && closeModal) {
+            learnMoreBtns.forEach(btn => btn.addEventListener("click", (e) => e.stopPropagation()));
 
-            // Se a array de imagens estiver completamente vazia no JSON, usa o placeholder padrão
-            const projectImages =
-                serviceData.images && serviceData.images.length > 0
+            const openModalEvent = (serviceData: any) => {
+                modalTitle.textContent = serviceData.title;
+                modalDescription.textContent = serviceData.description;
+                modalImagesGrid.innerHTML = "";
+
+                const projectImages = serviceData.images && serviceData.images.length > 0
                     ? serviceData.images
                     : [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`];
 
-            projectImages.forEach((imgUrl: string, index: number) => {
-                const imgWrapper = document.createElement("div");
-                imgWrapper.className =
-                    "rounded-lg overflow-hidden border border-gray-100 aspect-video shadow-sm bg-gray-50";
+                projectImages.forEach((imgUrl: string, index: number) => {
+                    const imgWrapper = document.createElement("div");
+                    imgWrapper.className = "rounded-lg overflow-hidden border border-gray-100 aspect-video shadow-sm bg-gray-50";
 
-                const img = document.createElement("img");
-                img.src = imgUrl;
-                img.alt = `${serviceData.title} view ${index + 1}`;
-                img.className =
-                    "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
+                    const img = document.createElement("img");
+                    img.src = imgUrl;
+                    img.alt = `${serviceData.title} view ${index + 1}`;
+                    img.className = "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
+                    
+                    // Ajuste de segurança: chama a função global com verificação
+                    img.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (typeof (window as any).openZoom === 'function') {
+                            (window as any).openZoom(img.src);
+                        } else {
+                            console.error("Função openZoom não encontrada no window.");
+                        }
+                    });
 
-                // 🚀 Proteção interna do modal: Se o link do JSON quebrar (404), substitui pelo placehold.co
-                img.onerror = () => {
-                    img.onerror = null; // Evita loop infinito
-                    img.src = `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Image+${index + 1}`;
-                };
+                    img.onerror = () => {
+                        img.onerror = null;
+                        img.src = `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Image+${index + 1}`;
+                    };
 
-                imgWrapper.appendChild(img);
-                modalImagesGrid.appendChild(imgWrapper);
+                    imgWrapper.appendChild(img);
+                    modalImagesGrid.appendChild(imgWrapper);
+                });
+
+                modal.showModal();
+                requestAnimationFrame(() => modal.classList.add("modal-open"));
+            };
+
+            const closeModalEvent = () => {
+                modal.classList.remove("modal-open");
+                setTimeout(() => modal.close(), 300);
+            };
+
+            triggers.forEach((trigger) => {
+                trigger.addEventListener("click", () => {
+                    const serviceData = JSON.parse(trigger.getAttribute("data-service") || "{}");
+                    openModalEvent(serviceData);
+                });
             });
 
-            modal.showModal();
-            setTimeout(() => {
-                modal.classList.add("modal-open");
-            }, 10);
-        };
+            closeModal.addEventListener("click", closeModalEvent);
+            modal.addEventListener("click", (e) => { if (e.target === modal) closeModalEvent(); });
+        }
+    };
 
-        const closeModalEvent = () => {
-            modal.classList.remove("modal-open");
-            setTimeout(() => {
-                modal.close();
-            }, 300);
-        };
-
-        triggers.forEach((trigger) => {
-            trigger.addEventListener("click", () => {
-                const serviceData = JSON.parse(
-                    trigger.getAttribute("data-service") || "{}",
-                );
-                openModalEvent(serviceData);
-            });
-        });
-
-        closeModal.addEventListener("click", closeModalEvent);
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeModalEvent();
-        });
-        modal.addEventListener("cancel", (e) => {
-            e.preventDefault();
-            closeModalEvent();
-        });
-    }
+    initGallery();
+    document.addEventListener("astro:page-load", initGallery);
 </script>

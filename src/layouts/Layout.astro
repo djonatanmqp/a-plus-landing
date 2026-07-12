@@ -13,6 +13,7 @@ const metaDescription = description ?? "A-Plus Pavers & Grass LLC delivers premi
 
 // Força a inclusão dos estilos globais do Tailwind caso a automação tenha pulado
 import '../styles/global.css';
+import ZoomModal from '../components/ZoomModal.astro';
 ---
 
 <!doctype html>
@@ -111,5 +112,7 @@ import '../styles/global.css';
 	</head>
 	<body class="bg-gray-50 text-gray-800 font-['Montserrat',sans-serif] antialiased">
 		<slot />
+		<ZoomModal />
+    	<script src="/src/scripts/zoom.js" type="module"></script>
 	</body>
 </html>

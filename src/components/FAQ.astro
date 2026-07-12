@@ -1,5 +1,6 @@
 ---
 // src/components/FAQ.astro
+import faqData from "../data/faq.json";
 ---
 
 <section id="faq" class="max-w-6xl mx-auto px-4 py-2">
@@ -9,42 +10,21 @@
       Answers to the most common questions from homeowners in Orlando and surrounding neighborhoods.
     </p>
 
-    <div class="space-y-6">
-      <article>
-        <h3 class="text-lg font-semibold text-[#0b3c5d] mb-2">
-          How much does driveway paver installation cost in Orlando?
-        </h3>
-        <p class="text-gray-600 leading-relaxed">
-          Cost varies by driveway size, material and site preparation. We provide free estimates for Orlando and nearby cities, so you can compare design options and pricing before starting.
-        </p>
-      </article>
-
-      <article>
-        <h3 class="text-lg font-semibold text-[#0b3c5d] mb-2">
-          What is the best turf for Florida weather?
-        </h3>
-        <p class="text-gray-600 leading-relaxed">
-          We recommend premium artificial turf designed for Florida heat, humidity and heavy use. Our turf installs include a proper base and drainage to keep lawns green and durable year-round.
-        </p>
-      </article>
-
-      <article>
-        <h3 class="text-lg font-semibold text-[#0b3c5d] mb-2">
-          Do you install patios, walkways and driveway pavers in Orlando?
-        </h3>
-        <p class="text-gray-600 leading-relaxed">
-          Yes. A-Plus Pavers & Grass handles full installation for patios, walkways, driveways and outdoor hardscape features across the Orlando metro area.
-        </p>
-      </article>
-
-      <article>
-        <h3 class="text-lg font-semibold text-[#0b3c5d] mb-2">
-          Can I get a free estimate for my project?
-        </h3>
-        <p class="text-gray-600 leading-relaxed">
-          Absolutely. We offer free estimates for local clients in Orlando, Winter Park, Lake Nona, Kissimmee and nearby communities.
-        </p>
-      </article>
-    </div>
+    {faqData && faqData.length > 0 ? (
+      <div class="space-y-6">
+        {faqData.map((item) => (
+          <article class="border-b border-gray-50 pb-4 last:border-none last:pb-0">
+            <h3 class="text-lg font-semibold text-[#0b3c5d] mb-2">
+              {item.question}
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              {item.answer}
+            </p>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <p class="text-gray-500 italic">Frequently asked questions coming soon.</p>
+    )}
   </div>
 </section>

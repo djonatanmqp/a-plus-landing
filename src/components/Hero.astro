@@ -5,6 +5,7 @@ import servicesData from "../data/services.json";
 const servicesCarousel = servicesData.map((service) => ({
     title: service.title,
     description: service.description,
+    tagline: service.tagline,
     image: service.heroImage || service.coverImage || "", // Lê o caminho direto do JSON
     galleryId: service.id,
 }));
@@ -44,7 +45,7 @@ const servicesCarousel = servicesData.map((service) => ({
                                 {service.title}
                             </h2>
                             <p class="text-xs sm:text-sm text-gray-200 mt-1 mb-4 hidden sm:block">
-                                {service.description}
+                                {service.tagline}
                             </p>
                             <a
                                 href={`#gallery-${service.galleryId}`}

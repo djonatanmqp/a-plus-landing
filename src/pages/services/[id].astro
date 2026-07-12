@@ -2,24 +2,22 @@
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import ZoomModal from "../../components/ZoomModal.astro";
 import servicesData from "../../data/services.json";
-import company from "../../data/company.json"; // 🚀 Importa os dados globais da empresa
+import company from "../../data/company.json";
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 
-// 1. Busca o serviço correto pelo ID vindo da URL
 const service = servicesData.find((item) => item.id === Astro.params.id);
 if (!service) {
     throw new Error(`Service not found: ${Astro.params.id}`);
 }
 
-// 2. Define os metadados da página baseados no serviço encontrado e dados globais
 const pageTitle = `${service.title} | ${company.address.serviceArea} | ${company.name}`;
 const pageDescription = `${service.description} Learn how ${company.name} delivers quality installation and long-lasting results for homes in ${company.address.serviceArea}.`;
 const galleryImages = Array.isArray(service.images) ? service.images : [];
 const coverImage = service.coverImage ?? null;
 
-// 3. Monta os dados do Breadcrumb
 const breadcrumbData = [
     { label: "Home", href: "/" },
     { label: "Services", href: "/services" },
@@ -30,299 +28,136 @@ const breadcrumbData = [
 <Layout title={pageTitle} description={pageDescription}>
     <Header
         headerTitle={service.title}
-        headerSubtitle={service.description}
+        headerSubtitle={service.tagline}
         breadcrumb={breadcrumbData}
         isHome={false}
         showServicesLinks={false}
     />
+
     <main class="max-w-6xl mx-auto px-4 py-8">
-        <section
-            class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100 mb-10"
-        >
+        <section class="rounded-3xl bg-white p-6 sm:p-8 shadow-sm border border-gray-100 mb-10">
             <div class="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] items-start">
                 <div>
-                    <p
-                        class="text-sm uppercase tracking-widest text-[#328cc1] font-bold"
-                    >
-                        {service.title}
-                    </p>
-                    <h1
-                        class="mt-3 text-4xl font-extrabold text-[#0b3c5d] leading-tight"
-                    >
-                        {service.title} in {company.address.serviceArea}
-                    </h1>
-                    <p
-                        class="mt-4 text-gray-600 leading-relaxed text-base sm:text-lg"
-                    >
-                        {service.details}
-                    </p>
+                    <p class="text-sm uppercase tracking-widest text-[#328cc1] font-bold">{service.title}</p>
+                    <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold text-[#0b3c5d] leading-tight">{service.title} in {company.address.serviceArea}</h1>
+                    <p class="mt-4 text-gray-600 leading-relaxed text-base sm:text-lg whitespace-pre-line">{service.details}</p>
 
                     <div class="mt-8 grid gap-4 sm:grid-cols-2">
-                        <a
-                            href={`tel:${company.contact.phoneRaw}`}
-                            class="inline-flex items-center justify-center gap-3 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
-                        >
-                            <Phone class="w-5 h-5 text-gray-400" />
-                            Call now
+                        <a href={`tel:${company.contact.phoneRaw}`} class="inline-flex items-center justify-center gap-3 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]">
+                            <Phone class="w-5 h-5 text-gray-400" /> Call now
                         </a>
-                        <a
-                            href={`facetime:${company.contact.facetime}`}
-                            class="inline-flex items-center justify-center gap-3 rounded-full border border-[#328cc1] bg-white px-5 py-3 text-sm font-semibold text-[#328cc1] transition hover:bg-[#ebf4ff]"
-                        >
-                            <Video class="w-5 h-5 text-gray-400" />
-                            FaceTime
+                        <a href={`facetime:${company.contact.facetime}`} class="inline-flex items-center justify-center gap-3 rounded-full border border-[#328cc1] bg-white px-5 py-3 text-sm font-semibold text-[#328cc1] transition hover:bg-[#ebf4ff]">
+                            <Video class="w-5 h-5 text-gray-400" /> FaceTime
                         </a>
                     </div>
                 </div>
-                <div
-                    class="rounded-3xl overflow-hidden border border-gray-200 bg-gray-50 aspect-video lg:aspect-auto lg:h-full min-h-[320px]"
-                >
-                    {
-                        coverImage ? (
-                            <img
-                                src={coverImage}
-                                alt={`${service.title} cover`}
-                                class="h-full w-full object-cover"
-                                loading="lazy"
-                                onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}+Cover';`}
-                            />
-                        ) : (
-                            <div class="flex h-full min-h-[320px] items-center justify-center bg-[#eef6ff] px-4 text-center">
-                                <div class="space-y-2">
-                                    <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#dbeafe] text-[#328cc1] text-lg">
-                                        📷
-                                    </div>
-                                    <p class="text-sm font-semibold text-[#0b3c5d]">
-                                        No image available yet for this service.
-                                    </p>
-                                </div>
-                            </div>
-                        )
-                    }
+
+                <div class="rounded-3xl overflow-hidden border border-gray-200 bg-gray-50 aspect-video w-full lg:aspect-auto lg:h-full lg:min-h-[320px]">
+                    {coverImage ? (
+                        <img 
+                            src={coverImage} 
+                            alt={`${service.title} cover`} 
+                            class="js-zoom-trigger h-full w-full object-cover cursor-zoom-in" 
+                            loading="lazy" 
+                        />
+                    ) : (
+                        <div class="flex w-full h-full items-center justify-center bg-[#eef6ff]">📷</div>
+                    )}
                 </div>
             </div>
         </section>
 
-        <section
-            class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100 mb-10"
-        >
-            <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-6">
-                Why homeowners in {company.address.serviceArea} choose this service
-            </h2>
-            <ul class="grid gap-4 text-gray-600 text-base sm:grid-cols-2">
-                {
-                    service.features.map((feature) => (
-                        <li class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                            {feature}
-                        </li>
-                    ))
-                }
-            </ul>
-        </section>
-
-        <section
-            class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100 mb-10"
-        >
-            <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-4">
-                Project Gallery
-            </h2>
-            {
-                galleryImages.length > 0 ? (
-                    <div>
-                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {galleryImages.slice(0, 6).map((image, index) => (
-                                <figure class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 aspect-video cursor-pointer transform transition duration-300 hover:scale-[1.02] hover:shadow-md js-gallery-trigger">
-                                    <img
-                                        loading="lazy"
-                                        src={image}
-                                        alt={`${service.title} project photo`}
-                                        class="h-full w-full object-cover"
-                                        onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}+Image+${index + 1}';`}
-                                    />
-                                </figure>
-                            ))}
-                        </div>
-
-                        {galleryImages.length > 6 && (
-                            <div class="mt-8 text-center">
-                                <button
-                                    id="open-gallery-modal"
-                                    class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#0b3c5d] bg-white px-6 py-3 text-sm font-bold text-[#0b3c5d] transition hover:bg-[#0b3c5d] hover:text-white group"
-                                >
-                                    <span>
-                                        View All Photos (+
-                                        {galleryImages.length - 6})
-                                    </span>
-                                    <span class="transform transition-transform group-hover:translate-x-1">
-                                        →
-                                    </span>
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div class="rounded-3xl border border-dashed border-[#328cc1] bg-[#eff8ff] p-10 text-center text-[#0b3c5d]">
-                        <div class="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#dbeafe] text-[#328cc1] text-lg">
-                            📷
-                        </div>
-                        <p class="text-lg font-semibold">Gallery coming soon</p>
-                        <p class="mt-2 text-sm text-gray-600 max-w-xl mx-auto">
-                            We don't have images for this service yet. Upload
-                            them through the admin area and they will appear
-                            here and on the services page.
-                        </p>
-                    </div>
-                )
-            }
-        </section>
-
-        <section
-            id="faq"
-            class="rounded-3xl bg-white p-8 shadow-sm border border-gray-100 mb-10"
-        >
-            <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-6">
-                Frequently Asked Questions
-            </h2>
-            <div class="space-y-6">
-                {
-                    service.faq.map((item) => (
-                        <div>
-                            <h3 class="text-xl font-semibold text-[#0b3c5d] mb-2">
-                                {item.question}
-                            </h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                {item.answer}
-                            </p>
-                        </div>
-                    ))
-                }
-            </div>
-        </section>
-
-        <div
-            class="rounded-3xl bg-[#eef6ff] p-8 text-center border border-[#dbeafe]"
-        >
-            <h3 class="text-2xl font-extrabold text-[#0b3c5d] mb-4">
-                Ready for an estimate in {company.address.serviceArea}?
-            </h3>
-            <p class="text-gray-700 mb-6">
-                Call now or send us a message to schedule a free project review.
-            </p>
-            <div
-                class="md:inline-flex items-center gap-6 font-bold text-sm uppercase tracking-wider text-[#0b3c5d]"
-            >
-                <a
-                    href="/#contact"
-                    class="hover:text-[#328cc1] transition-colors drop-shadow-sm bg-[#0b3c5d] text-white px-4 py-2 rounded shadow-sm"
-                    >Contact Us</a
-                >
-            </div>
-        </div>
-    </main>
-
-    {
-        galleryImages.length > 6 && (
-            <div
-                id="gallery-modal"
-                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-            >
-                <div class="relative w-full max-w-5xl rounded-3xl bg-white p-6 md:p-8 shadow-2xl flex flex-col max-h-[90vh]">
-                    <div class="flex items-center justify-between border-b pb-4 mb-6">
-                        <div>
-                            <h3 class="text-2xl font-extrabold text-[#0b3c5d]">
-                                {service.title} — Full Gallery
-                            </h3>
-                            <p class="text-sm text-gray-500 mt-1">
-                                Showing all {galleryImages.length} project
-                                photos
-                            </p>
-                        </div>
-                        <button
-                            id="close-gallery-modal"
-                            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition"
-                            aria-label="Close modal"
-                        >
-                            ✕
-                        </button>
-                    </div>
-
-                    <div class="overflow-y-auto pr-2 grid gap-4 grid-cols-2 md:grid-cols-3 auto-rows-max flex-1 fn-custom-scrollbar">
-                        {galleryImages.map((image, index) => (
-                            <figure class="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 aspect-video">
-                                <img
-                                    loading="lazy"
-                                    src={image}
-                                    alt={`${service.title} complete gallery photo ${index + 1}`}
-                                    class="h-full w-full object-cover"
-                                    onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}+Photo+${index + 1}';`}
-                                />
+        <section class="rounded-3xl bg-white p-6 sm:p-8 shadow-sm border border-gray-100 mb-10">
+            <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-4">Project Gallery</h2>
+            {galleryImages.length > 0 ? (
+                <div>
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {galleryImages.slice(0, 6).map((image) => (
+                            <figure class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 aspect-video cursor-zoom-in hover:scale-[1.02] transition">
+                                <img src={image} alt={service.title} class="js-zoom-trigger h-full w-full object-cover" />
                             </figure>
                         ))}
                     </div>
+                    {galleryImages.length > 6 && (
+                        <div class="mt-8 text-center">
+                            <button id="open-gallery-modal" class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#0b3c5d] bg-white px-6 py-3 text-sm font-bold text-[#0b3c5d] hover:bg-[#0b3c5d] hover:text-white transition">
+                                View All Photos (+{galleryImages.length - 6})
+                            </button>
+                        </div>
+                    )}
                 </div>
-            </div>
-        )
-    }
+            ) : <p class="text-gray-500">Gallery coming soon</p>}
+        </section>
+    </main>
 
+    <div id="gallery-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <div class="relative w-full max-w-5xl rounded-3xl bg-white p-6 md:p-8 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between border-b pb-4 mb-6">
+                <h3 class="text-2xl font-extrabold text-[#0b3c5d]">{service.title} — Full Gallery</h3>
+                <button id="close-gallery-modal" class="text-3xl text-gray-500 hover:text-black">✕</button>
+            </div>
+            <div class="overflow-y-auto pr-2 grid gap-4 grid-cols-2 md:grid-cols-3 flex-1 fn-custom-scrollbar">
+                {galleryImages.map((image) => (
+                    <figure class="aspect-video rounded-2xl overflow-hidden border border-gray-200 cursor-zoom-in">
+                        <img src={image} class="js-zoom-trigger w-full h-full object-cover" />
+                    </figure>
+                ))}
+            </div>
+        </div>
+    </div>
+
+    <ZoomModal />
     <Footer />
 </Layout>
 
 <script>
-    const modal = document.getElementById("gallery-modal");
-    const openBtn = document.getElementById("open-gallery-modal");
-    const closeBtn = document.getElementById("close-gallery-modal");
-
-    if (openBtn && modal) {
-        openBtn.addEventListener("click", () => {
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-            document.body.style.overflow = "hidden";
-        });
-    }
-
-    const triggers = document.querySelectorAll(".js-gallery-trigger");
-    if (triggers.length > 0 && modal && openBtn) {
-        triggers.forEach((trigger) => {
-            trigger.addEventListener("click", () => {
-                (openBtn as HTMLButtonElement).click();
+    const setupIdPageScripts = () => {
+        // 1. Lógica do Zoom (Igual ao Gallery.astro)
+        const zoomTriggers = document.querySelectorAll(".js-zoom-trigger");
+        zoomTriggers.forEach((img) => {
+            img.addEventListener("click", (e) => {
+                e.stopPropagation(); // Evita conflitos com modais por baixo
+                const target = img as HTMLImageElement;
+                
+                if (typeof (window as any).openZoom === 'function') {
+                    (window as any).openZoom(target.src);
+                } else {
+                    console.error("Zoom function not available yet");
+                }
             });
         });
-    }
 
-    if (closeBtn && modal) {
-        const closeModal = () => {
-            modal.classList.add("hidden");
-            modal.classList.remove("flex");
-            document.body.style.overflow = "";
-        };
+        // 2. Lógica do Modal "Ver Tudo"
+        const modal = document.getElementById("gallery-modal");
+        const openBtn = document.getElementById("open-gallery-modal");
+        const closeBtn = document.getElementById("close-gallery-modal");
 
-        closeBtn.addEventListener("click", closeModal);
+        if (openBtn && modal) {
+            openBtn.onclick = () => {
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+                document.body.style.overflow = "hidden";
+            };
+        }
 
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeModal();
-        });
+        if (closeBtn && modal) {
+            const closeModal = () => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                document.body.style.overflow = "";
+            };
+            closeBtn.onclick = closeModal;
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+        }
+    };
 
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-                closeModal();
-            }
-        });
-    }
+    // Inicializa na carga e nas transições do Astro
+    setupIdPageScripts();
+    document.addEventListener("astro:page-load", setupIdPageScripts);
 </script>
 
 <style>
-    .fn-custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    .fn-custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    .fn-custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-    .fn-custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
+    .fn-custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .fn-custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    .fn-custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 </style>

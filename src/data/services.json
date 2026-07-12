@@ -1,176 +1,175 @@
 [
-  {
-    "id": "driveways",
-    "title": "Driveways",
-    "description": "Premium driveway services in Orlando and Central Florida, delivering a modern look and durable hardscaping solutions for your outdoor living spaces.",
-    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
-    "features": [
-      "Custom driveway designs with premium pavers",
-      "Durable stone and concrete solutions for Florida weather",
-      "Professional grading and base installation",
-      "Fast local service in Orlando and surrounding areas"
-    ],
-    "faq": [
-      {
-        "question": "How long does driveway paver installation take?",
-        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
-      },
-      {
-        "question": "Do you handle permits and site preparation?",
-        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
-      }
-    ],
-    "heroImage": "/services/driveways/hero.jpg",
-    "coverImage": "/services/driveways/cover.jpg",
-    "images": [
-      "/services/driveways/projeto1.jpg",
-      "/services/driveways/projeto2.jpg",
-      "/services/driveways/projeto3.jpg"
-    ]
-  },
-  {
-    "id": "pools",
-    "title": "Pool Decks",
-    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
-    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
-    "features": [
-      "Custom driveway designs with premium pavers",
-      "Durable stone and concrete solutions for Florida weather",
-      "Professional grading and base installation",
-      "Fast local service in Orlando and surrounding areas"
-    ],
-    "faq": [
-      {
-        "question": "How long does driveway paver installation take?",
-        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
-      },
-      {
-        "question": "Do you handle permits and site preparation?",
-        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
-      }
-    ],
-    "heroImage": "/services/pools/hero.jpg",
-    "coverImage": "/services/pools/cover.jpg",
-    "images": [
-      "/services/pools/projeto1.jpg",
-      "/services/pools/projeto2.jpg",
-      "/services/pools/projeto3.jpg"
-    ]
-  },
-  {
-    "id": "patios",
-    "title": "Patio & Walkways",
-    "description": "Transform your Orlando backyard with beautiful custom patios, walkways, and outdoor living spaces.",
-    "details": "We build custom patios and walkways that improve your outdoor living space, using materials and designs made for Orlando homes.",
-    "features": [
-      "Custom patio layouts and stonework",
-      "Walkway design for gardens and backyards",
-      "Materials chosen for Florida durability",
-      "Smooth project planning and installation"
-    ],
-    "faq": [
-      {
-        "question": "Can you install a patio near my pool?",
-        "answer": "Yes. We design patios and walkways that work around pools, decks and existing landscape elements in Orlando yards."
-      },
-      {
-        "question": "What materials do you recommend for walkways?",
-        "answer": "We recommend premium pavers and natural stone that are slip-resistant and suited to Florida sun and rain."
-      }
-    ],
-    "heroImage": "/services/patios/hero.jpg",
-    "coverImage": "/services/patios/cover.jpg",
-    "images": [
-      "/services/patios/projeto1.jpg",
-      "/services/patios/projeto2.jpg",
-      "/services/patios/projeto3.jpg"
-    ]
-  },
-  {
-    "id": "pergolas",
-    "title": "Pergolas & Summer Kitchens",
-    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
-    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
-    "features": [
-      "Custom driveway designs with premium pavers",
-      "Durable stone and concrete solutions for Florida weather",
-      "Professional grading and base installation",
-      "Fast local service in Orlando and surrounding areas"
-    ],
-    "faq": [
-      {
-        "question": "How long does driveway paver installation take?",
-        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
-      },
-      {
-        "question": "Do you handle permits and site preparation?",
-        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
-      }
-    ],
-    "heroImage": "/services/pergolas/hero.jpg",
-    "coverImage": "/services/pergolas/cover.jpg",
-    "images": [
-      "/services/pergolas/projeto1.jpg",
-      "/services/pergolas/projeto2.jpg",
-      "/services/pergolas/projeto3.jpg"
-    ]
-  },
-  {
-    "id": "lawn",
-    "title": "Artificial Turf & Sod",
-    "description": "Flawless green lawns and sod installation built for Orlando heat, humidity, and high performance.",
-    "details": "Our turf and sod installs are designed for Orlando conditions, giving your lawn a lush, low-maintenance finish that stays green year-round.",
-    "features": [
-      "Artificial turf solutions for Florida homes",
-      "Sod installation with proper drainage",
-      "Low-maintenance lawn alternatives",
-      "Fast local service and attractive results"
-    ],
-    "faq": [
-      {
-        "question": "Is artificial turf a good choice for Orlando?",
-        "answer": "Yes. Our turf systems are selected for heat resistance, drainage and minimal maintenance in Florida climates."
-      },
-      {
-        "question": "Can you install both turf and sod?",
-        "answer": "We offer both artificial turf and natural sod installation depending on your preference and property conditions."
-      }
-    ],
-    "heroImage": "/services/lawn/hero.jpg",
-    "coverImage": "/services/lawn/cover.jpg",
-    "images": [
-      "/services/lawn/projeto1.jpg",
-      "/services/lawn/projeto2.jpg",
-      "/services/lawn/projeto3.jpg"
-    ]
-  },
-  {
-    "id": "others",
-    "title": "Other Services",
-    "description": "Premium Orlando driveway paver installation for modern, durable and curb-appeal driveways.",
-    "details": "We install high-quality pavers for Orlando driveways, patios, and walkways with proper base preparation, drainage, and finishing touches that last.",
-    "features": [
-      "Custom driveway designs with premium pavers",
-      "Durable stone and concrete solutions for Florida weather",
-      "Professional grading and base installation",
-      "Fast local service in Orlando and surrounding areas"
-    ],
-    "faq": [
-      {
-        "question": "How long does driveway paver installation take?",
-        "answer": "Most driveway installs are completed in 2 to 4 days depending on site preparation, layout and weather conditions."
-      },
-      {
-        "question": "Do you handle permits and site preparation?",
-        "answer": "Yes. We prepare the base, handle grading and ensure the driveway is built to meet local Orlando standards."
-      }
-    ],
-    "heroImage": "/services/others/hero.jpg",
-    "coverImage": "/services/others/cover.jpg",
-    "images": [
-      "/services/others/projeto1.jpg",
-      "/services/others/projeto2.jpg",
-      "/services/others/projeto3.jpg"
-    ]
-  }
+    {
+        "id": "driveways",
+        "title": "Driveways",
+        "tagline": "Premium paver solutions to elevate your property’s curb appeal instantly.",
+        "description": "Driveway pavers are the premier choice for homeowners who are looking to elevate their property’s curb appeal.\n\nWe provide premium paver services in Orlando and all Central Florida, delivering a modern look and durable hardscaping solutions for your outdoor living spaces.",
+        "details": "We install high-quality pavers across Orlando and all Central Florida, crafting custom driveways with meticulous base preparation, proper drainage, and professional finishing touches built to last.",
+        "features": [
+            "Custom driveway designs with premium pavers",
+            "Durable concrete paver solutions engineered for Florida weather",
+            "Professional grading and base soil preparation",
+            "Fast local service in Orlando and all Central Florida areas"
+        ],
+        "faq": [
+            {
+                "question": "How long does driveway paver installation take?",
+                "answer": "Most driveway installations are completed in 2 to 4 days, depending on site preparation, layout, and weather conditions."
+            },
+            {
+                "question": "Do you handle site preparation?",
+                "answer": "Yes. We fully prepare the existing soil, apply and compact the base material, handle grading, and ensure the driveway is built to meet all local standards."
+            }
+        ],
+        "heroImage": "/services/driveways/driveways-hero.jpg",
+        "coverImage": "/services/driveways/driveways-cover.jpg",
+        "images": [
+            "/services/driveways/driveways-01.jpg",
+            "/services/driveways/driveways-02.jpg",
+            "/services/driveways/driveways-03.jpg",
+            "/services/driveways/driveways-04.jpg",
+            "/services/driveways/driveways-05.jpg",
+            "/services/driveways/driveways-06.jpg",
+            "/services/driveways/driveways-07.jpg"
+        ]
+    },
+    {
+        "id": "pools",
+        "title": "Pool Decks",
+        "tagline": "Transform your pool area into an elegant and beautiful backyard retreat.",
+        "description": "Premium paver services in Orlando and all Central Florida, designed to transform your pool area into an elegant and beautiful backyard retreat.",
+        "details": "We install high-quality pavers across Orlando and all Central Florida, building custom-made pool decks with meticulous base preparation, proper drainage, and long-lasting finishes.",
+        "features": [
+            "Custom pool deck designs with premium pavers",
+            "Durable concrete paver solutions built for Florida weather",
+            "Professional grading and base soil preparation",
+            "Fast local service in Orlando and all Central Florida areas"
+        ],
+        "faq": [
+            {
+                "question": "How long does a pool deck paver installation take?",
+                "answer": "Most pool deck installations are completed in 2 to 6 days, depending on site preparation, layout, and weather conditions."
+            },
+            {
+                "question": "Do you handle site preparation?",
+                "answer": "Yes. We fully prepare the existing soil, apply and compact the base material, handle grading, and ensure your pool deck is built to meet local quality standards."
+            }
+        ],
+        "heroImage": "/services/pools/pools-hero.jpg",
+        "coverImage": "/services/pools/pools-cover.jpg",
+        "images": [
+            "/services/pools/pools-01.jpg",
+            "/services/pools/pools-02.jpg",
+            "/services/pools/pools-03.jpg"
+        ]
+    },
+    {
+        "id": "patios",
+        "title": "Patios & Walkways",
+        "tagline": "Custom outdoor living spaces designed perfectly for your lifestyle.",
+        "description": "Transform your backyard area with beautiful, custom-made patios, walkways, and outdoor living spaces.",
+        "details": "We build custom patios and walkways that elevate your outdoor lifestyle, using tailored designs and premium materials to enhance your home’s aesthetic and value.",
+        "features": [
+            "Custom patio layouts and elegant stonework",
+            "Walkway designs for gardens and backyards",
+            "Materials selected for Florida durability and sun resistance",
+            "Seamless project planning and installation tailored to your needs"
+        ],
+        "faq": [
+            {
+                "question": "Can you install a patio near my pool?",
+                "answer": "Yes. We design patios and walkways that seamlessly integrate with your existing pool deck and landscape elements."
+            },
+            {
+                "question": "What materials do you recommend for walkways?",
+                "answer": "We recommend premium concrete pavers because they are slip-resistant, highly durable, and perfectly suited for the Florida sun and rain."
+            }
+        ],
+        "heroImage": "/services/patios/patios-hero.jpg",
+        "coverImage": "/services/patios/patios-cover.jpg",
+        "images": [
+            "/services/patios/patios-01.jpg"
+        ]
+    },
+    {
+        "id": "pergolas",
+        "title": "Pergolas & Summer Kitchens",
+        "tagline": "The ultimate backyard retreat for unforgettable entertainment right at home.",
+        "description": "Elevate your backyard into the ultimate outdoor living retreat.\n\nCombining the architectural elegance of a custom pergola with the full functionality of a premium summer kitchen, this setup merges indoor comfort with open-air freedom. It is the perfect anchor for weekend barbecues, evening relaxation, and unforgettable dining experiences right at home.",
+        "details": "We design and install high-end pergolas and fully equipped summer kitchens, customizing every detail to match your space, cooking style, and entertainment needs.",
+        "features": [
+            "Expands your home’s usable footprint effortlessly",
+            "Perfect for hosting flawless backyard barbecues and outdoor dinners",
+            "Adds highly desirable premium value and square footage to your property",
+            "Transforms your backyard into a luxury resort-style environment"
+        ],
+        "faq": [
+            {
+                "question": "How long does a pergola or summer kitchen installation take?",
+                "answer": "Most custom outdoor kitchen and pergola projects are completed in 2 to 3 weeks, depending on the complexity, site prep, and weather."
+            },
+            {
+                "question": "Do I need a permit for a pergola or summer kitchen?",
+                "answer": "Permit requirements vary depending on your city or county standards. We help guide you through the local guidelines to ensure full compliance."
+            }
+        ],
+        "heroImage": "/services/pergolas/pergolas-hero.jpg",
+        "coverImage": "/services/pergolas/pergolas-cover.jpg",
+        "images": [
+            "/services/pergolas/pergolas-01.jpg",
+            "/services/pergolas/pergolas-02.jpg"
+        ]
+    },
+    {
+        "id": "lawn",
+        "title": "Artificial Turf & Sod",
+        "tagline": "Flawless, low-maintenance green lawns engineered to stay vibrant year-round.",
+        "description": "Flawless green lawns and professional sod installation built to withstand the Orlando heat, humidity, and high foot traffic.",
+        "details": "Our artificial turf and natural sod installations are tailored to Central Florida weather conditions, giving your property a lush, vibrant finish that stays green year-round.",
+        "features": [
+            "Premium artificial turf solutions for pet-friendly and low-maintenance yards",
+            "Fresh natural sod installation with proper grading and soil nutrition",
+            "High-performance drainage systems built into every lawn setup",
+            "Fast local installation with immediate, beautiful results"
+        ],
+        "faq": [
+            {
+                "question": "Is artificial turf a good choice for Orlando?",
+                "answer": "Absolutely. Our premium turf systems are specifically selected for high heat resistance, UV protection, and superior drainage against heavy Florida rains."
+            },
+            {
+                "question": "Can you install both turf and sod?",
+                "answer": "Yes. We offer both artificial turf solutions and natural sod installations, depending on your lifestyle preferences and specific property conditions."
+            }
+        ],
+        "heroImage": "/services/lawn/lawn-hero.jpg",
+        "coverImage": "/services/lawn/lawn-cover.jpg",
+        "images": [
+            
+        ]
+    },
+    {
+        "id": "others",
+        "title": "Other Services",
+        "tagline": "Professional concrete, fencing, and site preparation solutions for your project.",
+        "description": "We also provide additional specialized services, including concrete work, professional fencing, excavation and grading, as well as demolition and site cleanup.",
+        "details": "No matter the scale of your outdoor project, our team has the heavy equipment and technical expertise to handle site preparation, demolition, and structural concrete installations safely and efficiently.",
+        "features": [
+            "Professional concrete slabs, footings, and structural work",
+            "Durable residential and commercial fencing installations",
+            "Precision excavation, land clearing, and grading for proper drainage",
+            "Fast, safe demolition and thorough site cleanup services"
+        ],
+        "faq": [
+            {
+                "question": "Do you provide estimates for smaller projects or site cleanup?",
+                "answer": "Yes. We provide clear, itemized estimates for all of our auxiliary services, whether you need simple concrete work or full site clearing."
+            }
+        ],
+        "heroImage": "/services/others/others-hero.jpg",
+        "coverImage": "/services/others/others-cover.jpg",
+        "images": [
+            
+        ]
+    }
 ]

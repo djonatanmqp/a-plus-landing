@@ -28,30 +28,37 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 
 ```text
 /
-├── preview/                 # PDFs de auditoria visual e capturas gerados via Puppeteer (automatizado)
-├── public/                  # Ativos estáticos públicos acessíveis diretamente via URL
-│   ├── services/            # Pastas de armazenamento de assets gerenciados por serviço (uploads)
-│   │   ├── driveways/       # Imagens dedicadas para Driveways
-│   │   ├── lawn/            # Imagens dedicadas para Artificial Lawn / Gramados
-│   │   ├── others/          # Imagens para serviços secundários ou complementares
-│   │   ├── patios/          # Imagens dedicadas para Patios & Walkways
-│   │   ├── pergolas/        # Imagens dedicadas para Pergolas & Woodwork
-│   │   └── pools/           # Imagens dedicadas para Pool Decks & Remodeling
-│   └── uploads/             # Destino central de uploads gerados dinamicamente via painel
-│       └── testimonials/    # Fotos organizadas por slugs (before.jpg e after.jpg) dos clientes
-├── src/                     # Código-fonte da aplicação compilado pelo Astro
-│   ├── components/          # UI components reutilizáveis (TestimonialCard, Gallery, Contact, Header, Footer)
-│   ├── content/             # Coleções de dados locais baseados em Markdown (.md) para depoimentos
-│   ├── data/                # Arquivos estáticos de configuração estrutural da aplicação (ex: services.json)
-│   ├── layouts/             # Estruturas base de renderização HTML (Layout.astro) compartilhadas entre páginas
-│   ├── lib/                 # Funções utilitárias do back-end (Auth, JWT, leitura/escrita de arquivos com fs/promises)
-│   └── pages/               # Sistema de roteamento baseado em arquivos da aplicação (Páginas e API Endpoints)
-│   │   ├── admin/           # Interface visual do painel de controle administrativo (/admin.astro)
-│   │   │   └── api/         # Endpoints de API server-side (POST de login, logout, service e testimonial)
-│   │   └── services/        # Rotas públicas de serviços, contendo a rota dinâmica [id].astro para páginas individuais
-│   ├── styles/              # Configurações globais de estilização CSS e integrações do Tailwind CSS
-│   └── types/               # Definições de tipagem global TypeScript para tipar serviços e depoimentos
-├── gerar-pdf.js             # Script do Puppeteer para geração de relatórios visuais
+├── preview/                 # PDFs de auditoria visual e capturas (Puppeteer)
+├── public/                  # Ativos estáticos públicos
+│   ├── services/            # Assets organizados por serviço
+│   │   ├── driveways/       # Imagens dedicadas
+│   │   ├── lawn/            # Imagens dedicadas
+│   │   ├── others/          # Imagens complementares
+│   │   ├── patios/          # Imagens dedicadas
+│   │   ├── pergolas/        # Imagens dedicadas
+│   │   └── pools/           # Imagens dedicadas
+│   └── uploads/             # Uploads dinâmicos via painel
+│       └── testimonials/    # Fotos (before.jpg / after.jpg)
+├── src/                     # Código-fonte compilado
+│   ├── components/          # UI components reutilizáveis
+│   │   ├── Header.astro
+│   │   ├── Footer.astro
+│   │   ├── ZoomModal.astro  # Componente centralizado de visualização
+│   │   └── ...              # Outros componentes (Gallery, etc)
+│   ├── content/             # Coleções Markdown (depoimentos)
+│   ├── data/                # Configuração estrutural (services.json, company.json)
+│   ├── layouts/             # Estruturas base de renderização
+│   │   └── Layout.astro     # Layout principal que injeta ZoomModal
+│   ├── lib/                 # Utilitários back-end (Auth, JWT, fs)
+│   ├── pages/               # Sistema de roteamento
+│   │   ├── admin/           # Painel administrativo
+│   │   └── services/        # Rotas públicas de serviços
+│   │       └── [id].astro   # Página individual dinâmica
+│   ├── scripts/             # Scripts globais de front-end
+│   │   └── zoom.js          # Lógica centralizada de zoom (opcional)
+│   ├── styles/              # Integrações Tailwind e CSS global
+│   └── types/               # Definições de tipagem TS
+├── gerar-pdf.js             # Script do Puppeteer
 └── package.json
 ```
 
