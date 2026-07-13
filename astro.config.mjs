@@ -2,23 +2,32 @@
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import tailwindcss from '@tailwindcss/vite';
-import icons from 'unplugin-icons/vite'; // Importe o plugin
+import icons from 'unplugin-icons/vite';
+
+// Detecta dinamicamente a porta que a GoDaddy está disponibilizando no container
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4321;
 
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
   adapter: node({ mode: 'standalone' }),
   
-  // Adicione esta seção de servidor para resolver o erro EACCES da porta 4321
+  // Força as configurações de servidor tanto para o build final quanto para o modo "astro dev"
   server: {
-    host: true, // Permite conexões externas (0.0.0.0) em vez de travar em 127.0.0.1
-    port: process.env.PORT ? parseInt(process.env.PORT) : 4321 // Usa a porta dinâmica do servidor
+    host: '0.0.0.0', // Substitui 127.0.0.1 para aceitar o tráfego do container
+    port: PORT
+  },
+  
+  // Isso garante que se o Vite/Astro tentar subir em modo dev, ele respeite a porta da GoDaddy
+  preview: {
+    host: '0.0.0.0',
+    port: PORT
   },
 
   vite: {
     plugins: [
       tailwindcss(),
-      icons({ compiler: 'astro' }) // Adicione aqui
+      icons({ compiler: 'astro' })
     ]
   }
 });
