@@ -14,17 +14,23 @@ export default defineConfig({
   
   // Força as configurações de servidor tanto para o build final quanto para o modo "astro dev"
   server: {
-    host: '0.0.0.0', // Substitui 127.0.0.1 para aceitar o tráfego do container
+    host: '0.0.0.0', // Aceita conexões externas no container
     port: PORT
   },
   
-  // Isso garante que se o Vite/Astro tentar subir em modo dev, ele respeite a porta da GoDaddy
   preview: {
     host: '0.0.0.0',
     port: PORT
   },
 
   vite: {
+    // ESSA SEÇÃO ABAIXO RESOLVE O BLOQUEIO DE HOST DO VITE:
+    server: {
+      allowedHosts: [
+        'ev8pof7pz3.preview.c37.airoapp.ai', // Permite o seu host temporário específico
+        '.airoapp.ai'                        // Permite qualquer subdomínio da plataforma, caso mude
+      ]
+    },
     plugins: [
       tailwindcss(),
       icons({ compiler: 'astro' })
