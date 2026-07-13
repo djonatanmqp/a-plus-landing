@@ -77,7 +77,9 @@ export async function POST({ request }: { request: Request }) {
 
   const dateString = `${monthValue}-01`;
   const slug = sanitizeSlug(`${clientName}-${serviceType}-${monthValue}`);
-  const uploadsDir = path.join(process.cwd(), "public/uploads/testimonials", slug);
+  
+  // 🚀 AJUSTE GODADDY: Pasta de uploads redirecionada para a pasta persistente /public/assets/
+  const uploadsDir = path.join(process.cwd(), "public/assets/uploads/testimonials", slug);
   await ensureDir(uploadsDir);
 
   // 🚀 Força o uso estrito das extensões validadas como JPG
@@ -95,8 +97,9 @@ export async function POST({ request }: { request: Request }) {
   await fs.writeFile(beforeDestination, beforeBuffer);
   await fs.writeFile(afterDestination, afterBuffer);
 
-  const beforeImagePath = `uploads/testimonials/${slug}/${beforeName}`;
-  const afterImagePath = `uploads/testimonials/${slug}/${afterName}`;
+  // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
+  const beforeImagePath = `assets/uploads/testimonials/${slug}/${beforeName}`;
+  const afterImagePath = `assets/uploads/testimonials/${slug}/${afterName}`;
 
   const safeClientName = clientName.replace(/"/g, '\\"').replace(/\r?\n/g, " ");
   const safeServiceType = serviceType.replace(/"/g, '\\"').replace(/\r?\n/g, " ");
@@ -105,7 +108,12 @@ export async function POST({ request }: { request: Request }) {
   const safeMessage = message.replace(/\r\n?/g, "\n").trim();
 
   const markdown = `---\nclientName: "${safeClientName}"\nserviceType: "${safeServiceType}"\ncity: "${safeCity}"\nstate: "${safeState}"\nbeforeImage: "${beforeImagePath}"\nafterImage: "${afterImagePath}"\ndate: ${dateString}\n---\n${safeMessage}\n`;
-  const testimonialFile = path.join(process.cwd(), "src/content/testimonials", `${slug}.md`);
+  
+  // 🚀 AJUSTE GODADDY: Salvando o arquivo .md na pasta persistente para evitar perda no deploy do GitHub
+  const contentDir = path.join(process.cwd(), "public/assets/content/testimonials");
+  await ensureDir(contentDir);
+  
+  const testimonialFile = path.join(contentDir, `${slug}.md`);
   await fs.writeFile(testimonialFile, markdown, "utf8");
 
   return new Response(null, {

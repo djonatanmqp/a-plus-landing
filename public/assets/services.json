@@ -21,16 +21,16 @@
                 "answer": "Yes. We fully prepare the existing soil, apply and compact the base material, handle grading, and ensure the driveway is built to meet all local standards."
             }
         ],
-        "heroImage": "/services/driveways/driveways-hero.jpg",
-        "coverImage": "/services/driveways/driveways-cover.jpg",
+        "heroImage": "/assets/services/driveways/driveways-hero.jpg",
+        "coverImage": "/assets/services/driveways/driveways-cover.jpg",
         "images": [
-            "/services/driveways/driveways-01.jpg",
-            "/services/driveways/driveways-02.jpg",
-            "/services/driveways/driveways-03.jpg",
-            "/services/driveways/driveways-04.jpg",
-            "/services/driveways/driveways-05.jpg",
-            "/services/driveways/driveways-06.jpg",
-            "/services/driveways/driveways-07.jpg"
+            "/assets/services/driveways/driveways-01.jpg",
+            "/assets/services/driveways/driveways-02.jpg",
+            "/assets/services/driveways/driveways-03.jpg",
+            "/assets/services/driveways/driveways-04.jpg",
+            "/assets/services/driveways/driveways-05.jpg",
+            "/assets/services/driveways/driveways-06.jpg",
+            "/assets/services/driveways/driveways-07.jpg"
         ]
     },
     {
@@ -55,12 +55,12 @@
                 "answer": "Yes. We fully prepare the existing soil, apply and compact the base material, handle grading, and ensure your pool deck is built to meet local quality standards."
             }
         ],
-        "heroImage": "/services/pools/pools-hero.jpg",
-        "coverImage": "/services/pools/pools-cover.jpg",
+        "heroImage": "/assets/services/pools/pools-hero.jpg",
+        "coverImage": "/assets/services/pools/pools-cover.jpg",
         "images": [
-            "/services/pools/pools-01.jpg",
-            "/services/pools/pools-02.jpg",
-            "/services/pools/pools-03.jpg"
+            "/assets/services/pools/pools-01.jpg",
+            "/assets/services/pools/pools-02.jpg",
+            "/assets/services/pools/pools-03.jpg"
         ]
     },
     {
@@ -85,10 +85,10 @@
                 "answer": "We recommend premium concrete pavers because they are slip-resistant, highly durable, and perfectly suited for the Florida sun and rain."
             }
         ],
-        "heroImage": "/services/patios/patios-hero.jpg",
-        "coverImage": "/services/patios/patios-cover.jpg",
+        "heroImage": "/assets/services/patios/patios-hero.jpg",
+        "coverImage": "/assets/services/patios/patios-cover.jpg",
         "images": [
-            "/services/patios/patios-01.jpg"
+            "/assets/services/patios/patios-01.jpg"
         ]
     },
     {
@@ -113,11 +113,11 @@
                 "answer": "Permit requirements vary depending on your city or county standards. We help guide you through the local guidelines to ensure full compliance."
             }
         ],
-        "heroImage": "/services/pergolas/pergolas-hero.jpg",
-        "coverImage": "/services/pergolas/pergolas-cover.jpg",
+        "heroImage": "/assets/services/pergolas/pergolas-hero.jpg",
+        "coverImage": "/assets/services/pergolas/pergolas-cover.jpg",
         "images": [
-            "/services/pergolas/pergolas-01.jpg",
-            "/services/pergolas/pergolas-02.jpg"
+            "/assets/services/pergolas/pergolas-01.jpg",
+            "/assets/services/pergolas/pergolas-02.jpg"
         ]
     },
     {
@@ -142,8 +142,8 @@
                 "answer": "Yes. We offer both artificial turf solutions and natural sod installations, depending on your lifestyle preferences and specific property conditions."
             }
         ],
-        "heroImage": "/services/lawn/lawn-hero.jpg",
-        "coverImage": "/services/lawn/lawn-cover.jpg",
+        "heroImage": "/assets/services/lawn/lawn-hero.jpg",
+        "coverImage": "/assets/services/lawn/lawn-cover.jpg",
         "images": []
     },
     {
@@ -164,8 +164,8 @@
                 "answer": "Yes. We provide clear, itemized estimates for all of our auxiliary services, whether you need simple concrete work or full site clearing."
             }
         ],
-        "heroImage": "/services/others/others-hero.jpg",
-        "coverImage": "/services/others/others-cover.jpg",
+        "heroImage": "/assets/services/others/others-hero.jpg",
+        "coverImage": "/assets/services/others/others-cover.jpg",
         "images": []
     }
 ]

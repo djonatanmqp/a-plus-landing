@@ -1,5 +1,7 @@
 ---
 // src/pages/admin.astro
+import fs from "fs/promises";
+import path from "path";
 import {
   parseCookies,
   validateAdminToken,
@@ -7,7 +9,6 @@ import {
   SESSION_COOKIE_NAME,
 } from "../lib/admin.ts";
 import Layout from "../layouts/Layout.astro";
-import company from "../data/company.json"; // 🚀 Importa os dados globais para alimentar o formulário
 
 // IMPORTAÇÃO DOS ÍCONES UNIFICADOS (Coleção MDI)
 import LogoutIcon from "~icons/mdi/logout";
@@ -20,6 +21,30 @@ const cookies = parseCookies(Astro.request.headers.get("cookie"));
 const isLoggedIn = validateAdminToken(cookies[SESSION_COOKIE_NAME]);
 const servicesData = isLoggedIn ? await readServicesConfig() : [];
 const message = Astro.url.searchParams.get("message") ?? "";
+
+// 🚀 AJUSTE GODADDY: Lendo os dados do company.json dinamicamente da pasta de assets persistentes
+const companyPath = path.join(process.cwd(), "public/assets/company.json");
+const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+let company: any = {};
+
+try {
+  const raw = await fs.readFile(companyPath, "utf8");
+  company = JSON.parse(raw);
+} catch {
+  try {
+    // Se não existir na pasta persistente no primeiro acesso, faz o fallback para o arquivo padrão
+    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
+    company = JSON.parse(fallbackRaw);
+  } catch {
+    // Objeto vazio seguro para evitar quebras se nenhum arquivo for encontrado
+    company = {
+      name: "A-Plus Pavers & Grass",
+      description: "",
+      contact: { phone: "", phoneRaw: "", facetime: "", email: "" },
+      address: { full: "", serviceArea: "Central Florida and nearby cities" }
+    };
+  }
+}
 ---
 
 <Layout title="Admin | A-Plus Landing">
@@ -137,7 +162,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <input
                     name="serviceArea"
                     type="text"
-                    value={company.address.serviceArea}
+                    value={company.address?.serviceArea || ""}
                     required
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />
@@ -160,7 +185,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <input
                     name="phone"
                     type="text"
-                    value={company.contact.phone}
+                    value={company.contact?.phone || ""}
                     required
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />
@@ -170,7 +195,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <input
                     name="phoneRaw"
                     type="text"
-                    value={company.contact.phoneRaw}
+                    value={company.contact?.phoneRaw || ""}
                     required
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />
@@ -180,7 +205,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <input
                     name="facetime"
                     type="text"
-                    value={company.contact.facetime}
+                    value={company.contact?.facetime || ""}
                     required
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />
@@ -193,7 +218,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <input
                     name="email"
                     type="email"
-                    value={company.contact.email}
+                    value={company.contact?.email || ""}
                     required
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />
@@ -203,7 +228,7 @@ const message = Astro.url.searchParams.get("message") ?? "";
                   <input
                     name="fullAddress"
                     type="text"
-                    value={company.address.full}
+                    value={company.address?.full || ""}
                     required
                     class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />

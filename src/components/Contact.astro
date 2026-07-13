@@ -1,5 +1,8 @@
 ---
 // src/components/Contact.astro
+import fs from "fs/promises";
+import path from "path";
+
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 import Email from "~icons/mdi/email";
@@ -9,8 +12,34 @@ import Instagram from "~icons/simple-icons/instagram";
 import Tiktok from "~icons/simple-icons/tiktok";
 import GoogleIcon from "~icons/simple-icons/google";
 
-// 🚀 Importa os dados centralizados da empresa
-import company from "../data/company.json";
+// 🚀 AJUSTE GODADDY: Lendo os dados da empresa de forma dinâmica do local persistente
+const companyPath = path.join(process.cwd(), "public/assets/company.json");
+const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+let company: any = {};
+
+try {
+  const raw = await fs.readFile(companyPath, "utf8");
+  company = JSON.parse(raw);
+} catch {
+  try {
+    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
+    company = JSON.parse(fallbackRaw);
+  } catch {
+    // Configurações padrão de fallback caso ambos os arquivos falhem
+    company = {
+      name: "A-Plus Pavers & Grass",
+      contact: { phone: "", phoneRaw: "", email: "", facetime: "" },
+      address: { full: "" },
+      links: {
+        googleReview: "",
+        facebook: "",
+        instagram: "",
+        tiktok: "",
+        googleMapsEmbed: ""
+      }
+    };
+  }
+}
 ---
 
 <section id="contact" class="max-w-6xl mx-auto px-4 py-2">
@@ -26,48 +55,48 @@ import company from "../data/company.json";
 
             <div class="space-y-4 text-sm sm:text-base font-semibold text-[#328cc1]">
                 <a
-                    href={company.links.googleReview.replace('writereview?placeid=', '?q=')} 
+                    href={company.links?.googleReview ? company.links.googleReview.replace('writereview?placeid=', '?q=') : '#'} 
                     target="_blank"
                     rel="noopener noreferrer"
                     class="flex items-start gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
                     <MapMarker class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-                    <span>{company.address.full}</span>
+                    <span>{company.address?.full}</span>
                 </a>
 
                 <a
-                    href={`tel:${company.contact.phoneRaw}`}
+                    href={`tel:${company.contact?.phoneRaw}`}
                     class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
-                    <Phone class="w-5 h-5 text-gray-400" /> {company.contact.phone}
+                    <Phone class="w-5 h-5 text-gray-400" /> {company.contact?.phone}
                 </a>
 
                 <a
-                    href={`facetime:${company.contact.facetime}`}
+                    href={`facetime:${company.contact?.facetime}`}
                     class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
                     <Video class="w-5 h-5 text-gray-400" /> FaceTime
                 </a>
 
                 <a
-                    href={`mailto:${company.contact.email}`}
+                    href={`mailto:${company.contact?.email}`}
                     class="flex items-center gap-3 text-[#0b3c5d] hover:text-[#328cc1] transition-colors"
                 >
-                    <Email class="w-5 h-5 text-gray-400" /> {company.contact.email}
+                    <Email class="w-5 h-5 text-gray-400" /> {company.contact?.email}
                 </a>
             </div>
 
             <div class="flex gap-5 mt-8 pt-6 border-t border-gray-100">
-                <a href={company.links.googleReview} target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-[#4285F4] transition-colors" aria-label="Google Reviews">
+                <a href={company.links?.googleReview} target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-[#4285F4] transition-colors" aria-label="Google Reviews">
                     <GoogleIcon class="w-8 h-8" />
                 </a>
-                <a href={company.links.facebook} class="text-gray-400 hover:text-[#1877F2] transition-colors" aria-label="Facebook">
+                <a href={company.links?.facebook} class="text-gray-400 hover:text-[#1877F2] transition-colors" aria-label="Facebook">
                     <Facebook class="w-8 h-8" />
                 </a>
-                <a href={company.links.instagram} class="text-gray-400 hover:text-[#E1306C] transition-colors" aria-label="Instagram">
+                <a href={company.links?.instagram} class="text-gray-400 hover:text-[#E1306C] transition-colors" aria-label="Instagram">
                     <Instagram class="w-8 h-8" />
                 </a>
-                <a href={company.links.tiktok} class="text-gray-400 hover:text-[#000000] transition-colors" aria-label="TikTok">
+                <a href={company.links?.tiktok} class="text-gray-400 hover:text-[#000000] transition-colors" aria-label="TikTok">
                     <Tiktok class="w-8 h-8" />
                 </a>
             </div>
@@ -80,7 +109,7 @@ import company from "../data/company.json";
                 style="border:0"
                 loading="lazy"
                 allowfullscreen
-                src={company.links.googleMapsEmbed}
+                src={company.links?.googleMapsEmbed}
                 referrerpolicy="no-referrer-when-downgrade"
             >
             </iframe>

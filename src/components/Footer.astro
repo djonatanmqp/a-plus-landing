@@ -1,7 +1,29 @@
 ---
 // src/components/Footer.astro
-import company from "../data/company.json";
+import fs from "fs/promises";
+import path from "path";
 import ArrowUp from "~icons/mdi/chevron-up";
+
+// 🚀 AJUSTE GODADDY: Lendo os dados da empresa de forma dinâmica do local persistente
+const companyPath = path.join(process.cwd(), "public/assets/company.json");
+const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+let company: any = {};
+
+try {
+  const raw = await fs.readFile(companyPath, "utf8");
+  company = JSON.parse(raw);
+} catch {
+  try {
+    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
+    company = JSON.parse(fallbackRaw);
+  } catch {
+    company = {
+      name: "A-Plus Pavers & Grass",
+      contact: { phone: "", email: "" },
+      address: { city: "Orlando", state: "FL" }
+    };
+  }
+}
 ---
 
 <footer class="max-w-6xl mx-auto px-4 pb-12 pt-6">
@@ -22,8 +44,8 @@ import ArrowUp from "~icons/mdi/chevron-up";
             <div
                 class="hidden sm:block text-right text-gray-400 leading-normal font-medium"
             >
-                <span>{company.contact.phone} &nbsp;|&nbsp; {company.contact.email}</span><br />
-                <span>{company.address.city}, {company.address.state}</span>
+                <span>{company.contact?.phone} &nbsp;|&nbsp; {company.contact?.email}</span><br />
+                <span>{company.address?.city || "Orlando"}, {company.address?.state || "FL"}</span>
             </div>
 
             <div

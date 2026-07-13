@@ -54,7 +54,8 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 
-  const serviceDir = path.join(process.cwd(), "public/services", serviceId);
+  // 🚀 AJUSTE GODADDY: Pasta de uploads mantida na estrutura /public/assets/
+  const serviceDir = path.join(process.cwd(), "public/assets/services", serviceId);
   await ensureDir(serviceDir);
 
   // 1. Processamento da Hero Image
@@ -65,7 +66,8 @@ export async function POST({ request }: { request: Request }) {
     const fileName = `${serviceId}-hero${ext}`;
     const destination = path.join(serviceDir, fileName);
     await saveUploadedBlob(heroFile, destination);
-    service.heroImage = `/services/${serviceId}/${fileName}`;
+    // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
+    service.heroImage = `/assets/services/${serviceId}/${fileName}`;
   }
 
   // 2. Processamento da Cover Image
@@ -76,7 +78,8 @@ export async function POST({ request }: { request: Request }) {
     const fileName = `${serviceId}-cover${ext}`;
     const destination = path.join(serviceDir, fileName);
     await saveUploadedBlob(coverFile, destination);
-    service.coverImage = `/services/${serviceId}/${fileName}`;
+    // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
+    service.coverImage = `/assets/services/${serviceId}/${fileName}`;
   }
 
   // 3. Processamento das Imagens Adicionais (Galeria)
@@ -95,7 +98,8 @@ export async function POST({ request }: { request: Request }) {
       const destination = path.join(serviceDir, fileName);
 
       await saveUploadedBlob(file, destination);
-      service.images.push(`/services/${serviceId}/${fileName}`);
+      // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
+      service.images.push(`/assets/services/${serviceId}/${fileName}`);
     }
   }
 

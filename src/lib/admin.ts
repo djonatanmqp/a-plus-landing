@@ -106,19 +106,38 @@ export async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
 }
 
+// 🚀 AJUSTE GODADDY: Caminho persistente para o arquivo de configurações de serviços
+const SERVICES_PERSISTENT_PATH = path.join(process.cwd(), "public/assets/services.json");
+const SERVICES_FALLBACK_PATH = path.join(process.cwd(), "src/data/services.json");
+
 export async function readServicesConfig() {
-  const filePath = path.join(process.cwd(), "src/data/services.json");
-  const raw = await fs.readFile(filePath, "utf8");
-  return JSON.parse(raw);
+  try {
+    // Tenta ler o arquivo da pasta de assets persistentes da GoDaddy
+    const raw = await fs.readFile(SERVICES_PERSISTENT_PATH, "utf8");
+    return JSON.parse(raw);
+  } catch (error) {
+    // Se o arquivo persistente não existir (ex: primeiro deploy), migra o estático antigo ou inicia um novo
+    try {
+      const fallbackRaw = await fs.readFile(SERVICES_FALLBACK_PATH, "utf8");
+      const config = JSON.parse(fallbackRaw);
+      // Salva a cópia no novo local persistente de forma automática
+      await ensureDir(path.dirname(SERVICES_PERSISTENT_PATH));
+      await fs.writeFile(SERVICES_PERSISTENT_PATH, JSON.stringify(config, null, 2) + "\n", "utf8");
+      return config;
+    } catch {
+      return [];
+    }
+  }
 }
 
 export async function writeServicesConfig(config: unknown) {
-  const filePath = path.join(process.cwd(), "src/data/services.json");
-  await fs.writeFile(filePath, JSON.stringify(config, null, 2) + "\n", "utf8");
+  await ensureDir(path.dirname(SERVICES_PERSISTENT_PATH));
+  await fs.writeFile(SERVICES_PERSISTENT_PATH, JSON.stringify(config, null, 2) + "\n", "utf8");
 }
 
+// 🚀 AJUSTE GODADDY: Listar depoimentos lendo direto do diretório persistente
 export async function listTestimonials() {
-  const testimonialsDir = path.join(process.cwd(), "src/content/testimonials");
+  const testimonialsDir = path.join(process.cwd(), "public/assets/content/testimonials");
   await ensureDir(testimonialsDir);
   const entries = await fs.readdir(testimonialsDir);
   return entries.filter((name) => name.endsWith(".md")).sort();

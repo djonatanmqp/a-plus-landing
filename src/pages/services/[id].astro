@@ -1,20 +1,90 @@
 ---
+// src/pages/services/[id].astro
+import fs from "fs/promises";
+import path from "path";
+
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import ZoomModal from "../../components/ZoomModal.astro";
-import servicesData from "../../data/services.json";
-import company from "../../data/company.json";
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 
+// 🚀 AJUSTE GODADDY: Leitura dinâmica das configurações para o build estático
+const servicesPath = path.join(process.cwd(), "public/assets/services.json");
+const servicesFallbackPath = path.join(process.cwd(), "src/data/services.json");
+const companyPath = path.join(process.cwd(), "public/assets/company.json");
+const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+
+let servicesData: any[] = [];
+let company: any = {};
+
+// Carrega os dados de Serviços
+try {
+  const rawServices = await fs.readFile(servicesPath, "utf8");
+  servicesData = JSON.parse(rawServices);
+} catch {
+  try {
+    const fallbackServices = await fs.readFile(servicesFallbackPath, "utf8");
+    servicesData = JSON.parse(fallbackServices);
+  } catch {
+    servicesData = [];
+  }
+}
+
+// Carrega os dados da Empresa
+try {
+  const rawCompany = await fs.readFile(companyPath, "utf8");
+  company = JSON.parse(rawCompany);
+} catch {
+  try {
+    const fallbackCompany = await fs.readFile(companyFallbackPath, "utf8");
+    company = JSON.parse(fallbackCompany);
+  } catch {
+    company = {
+      name: "A-Plus Pavers & Grass",
+      contact: { phone: "", phoneRaw: "", email: "", facetime: "" },
+      address: { serviceArea: "Orlando", full: "" }
+    };
+  }
+}
+
+// 🚀 ESSENCIAL: Como o Astro executa getStaticPaths primeiro no build,
+// nós exportamos a função abaixo que mapeia todos os IDs de serviços disponíveis dinamicamente.
+export async function getStaticPaths() {
+  const fs = await import("fs/promises");
+  const path = await import("path");
+
+  const sPath = path.join(process.cwd(), "public/assets/services.json");
+  const sFallbackPath = path.join(process.cwd(), "src/data/services.json");
+  let sData: any[] = [];
+
+  try {
+    const raw = await fs.readFile(sPath, "utf8");
+    sData = JSON.parse(raw);
+  } catch {
+    try {
+      const fallbackRaw = await fs.readFile(sFallbackPath, "utf8");
+      sData = JSON.parse(fallbackRaw);
+    } catch {
+      sData = [];
+    }
+  }
+
+  return sData.map((item: any) => ({
+    params: { id: item.id },
+    props: { serviceId: item.id } // Passamos o id para encontrar as propriedades corretas em tempo de render
+  }));
+}
+
+// Busca o serviço específico baseado no parâmetro da rota
 const service = servicesData.find((item) => item.id === Astro.params.id);
 if (!service) {
     throw new Error(`Service not found: ${Astro.params.id}`);
 }
 
-const pageTitle = `${service.title} | ${company.address.serviceArea} | ${company.name}`;
-const pageDescription = `${service.description} Learn how ${company.name} delivers quality installation and long-lasting results for homes in ${company.address.serviceArea}.`;
+const pageTitle = `${service.title} | ${company.address?.serviceArea || "Orlando"} | ${company.name}`;
+const pageDescription = `${service.description} Learn how ${company.name} delivers quality installation and long-lasting results for homes in ${company.address?.serviceArea || "Orlando"}.`;
 const galleryImages = Array.isArray(service.images) ? service.images : [];
 const coverImage = service.coverImage ?? null;
 
@@ -39,14 +109,14 @@ const breadcrumbData = [
             <div class="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] items-start">
                 <div>
                     <p class="text-sm uppercase tracking-widest text-[#328cc1] font-bold">{service.title}</p>
-                    <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold text-[#0b3c5d] leading-tight">{service.title} in {company.address.serviceArea}</h1>
+                    <h1 class="mt-3 text-3xl sm:text-4xl font-extrabold text-[#0b3c5d] leading-tight">{service.title} in {company.address?.serviceArea || "Orlando"}</h1>
                     <p class="mt-4 text-gray-600 leading-relaxed text-base sm:text-lg whitespace-pre-line">{service.details}</p>
 
                     <div class="mt-8 grid gap-4 sm:grid-cols-2">
-                        <a href={`tel:${company.contact.phoneRaw}`} class="inline-flex items-center justify-center gap-3 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]">
+                        <a href={`tel:${company.contact?.phoneRaw}`} class="inline-flex items-center justify-center gap-3 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]">
                             <Phone class="w-5 h-5 text-gray-400" /> Call now
                         </a>
-                        <a href={`facetime:${company.contact.facetime}`} class="inline-flex items-center justify-center gap-3 rounded-full border border-[#328cc1] bg-white px-5 py-3 text-sm font-semibold text-[#328cc1] transition hover:bg-[#ebf4ff]">
+                        <a href={`facetime:${company.contact?.facetime}`} class="inline-flex items-center justify-center gap-3 rounded-full border border-[#328cc1] bg-white px-5 py-3 text-sm font-semibold text-[#328cc1] transition hover:bg-[#ebf4ff]">
                             <Video class="w-5 h-5 text-gray-400" /> FaceTime
                         </a>
                     </div>
@@ -112,11 +182,10 @@ const breadcrumbData = [
 
 <script>
     const setupIdPageScripts = () => {
-        // 1. Lógica do Zoom (Igual ao Gallery.astro)
         const zoomTriggers = document.querySelectorAll(".js-zoom-trigger");
         zoomTriggers.forEach((img) => {
             img.addEventListener("click", (e) => {
-                e.stopPropagation(); // Evita conflitos com modais por baixo
+                e.stopPropagation();
                 const target = img as HTMLImageElement;
                 
                 if (typeof (window as any).openZoom === 'function') {
@@ -127,7 +196,6 @@ const breadcrumbData = [
             });
         });
 
-        // 2. Lógica do Modal "Ver Tudo"
         const modal = document.getElementById("gallery-modal");
         const openBtn = document.getElementById("open-gallery-modal");
         const closeBtn = document.getElementById("close-gallery-modal");
@@ -151,7 +219,6 @@ const breadcrumbData = [
         }
     };
 
-    // Inicializa na carga e nas transições do Astro
     setupIdPageScripts();
     document.addEventListener("astro:page-load", setupIdPageScripts);
 </script>

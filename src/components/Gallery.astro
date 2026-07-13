@@ -1,7 +1,11 @@
 ---
-import servicesData from "../data/services.json";
+// src/components/Gallery.astro
+import { readServicesConfig } from "../lib/admin.ts";
 import MagnifyIcon from "~icons/mdi/magnify";
 import ZoomModal from "./ZoomModal.astro";
+
+// 🚀 AJUSTE GODADDY: Lendo os serviços (e suas fotos) dinamicamente do local persistente
+const servicesData = await readServicesConfig();
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-2">
@@ -14,7 +18,7 @@ import ZoomModal from "./ZoomModal.astro";
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {servicesData.map((service) => (
+            {servicesData.map((service: any) => (
                 <div
                     id={`gallery-${service.id}`}
                     class="gallery-trigger group cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
@@ -52,7 +56,6 @@ import ZoomModal from "./ZoomModal.astro";
     </div>
 </section>
 
-<!-- Modal Principal -->
 <dialog id="gallery-modal" class="fixed inset-0 m-auto rounded-xl p-0 w-11/12 max-w-2xl overflow-hidden shadow-2xl border border-gray-100/50 outline-none bg-white opacity-0 transition-all duration-300 scale-95">
     <div class="flex flex-col bg-white max-h-[85vh]">
         <div class="flex justify-between items-center bg-[#0b3c5d] text-white p-5 sm:px-6">

@@ -1,6 +1,9 @@
 ---
 // src/components/Services.astro
-import services from "../data/services.json";
+import { readServicesConfig } from "../lib/admin.ts";
+
+// 🚀 AJUSTE GODADDY: Lendo os serviços dinamicamente para refletir alterações em tempo real no servidor
+const services = await readServicesConfig();
 ---
 
 <section id="services" class="max-w-6xl mx-auto px-4 pt-6">
@@ -23,20 +26,16 @@ import services from "../data/services.json";
             Our Services
         </h2>
 
-        <!-- Loop dinâmico lendo o arquivo JSON -->
         <div class="space-y-6">
-            {services.map((service) => (
+            {services.map((service: any) => (
                 <div class="flex items-start gap-3">
-                    <!-- Alinha o marcador ao topo do título -->
                     <span class="text-[#328cc1] text-xl select-none leading-none mt-1">▪</span>
                     
                     <div class="flex-1">
-                        <!-- Título do serviço em uma linha própria -->
                         <h3 class="text-[#0b3c5d] font-bold text-base sm:text-lg leading-snug">
                             {service.title}
                         </h3>
                         
-                        <!-- Tagline na linha de baixo com recuo (ml-4) -->
                         <p class="text-gray-600 text-sm sm:text-base ml-4 mt-1 leading-relaxed">
                             {service.tagline}
                         </p>

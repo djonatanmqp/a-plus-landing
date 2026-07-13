@@ -1,9 +1,50 @@
 ---
+// src/pages/services.astro
+import fs from "fs/promises";
+import path from "path";
+
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import servicesData from "../data/services.json";
-import company from "../data/company.json"; // 🚀 Importa os dados globais da empresa
+
+// 🚀 AJUSTE GODADDY: Carregamento dinâmico dos dados para evitar erros de build com arquivos estáticos ausentes
+const servicesPath = path.join(process.cwd(), "public/assets/services.json");
+const servicesFallbackPath = path.join(process.cwd(), "src/data/services.json");
+const companyPath = path.join(process.cwd(), "public/assets/company.json");
+const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+
+let servicesData: any[] = [];
+let company: any = {};
+
+// Carrega dados de Serviços
+try {
+  const rawServices = await fs.readFile(servicesPath, "utf8");
+  servicesData = JSON.parse(rawServices);
+} catch {
+  try {
+    const fallbackServices = await fs.readFile(servicesFallbackPath, "utf8");
+    servicesData = JSON.parse(fallbackServices);
+  } catch {
+    servicesData = [];
+  }
+}
+
+// Carrega dados da Empresa
+try {
+  const rawCompany = await fs.readFile(companyPath, "utf8");
+  company = JSON.parse(rawCompany);
+} catch {
+  try {
+    const fallbackCompany = await fs.readFile(companyFallbackPath, "utf8");
+    company = JSON.parse(fallbackCompany);
+  } catch {
+    company = {
+      name: "A-Plus Pavers & Grass",
+      description: "Quality installation and long-lasting results",
+      address: { serviceArea: "Orlando" }
+    };
+  }
+}
 
 const breadcrumbData = [
     { label: "Home", href: "/" },
@@ -17,7 +58,7 @@ const breadcrumbData = [
 >
     <Header
         headerTitle="Our Services"
-        headerSubtitle={`Explore what we can do for your property in ${company.address.serviceArea}`}
+        headerSubtitle={`Explore what we can do for your property in ${company.address?.serviceArea || "Orlando"}`}
         breadcrumb={breadcrumbData}
         isHome={false}
         showServicesLinks={false}
@@ -26,8 +67,9 @@ const breadcrumbData = [
     <div id="services" class="max-w-6xl mx-auto px-4 py-8">
         <div class="grid gap-6 md:grid-cols-3">
             {
-                servicesData.map((service) => {
+                servicesData.map((service: any) => {
                     const cover = service.coverImage ?? null;
+                    const features = Array.isArray(service.features) ? service.features : [];
 
                     return (
                         <article class="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
@@ -58,7 +100,7 @@ const breadcrumbData = [
                                     {service.description}
                                 </p>
                                 <ul class="space-y-2 text-sm text-gray-600 mb-6">
-                                    {service.features.map((feature) => (
+                                    {features.map((feature: string) => (
                                         <li class="flex items-start gap-2">
                                             <span class="mt-1 text-[#328cc1]">
                                                 •

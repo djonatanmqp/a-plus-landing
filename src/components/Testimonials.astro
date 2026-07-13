@@ -36,7 +36,8 @@ function parseMarkdown(fileContent: string) {
     };
 }
 
-const testimonialsDir: string = path.join(process.cwd(), "src/content/testimonials");
+// 🚀 AJUSTE GODADDY: Lendo os arquivos Markdown diretamente da pasta persistente
+const testimonialsDir: string = path.join(process.cwd(), "public/assets/content/testimonials");
 let allTestimonials: any[] = [];
 
 try {
@@ -58,7 +59,7 @@ try {
         return bDate - aDate;
     });
 } catch (e) {
-    console.warn("Testimonials directory not found or empty.");
+    console.warn("Testimonials directory not found or empty in assets.");
 }
 
 const testimonialsJson = JSON.stringify(allTestimonials);
@@ -84,8 +85,11 @@ if (grid && modal) {
         dateEl.querySelector('span').textContent = testimonial.data.date ? new Date(testimonial.data.date).toLocaleString("en-US", { month: "long", year: "numeric" }) : "";
         locEl.querySelector('span').textContent = testimonial.data.city && testimonial.data.state ? testimonial.data.city + ", " + testimonial.data.state : "";
         bodyEl.textContent = testimonial.body || "";
-        beforeImg.src = \`/uploads/\${testimonial.data.beforeImage}\`;
-        afterImg.src = \`/uploads/\${testimonial.data.afterImage}\`;
+        
+        // 🚀 AJUSTE GODADDY: As URLs no Markdown já são salvas com "assets/uploads/...", basta adicionar a barra inicial
+        beforeImg.src = \`/\${testimonial.data.beforeImage}\`;
+        afterImg.src = \`/\${testimonial.data.afterImage}\`;
+        
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         document.body.style.overflow = "hidden";
@@ -133,7 +137,6 @@ if (grid && modal) {
     )}
 </section>
 
-<!-- Modal -->
 <div id="testimonial-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4">
     <div class="relative w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white px-6 py-8 shadow-2xl sm:px-8">
         <button id="testimonial-modal-close" class="absolute right-4 top-4 rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200 transition-colors" aria-label="Close modal">

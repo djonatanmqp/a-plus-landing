@@ -1,6 +1,24 @@
 ---
 // src/components/FAQ.astro
-import faqData from "../data/faq.json";
+import fs from "fs/promises";
+import path from "path";
+
+// 🚀 AJUSTE GODADDY: Carregamento dinâmico do FAQ para refletir edições em tempo real
+const faqPath = path.join(process.cwd(), "public/assets/faq.json");
+const faqFallbackPath = path.join(process.cwd(), "src/data/faq.json");
+let faqData: any[] = [];
+
+try {
+  const raw = await fs.readFile(faqPath, "utf8");
+  faqData = JSON.parse(raw);
+} catch {
+  try {
+    const fallbackRaw = await fs.readFile(faqFallbackPath, "utf8");
+    faqData = JSON.parse(fallbackRaw);
+  } catch {
+    faqData = [];
+  }
+}
 ---
 
 <section id="faq" class="max-w-6xl mx-auto px-4 py-2">
@@ -12,7 +30,7 @@ import faqData from "../data/faq.json";
 
     {faqData && faqData.length > 0 ? (
       <div class="space-y-6">
-        {faqData.map((item) => (
+        {faqData.map((item: any) => (
           <article class="border-b border-gray-50 pb-4 last:border-none last:pb-0">
             <h3 class="text-lg font-semibold text-[#0b3c5d] mb-2">
               {item.question}

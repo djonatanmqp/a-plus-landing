@@ -1,12 +1,15 @@
 ---
 // src/components/Hero.astro
-import servicesData from "../data/services.json";
+import { readServicesConfig } from "../lib/admin.ts";
 
-const servicesCarousel = servicesData.map((service) => ({
+// 🚀 AJUSTE GODADDY: Lendo os dados de serviços de forma dinâmica do local persistente
+const servicesData = await readServicesConfig();
+
+const servicesCarousel = servicesData.map((service: any) => ({
     title: service.title,
     description: service.description,
     tagline: service.tagline,
-    image: service.heroImage || service.coverImage || "", // Lê o caminho direto do JSON
+    image: service.heroImage || service.coverImage || "", // Lê o caminho direto do JSON atualizado
     galleryId: service.id,
 }));
 ---
@@ -20,7 +23,7 @@ const servicesCarousel = servicesData.map((service) => ({
             class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-none sm:rounded-lg shadow-xl aspect-[16/9] md:aspect-[21/9] no-scrollbar"
         >
             {
-                servicesCarousel.map((service, index) => (
+                servicesCarousel.map((service: any, index: number) => (
                     <div
                         id={`slide-${index}`}
                         class="w-full h-full flex-shrink-0 snap-start relative"

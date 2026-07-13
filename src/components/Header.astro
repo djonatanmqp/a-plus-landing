@@ -1,6 +1,29 @@
 ---
 // src/components/Header.astro
-import company from "../data/company.json";
+import fs from "fs/promises";
+import path from "path";
+
+// 🚀 AJUSTE GODADDY: Carregamento dinâmico de dados da empresa para refletir edições em tempo real
+const companyPath = path.join(process.cwd(), "public/assets/company.json");
+const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+let company: any = {};
+
+try {
+  const raw = await fs.readFile(companyPath, "utf8");
+  company = JSON.parse(raw);
+} catch {
+  try {
+    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
+    company = JSON.parse(fallbackRaw);
+  } catch {
+    company = {
+      name: "A-Plus Pavers & Grass",
+      description: "QUALITY PAVERS & SYNTHETIC GRASS INSTALLATION",
+      contact: { phone: "", phoneRaw: "", email: "" },
+      address: { full: "", serviceArea: "" }
+    };
+  }
+}
 
 export interface BreadcrumbItem {
     label: string;
@@ -18,7 +41,7 @@ interface Props {
 
 const {
     headerTitle = company.name,
-    headerSubtitle = company.description.toUpperCase(),
+    headerSubtitle = (company.description || "").toUpperCase(),
     breadcrumb = [],
     isHome = false,
     showServicesLinks = false,
@@ -30,7 +53,6 @@ const galleryHref = isHome ? "#gallery-driveways" : "/services";
 const contactHref = isHome ? "#contact" : "/#contact";
 ---
 
-<!-- 🚀 Ajustado: py-2 no mobile deixa o header super slim e achatado como você queria -->
 <header
     class="relative z-40 text-white py-2 sm:py-3 md:py-4 px-4 sm:px-6 lg:px-8 border-b-4 border-[#328cc1] bg-repeat bg-center"
     style="background-image: linear-gradient(rgba(128, 128, 128, 0.50), rgba(128, 128, 128, 0.50)), url('/paver-pattern.png'); background-size: auto, 180px;"
@@ -39,7 +61,6 @@ const contactHref = isHome ? "#contact" : "/#contact";
         class="max-w-6xl mx-auto flex flex-row items-center justify-between gap-4 sm:gap-6 relative"
     >
         <div class="flex items-center justify-start relative flex-1 min-w-0">
-            <!-- 🎯 LOGO FLUTUANTE ULTRA-CALIBRADA: Deslocamento preciso baseado nos novos paddings para cravar 50/50 em qualquer tela -->
             <a
                 href="/"
                 aria-label="Go to homepage"
@@ -52,7 +73,6 @@ const contactHref = isHome ? "#contact" : "/#contact";
                 />
             </a>
 
-            <!-- 🚀 Ajustado: Removidas todas as alturas mínimas (min-h-0) para zerar qualquer sobra de espaço vertical -->
             <div
                 class="pl-24 sm:pl-32 md:pl-44 py-0.5 relative z-10 flex flex-col justify-center min-h-0 min-w-0 w-full"
             >
@@ -67,7 +87,6 @@ const contactHref = isHome ? "#contact" : "/#contact";
                     >
                         {headerTitle}
                     </span>
-                    <!-- 🚀 Ajustado: lg:max-w-4xl expande o espaço horizontal impedindo que o texto dos serviços quebre linha à toa -->
                     <span
                         class="text-white font-bold text-[9px] sm:text-xs md:text-[13px] lg:text-sm tracking-wide hidden sm:block mt-1 sm:mt-1.5 whitespace-pre-line max-w-xl md:max-w-2xl lg:max-w-4xl opacity-95 leading-tight md:normal-case"
                     >
