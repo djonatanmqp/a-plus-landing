@@ -1,57 +1,50 @@
 ---
 // src/pages/admin.astro
-import fs from "fs/promises";
-import path from "path";
-import {
-  parseCookies,
-  validateAdminToken,
-  readServicesConfig,
-  SESSION_COOKIE_NAME,
-} from "../lib/admin.ts";
+import { validateAdminToken, SESSION_COOKIE_NAME } from "../lib/admin.ts";
+import { getCompanyData, getServicesData, getFaqsData, getTestimonialsData } from "../lib/firebase-admin.ts";
 import Layout from "../layouts/Layout.astro";
 
-// IMPORTAÇÃO DOS ÍCONES UNIFICADOS (Coleção MDI)
+// ÍCONES UNIFICADOS (Coleção MDI)
 import LogoutIcon from "~icons/mdi/logout";
 import CloudUploadIcon from "~icons/mdi/cloud-upload";
 import PlusIcon from "~icons/mdi/plus";
 import ImageIcon from "~icons/mdi/image";
 import ContentSaveIcon from "~icons/mdi/content-save";
+import DomainIcon from "~icons/mdi/domain";
+import BriefcaseOutlineIcon from "~icons/mdi/briefcase-outline";
+import ForumOutlineIcon from "~icons/mdi/forum-outline";
+import HelpCircleOutlineIcon from "~icons/mdi/help-circle-outline";
+import TrashCanOutlineIcon from "~icons/mdi/trash-can-outline";
 
-const cookies = parseCookies(Astro.request.headers.get("cookie"));
-const isLoggedIn = validateAdminToken(cookies[SESSION_COOKIE_NAME]);
-const servicesData = isLoggedIn ? await readServicesConfig() : [];
+const token = Astro.cookies.get(SESSION_COOKIE_NAME)?.value;
+const isLoggedIn = validateAdminToken(token);
+
+// Captura a aba ativa via URL (Padrão: 'company')
+const currentTab = Astro.url.searchParams.get("tab") || "company";
+
+// Objeto padrão para fallback
+const defaultCompany = {
+  name: "A-Plus Pavers & Grass",
+  description: "QUALITY PAVERS & SYNTHETIC GRASS INSTALLATION",
+  contact: { phone: "", phoneRaw: "", facetime: "", email: "" },
+  address: { full: "", serviceArea: "Orlando", city: "Orlando", state: "FL" },
+  links: { googleReview: "", facebook: "", instagram: "", tiktok: "", googleMapsEmbed: "" }
+};
+
+// Carregamento dos dados no servidor (se logado)
+const fetchedCompany = isLoggedIn ? await getCompanyData() : null;
+const company = fetchedCompany || defaultCompany;
+
+const servicesData = isLoggedIn ? (await getServicesData()) || [] : [];
+const faqsData = isLoggedIn ? (await getFaqsData()) || [] : [];
+const testimonialsData = isLoggedIn ? (await getTestimonialsData()) || [] : [];
+
 const message = Astro.url.searchParams.get("message") ?? "";
-
-// 🚀 AJUSTE GODADDY: Lendo os dados do company.json dinamicamente da pasta de assets persistentes
-const companyPath = path.join(process.cwd(), "public/assets/company.json");
-const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
-let company: any = {};
-
-try {
-  const raw = await fs.readFile(companyPath, "utf8");
-  company = JSON.parse(raw);
-} catch {
-  try {
-    // Se não existir na pasta persistente no primeiro acesso, faz o fallback para o arquivo padrão
-    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
-    company = JSON.parse(fallbackRaw);
-  } catch {
-    // Objeto vazio seguro para evitar quebras se nenhum arquivo for encontrado
-    company = {
-      name: "A-Plus Pavers & Grass",
-      description: "",
-      contact: { phone: "", phoneRaw: "", facetime: "", email: "" },
-      address: { full: "", serviceArea: "Central Florida and nearby cities" }
-    };
-  }
-}
 ---
 
 <Layout title="Admin | A-Plus Landing">
   <header class="border-b bg-white">
-    <div
-      class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4"
-    >
+    <div class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <img src="/logo.png" alt="A-Plus logo" class="w-20 h-auto" />
         <div>
@@ -61,33 +54,28 @@ try {
           <div class="text-sm text-slate-600">Control Panel</div>
         </div>
       </div>
-      <a href="/" class="text-sm text-slate-600 hover:text-slate-900"
-        >← Back to site</a
-      >
+      <a href="/" class="text-sm text-slate-600 hover:text-slate-900">← Back to site</a>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto p-6">
-    <div
-      class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-    >
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-3xl font-bold text-[#0b3c5d]">Admin Panel</h1>
         <p class="text-sm text-slate-600 mt-1">
-          Manage company data, galleries and testimonials without a database.
+          Manage company settings, services, FAQs, and testimonials.
         </p>
       </div>
       {
         isLoggedIn && (
-          <form method="POST" action="/admin/api/logout">
-            <button
-              type="submit"
-              class="flex items-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
-            >
-              <LogoutIcon class="w-4 h-4" />
-              Sign Out
-            </button>
-          </form>
+          <button
+            type="button"
+            id="logout-btn"
+            class="flex items-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
+          >
+            <LogoutIcon class="w-4 h-4" />
+            Sign Out
+          </button>
         )
       }
     </div>
@@ -102,7 +90,7 @@ try {
 
     {
       !isLoggedIn ? (
-        <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm max-w-md mx-auto">
           <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">Login</h2>
           <form method="POST" action="/admin/api/login" class="grid gap-4">
             <label class="grid gap-2 text-sm text-slate-700">
@@ -125,303 +113,491 @@ try {
             </label>
             <button
               type="submit"
-              class="rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white"
+              class="rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
             >
               Sign In
             </button>
+            <div class="mt-3 text-right">
+              <button
+                type="button"
+                id="forgot-password-btn"
+                class="text-xs text-[#328cc1] hover:underline bg-transparent border-none cursor-pointer"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
           </form>
+
+          <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-200"></div>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase">
+              <span class="bg-white px-2 text-slate-500">Ou</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="google-login-btn"
+            class="flex w-full items-center justify-center gap-3 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Entrar com o Google
+          </button>
         </section>
       ) : (
-        <div class="space-y-8">
-          
-          <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">
-              Company Information
-            </h2>
-            <p class="text-sm text-slate-600 mb-6">
-              Update global contact settings, SEO description, and target commercial coverage area instantly.
-            </p>
-            <form
-              method="POST"
-              action="/admin/api/company"
-              class="grid gap-5"
+        <div>
+          {/* NAVEGAÇÃO POR ABAS */}
+          <nav class="flex gap-2 border-b border-slate-200 mb-8 overflow-x-auto pb-2">
+            <a
+              href="/admin?tab=company"
+              class={`flex items-center gap-2 px-5 py-3 rounded-t-xl font-medium text-sm transition ${
+                currentTab === "company"
+                  ? "bg-[#0b3c5d] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
             >
-              <div class="grid gap-4 md:grid-cols-2">
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Company Name
-                  <input
-                    name="name"
-                    type="text"
-                    value={company.name}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Commercial Service Area (SEO Alignment)
-                  <input
-                    name="serviceArea"
-                    type="text"
-                    value={company.address?.serviceArea || ""}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-              </div>
-
-              <label class="grid gap-2 text-sm text-slate-700">
-                Global SEO Description / Tagline
-                <textarea
-                  name="description"
-                  rows="2"
-                  required
-                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                >{company.description}</textarea>
-              </label>
-
-              <div class="grid gap-4 md:grid-cols-3">
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Phone (Display)
-                  <input
-                    name="phone"
-                    type="text"
-                    value={company.contact?.phone || ""}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Phone (Raw Numbers Only)
-                  <input
-                    name="phoneRaw"
-                    type="text"
-                    value={company.contact?.phoneRaw || ""}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-                <label class="grid gap-2 text-sm text-slate-700">
-                  FaceTime (ID/Phone)
-                  <input
-                    name="facetime"
-                    type="text"
-                    value={company.contact?.facetime || ""}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-              </div>
-
-              <div class="grid gap-4 md:grid-cols-2">
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Business Email
-                  <input
-                    name="email"
-                    type="email"
-                    value={company.contact?.email || ""}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-                <label class="grid gap-2 text-sm text-slate-700">
-                  Full Address (Location Text)
-                  <input
-                    name="fullAddress"
-                    type="text"
-                    value={company.address?.full || ""}
-                    required
-                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                  />
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                class="flex w-full items-center justify-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
-              >
-                <ContentSaveIcon class="w-4 h-4" />
-                Save Company Settings
-              </button>
-            </form>
-          </section>
-
-          <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">
-              Service Galleries
-            </h2>
-            <p class="text-sm text-slate-600 mb-6">
-              Upload images per service to update the public gallery. <strong class="text-[#0b3c5d]">Note: Only JPG/JPEG images are allowed.</strong>
-            </p>
-            <form
-              method="POST"
-              action="/admin/api/service"
-              enctype="multipart/form-data"
-              class="grid gap-5"
+              <DomainIcon class="w-4 h-4" />
+              Company Info
+            </a>
+            <a
+              href="/admin?tab=services"
+              class={`flex items-center gap-2 px-5 py-3 rounded-t-xl font-medium text-sm transition ${
+                currentTab === "services"
+                  ? "bg-[#0b3c5d] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
             >
-              <select
-                name="serviceId"
-                required
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm"
-              >
-                <option value="">Select a service</option>
-                {servicesData.map((s: any) => (
-                  <option value={s.id}>{s.title}</option>
-                ))}
-              </select>
-
-              <div class="grid gap-4 md:grid-cols-2">
-                {["heroImage", "coverImage"].map((name) => (
-                  <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
-                    {name
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (str) => str.toUpperCase())} (JPG)
-                    <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
-                      <img
-                        src=""
-                        alt="Preview"
-                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200 fn-preview-img"
-                      />
-                      <div class="flex items-center gap-3 text-slate-400 fn-placeholder-box">
-                        <ImageIcon class="w-6 h-6 text-slate-400" />
-                        <span class="text-xs truncate max-w-[150px] fn-filename-text">
-                          No file chosen
-                        </span>
-                      </div>
-                      <input
-                        type="file"
-                        name={name}
-                        accept=".jpg, .jpeg"
-                        class="hidden fn-file-input"
-                      />
-                    </div>
-                  </label>
-                ))}
-              </div>
-              <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
-                Add Gallery Photos (JPG only - Will append to current photos)
-                <div class="relative flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
-                  <div class="flex items-center gap-3 text-slate-400">
-                    <ImageIcon class="w-6 h-6 text-slate-400" />
-                    <span class="text-xs truncate max-w-[200px] fn-gallery-text">
-                      No files chosen
-                    </span>
-                  </div>
-                  <input
-                    type="file"
-                    name="galleryImages"
-                    accept=".jpg, .jpeg"
-                    multiple
-                    class="hidden fn-gallery-input"
-                  />
-                </div>
-              </label>
-              <button
-                type="submit"
-                class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
-              >
-                <CloudUploadIcon class="w-4 h-4" />
-                Update Service
-              </button>
-            </form>
-          </section>
-
-          <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-6">
+              <BriefcaseOutlineIcon class="w-4 h-4" />
+              Services & Galleries
+            </a>
+            <a
+              href="/admin?tab=faq"
+              class={`flex items-center gap-2 px-5 py-3 rounded-t-xl font-medium text-sm transition ${
+                currentTab === "faq"
+                  ? "bg-[#0b3c5d] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <HelpCircleOutlineIcon class="w-4 h-4" />
+              FAQ Management
+            </a>
+            <a
+              href="/admin?tab=testimonials"
+              class={`flex items-center gap-2 px-5 py-3 rounded-t-xl font-medium text-sm transition ${
+                currentTab === "testimonials"
+                  ? "bg-[#0b3c5d] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <ForumOutlineIcon class="w-4 h-4" />
               Testimonials
-            </h2>
-            <form
-              method="POST"
-              action="/admin/api/testimonial"
-              enctype="multipart/form-data"
-              class="grid gap-5"
-            >
-              <div class="grid gap-4 md:grid-cols-2">
-                <input
-                  name="clientName"
-                  placeholder="Client Name"
-                  type="text"
-                  required
-                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                />
-                <select
-                  name="serviceType"
-                  required
-                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+            </a>
+          </nav>
+
+          {/* ABA 1: COMPANY INFO */}
+          {currentTab === "company" && (
+            <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">
+                Company Information
+              </h2>
+              <p class="text-sm text-slate-600 mb-6">
+                Update global contact settings, SEO description, and target commercial coverage area instantly.
+              </p>
+              <form method="POST" action="/admin/api/company" class="grid gap-5">
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    Company Name
+                    <input
+                      name="name"
+                      type="text"
+                      value={company.name}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    Commercial Service Area (SEO Alignment)
+                    <input
+                      name="serviceArea"
+                      type="text"
+                      value={company.address?.serviceArea || ""}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                </div>
+
+                <label class="grid gap-2 text-sm text-slate-700">
+                  Global SEO Description / Tagline
+                  <textarea
+                    name="description"
+                    rows="2"
+                    required
+                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  >{company.description}</textarea>
+                </label>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    Phone (Display)
+                    <input
+                      name="phone"
+                      type="text"
+                      value={company.contact?.phone || ""}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    Phone (Raw Numbers Only)
+                    <input
+                      name="phoneRaw"
+                      type="text"
+                      value={company.contact?.phoneRaw || ""}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    FaceTime (ID/Phone)
+                    <input
+                      name="facetime"
+                      type="text"
+                      value={company.contact?.facetime || ""}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    Business Email
+                    <input
+                      name="email"
+                      type="email"
+                      value={company.contact?.email || ""}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                  <label class="grid gap-2 text-sm text-slate-700">
+                    Full Address (Location Text)
+                    <input
+                      name="fullAddress"
+                      type="text"
+                      value={company.address?.full || ""}
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  class="flex w-full items-center justify-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
                 >
-                  <option value="">Select Service</option>
+                  <ContentSaveIcon class="w-4 h-4" />
+                  Save Company Settings
+                </button>
+              </form>
+            </section>
+          )}
+
+          {/* ABA 2: SERVICES & GALLERIES */}
+          {currentTab === "services" && (
+            <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">
+                Service Galleries
+              </h2>
+              <p class="text-sm text-slate-600 mb-6">
+                Upload images per service to update the public gallery.
+              </p>
+              <form
+                method="POST"
+                action="/admin/api/service"
+                enctype="multipart/form-data"
+                class="grid gap-5"
+              >
+                <select
+                  name="serviceId"
+                  required
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm"
+                >
+                  <option value="">Select a service</option>
                   {servicesData.map((s: any) => (
-                    <option value={s.title}>{s.title}</option>
+                    <option value={s.id}>{s.title}</option>
                   ))}
                 </select>
-              </div>
 
-              <div class="grid gap-4 md:grid-cols-2">
-                <input
-                  name="city"
-                  placeholder="City"
-                  type="text"
-                  required
-                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                />
-                <input
-                  name="state"
-                  placeholder="State"
-                  type="text"
-                  required
-                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                />
-              </div>
-
-              <input
-                name="date"
-                type="month"
-                required
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-              />
-
-              <div class="grid gap-4 md:grid-cols-2">
-                {["beforeImage", "afterImage"].map((name) => (
-                  <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
-                    {name === "beforeImage" ? "Before Photo" : "After Photo"} (JPG)
-                    <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
-                      <img
-                        src=""
-                        alt="Preview"
-                        class="hidden w-12 h-12 object-cover rounded-md border border-slate-200 fn-preview-img"
-                      />
-                      <div class="flex items-center gap-3 text-slate-400 fn-placeholder-box">
-                        <ImageIcon class="w-6 h-6 text-slate-400" />
-                        <span class="text-xs truncate max-w-[150px] fn-filename-text">
-                          No file chosen
-                        </span>
+                <div class="grid gap-4 md:grid-cols-2">
+                  {["heroImage", "coverImage"].map((name) => (
+                    <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
+                      {name
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())}
+                      <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
+                        <img
+                          src=""
+                          alt="Preview"
+                          class="hidden w-12 h-12 object-cover rounded-md border border-slate-200 fn-preview-img"
+                        />
+                        <div class="flex items-center gap-3 text-slate-400 fn-placeholder-box">
+                          <ImageIcon class="w-6 h-6 text-slate-400" />
+                          <span class="text-xs truncate max-w-[150px] fn-filename-text">
+                            No file chosen
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          name={name}
+                          accept="image/*"
+                          class="hidden fn-file-input"
+                        />
                       </div>
-                      <input
-                        type="file"
-                        name={name}
-                        accept=".jpg, .jpeg"
-                        required
-                        class="hidden fn-file-input"
-                      />
+                    </label>
+                  ))}
+                </div>
+                <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
+                  Add Gallery Photos (Will append to current photos)
+                  <div class="relative flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
+                    <div class="flex items-center gap-3 text-slate-400">
+                      <ImageIcon class="w-6 h-6 text-slate-400" />
+                      <span class="text-xs truncate max-w-[200px] fn-gallery-text">
+                        No files chosen
+                      </span>
                     </div>
-                  </label>
-                ))}
-              </div>
-              <textarea
-                name="message"
-                placeholder="Testimonial text..."
-                rows="4"
-                required
-                class="w-full rounded-3xl border border-slate-300 px-4 py-3 text-sm"
-              />
-              <button
-                type="submit"
-                class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
-              >
-                <PlusIcon class="w-4 h-4" />
-                Add Testimonial
-              </button>
-            </form>
-          </section>
+                    <input
+                      type="file"
+                      name="galleryImages"
+                      accept="image/*"
+                      multiple
+                      class="hidden fn-gallery-input"
+                    />
+                  </div>
+                </label>
+                <button
+                  type="submit"
+                  class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
+                >
+                  <CloudUploadIcon class="w-4 h-4" />
+                  Update Service
+                </button>
+              </form>
+            </section>
+          )}
+
+          {/* ABA 3: FAQ MANAGEMENT */}
+          {currentTab === "faq" && (
+            <div class="space-y-8">
+              <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-4">
+                  Add New FAQ
+                </h2>
+                <form method="POST" action="/admin/api/faq" class="grid gap-5">
+                  <input
+                    name="question"
+                    placeholder="Question (ex: How long does installation take?)"
+                    type="text"
+                    required
+                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  />
+                  <textarea
+                    name="answer"
+                    placeholder="Answer details..."
+                    rows="3"
+                    required
+                    class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
+                  >
+                    <PlusIcon class="w-4 h-4" />
+                    Save FAQ
+                  </button>
+                </form>
+              </section>
+
+              {/* LISTA DE FAQS COM EXCLUSÃO */}
+              <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <h2 class="text-xl font-semibold text-[#0b3c5d] mb-4">
+                  Existing FAQs ({faqsData.length})
+                </h2>
+                <div class="space-y-4">
+                  {faqsData.length === 0 ? (
+                    <p class="text-sm text-slate-500">No FAQs found.</p>
+                  ) : (
+                    faqsData.map((faq: any) => (
+                      <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50 flex items-start justify-between gap-4">
+                        <div>
+                          <p class="font-semibold text-slate-800 text-sm">{faq.question}</p>
+                          <p class="text-xs text-slate-600 mt-1">{faq.answer}</p>
+                        </div>
+                        <form method="POST" action="/admin/api/faq/delete">
+                          <input type="hidden" name="id" value={faq.id} />
+                          <button
+                            type="submit"
+                            class="p-2 text-rose-500 hover:text-rose-700 transition"
+                            title="Delete FAQ"
+                          >
+                            <TrashCanOutlineIcon class="w-5 h-5" />
+                          </button>
+                        </form>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* ABA 4: TESTIMONIALS */}
+          {currentTab === "testimonials" && (
+            <div class="space-y-8">
+              <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <h2 class="text-2xl font-semibold text-[#0b3c5d] mb-6">
+                  Add Testimonial
+                </h2>
+                <form
+                  method="POST"
+                  action="/admin/api/testimonial"
+                  enctype="multipart/form-data"
+                  class="grid gap-5"
+                >
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <input
+                      name="clientName"
+                      placeholder="Client Name"
+                      type="text"
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                    <select
+                      name="serviceType"
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    >
+                      <option value="">Select Service</option>
+                      {servicesData.map((s: any) => (
+                        <option value={s.title}>{s.title}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <input
+                      name="city"
+                      placeholder="City"
+                      type="text"
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                    <input
+                      name="state"
+                      placeholder="State"
+                      type="text"
+                      required
+                      class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    />
+                  </div>
+
+                  <input
+                    name="date"
+                    type="month"
+                    required
+                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  />
+
+                  <div class="grid gap-4 md:grid-cols-2">
+                    {["beforeImage", "afterImage"].map((name) => (
+                      <label class="grid gap-2 text-sm text-slate-700 cursor-pointer">
+                        {name === "beforeImage" ? "Before Photo" : "After Photo"}
+                        <div class="relative flex items-center gap-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 overflow-hidden">
+                          <img
+                            src=""
+                            alt="Preview"
+                            class="hidden w-12 h-12 object-cover rounded-md border border-slate-200 fn-preview-img"
+                          />
+                          <div class="flex items-center gap-3 text-slate-400 fn-placeholder-box">
+                            <ImageIcon class="w-6 h-6 text-slate-400" />
+                            <span class="text-xs truncate max-w-[150px] fn-filename-text">
+                              No file chosen
+                            </span>
+                          </div>
+                          <input
+                            type="file"
+                            name={name}
+                            accept="image/*"
+                            required
+                            class="hidden fn-file-input"
+                          />
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  <textarea
+                    name="message"
+                    placeholder="Testimonial text..."
+                    rows="4"
+                    required
+                    class="w-full rounded-3xl border border-slate-300 px-4 py-3 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    class="flex w-full items-center justify-center gap-2 rounded-full bg-[#328cc1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3c5d]"
+                  >
+                    <PlusIcon class="w-4 h-4" />
+                    Add Testimonial
+                  </button>
+                </form>
+              </section>
+
+              {/* LISTA DE DEPOIMENTOS COM EXCLUSÃO */}
+              <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <h2 class="text-xl font-semibold text-[#0b3c5d] mb-4">
+                  Existing Testimonials ({testimonialsData.length})
+                </h2>
+                <div class="grid gap-4 md:grid-cols-2">
+                  {testimonialsData.length === 0 ? (
+                    <p class="text-sm text-slate-500">No testimonials found.</p>
+                  ) : (
+                    testimonialsData.map((t: any) => (
+                      <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50 flex flex-col justify-between gap-4">
+                        <div>
+                          <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-slate-800 text-sm">{t.clientName}</h3>
+                            <span class="text-xs text-slate-500">{t.serviceType}</span>
+                          </div>
+                          <p class="text-xs text-slate-600 mt-2 italic">"{t.message}"</p>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-200 pt-3">
+                          <span class="text-xs text-slate-400">{t.city}, {t.state}</span>
+                          <form method="POST" action="/admin/api/testimonial/delete">
+                            <input type="hidden" name="id" value={t.id} />
+                            <button
+                              type="submit"
+                              class="p-2 text-rose-500 hover:text-rose-700 transition"
+                              title="Delete Testimonial"
+                            >
+                              <TrashCanOutlineIcon class="w-5 h-5" />
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </section>
+            </div>
+          )}
         </div>
       )
     }
@@ -429,13 +605,15 @@ try {
 </Layout>
 
 <script>
-  // 1. Gerenciador de Previews Individuais (Hero, Cover, Before, After)
+  import { initializeApp } from "firebase/app";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail, signOut } from "firebase/auth";
+
+  // Previews Individuais
   const fileInputs = document.querySelectorAll('.fn-file-input');
   fileInputs.forEach((input) => {
     input.addEventListener('change', (e) => {
       const target = e.target as HTMLInputElement;
       if (!target.files || target.files.length === 0) return;
-
       const file = target.files[0];
       const parent = target.parentElement;
       if (!parent) return;
@@ -459,7 +637,7 @@ try {
     });
   });
 
-  // 2. Gerenciador de Feedback da Galeria Múltipla
+  // Galeria Múltipla
   const galleryInputs = document.querySelectorAll('.fn-gallery-input');
   galleryInputs.forEach((input) => {
     input.addEventListener('change', (e) => {
@@ -475,4 +653,81 @@ try {
       }
     });
   });
+
+  // Firebase Client Setup
+  const firebaseConfig = {
+    apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
+    authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.PUBLIC_FIREBASE_APP_ID
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // Handle Logout
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        await fetch("/admin/api/logout", { method: "POST" });
+      } catch (err) {
+        console.error("Logout error:", err);
+      } finally {
+        window.location.href = "/admin?message=You+have+been+logged+out";
+      }
+    });
+  }
+
+  // Login Google
+  const googleBtn = document.getElementById("google-login-btn");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const idToken = await result.user.getIdToken();
+
+        const response = await fetch("/admin/api/auth-google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
+
+        if (response.ok) {
+          window.location.href = "/admin?tab=company&message=Login+successful!";
+        } else {
+          alert("E-mail não autorizado para acesso administrativo.");
+          await auth.signOut();
+        }
+      } catch (error) {
+        console.error("Erro no login com Google:", error);
+      }
+    });
+  }
+
+  // Esqueci minha senha
+  const forgotBtn = document.getElementById("forgot-password-btn");
+  if (forgotBtn) {
+    forgotBtn.addEventListener("click", async () => {
+      const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
+      const email = usernameInput?.value.trim();
+
+      if (!email) {
+        alert("Por favor, digite o seu e-mail no campo 'Username' acima antes de clicar em Esqueci minha senha.");
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("E-mail de recuperação de senha enviado com sucesso! Verifique sua caixa de entrada.");
+      } catch (error: any) {
+        console.error("Erro ao enviar e-mail de recuperação:", error);
+        alert("Erro ao enviar e-mail: " + (error.message || "E-mail não cadastrado no Firebase."));
+      }
+    });
+  }
 </script>

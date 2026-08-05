@@ -1,29 +1,8 @@
 ---
 // src/components/Header.astro
-import fs from "fs/promises";
-import path from "path";
+import { getCompanyData } from "../lib/firebase-admin.ts";
 
-// 🚀 AJUSTE GODADDY: Carregamento dinâmico de dados da empresa para refletir edições em tempo real
-const companyPath = path.join(process.cwd(), "public/assets/company.json");
-const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
-let company: any = {};
-
-try {
-  const raw = await fs.readFile(companyPath, "utf8");
-  company = JSON.parse(raw);
-} catch {
-  try {
-    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
-    company = JSON.parse(fallbackRaw);
-  } catch {
-    company = {
-      name: "A-Plus Pavers & Grass",
-      description: "QUALITY PAVERS & SYNTHETIC GRASS INSTALLATION",
-      contact: { phone: "", phoneRaw: "", email: "" },
-      address: { full: "", serviceArea: "" }
-    };
-  }
-}
+const company = await getCompanyData();
 
 export interface BreadcrumbItem {
     label: string;
@@ -35,8 +14,8 @@ interface Props {
     headerTitle?: string;
     headerSubtitle?: string;
     breadcrumb?: BreadcrumbItem[];
-    isHome?: boolean; // Define se é a página inicial para ajustar as âncoras (#)
-    showServicesLinks?: boolean; // Controla a exibição dos links de serviços no desktop
+    isHome?: boolean;
+    showServicesLinks?: boolean;
 }
 
 const {
@@ -47,7 +26,6 @@ const {
     showServicesLinks = false,
 } = Astro.props as Props;
 
-// Ajusta os caminhos dos links dinamicamente com base na página atual
 const servicesHref = isHome ? "#services" : "/services";
 const galleryHref = isHome ? "#gallery-driveways" : "/services";
 const contactHref = isHome ? "#contact" : "/#contact";

@@ -1,13 +1,13 @@
 ---
 // src/components/TestimonialCard.astro
-// IMPORTAÇÃO DOS ÍCONES UNIFICADOS
 import CalendarIcon from "~icons/mdi/calendar-blank";
 import MapMarkerIcon from "~icons/mdi/map-marker";
 
 const { data } = Astro.props;
 
-const beforePath = `/uploads/${data.beforeImage}`;
-const afterPath = `/uploads/${data.afterImage}`;
+const beforePath = data.beforeImage?.startsWith("/") ? data.beforeImage : `/${data.beforeImage}`;
+const afterPath = data.afterImage?.startsWith("/") ? data.afterImage : `/${data.afterImage}`;
+
 const dateDisplay = data.date
     ? new Date(data.date).toLocaleString("en-US", {
           month: "long",
@@ -16,61 +16,36 @@ const dateDisplay = data.date
     : null;
 ---
 
-<div
-    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full"
->
-    <!-- Imagens: Antes (Esquerda) e Depois (Direita) lado a lado -->
+<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
     <div class="flex gap-3 mb-4">
         <div class="w-1/2">
-            <p
-                class="text-[9px] uppercase font-bold text-gray-400 mb-1 tracking-wider"
-            >
-                Before
-            </p>
-            <img
-                src={beforePath}
-                alt="Before"
-                class="w-full h-32 object-cover rounded shadow-sm border border-gray-100"
-            />
+            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Before</p>
+            <img src={beforePath} alt="Before" class="w-full h-32 object-cover rounded shadow-sm border border-gray-100" />
         </div>
         <div class="w-1/2">
-            <p
-                class="text-[9px] uppercase font-bold text-gray-400 mb-1 tracking-wider"
-            >
-                After
-            </p>
-            <img
-                src={afterPath}
-                alt="After"
-                class="w-full h-32 object-cover rounded shadow-sm border border-gray-100"
-            />
+            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1 tracking-wider">After</p>
+            <img src={afterPath} alt="After" class="w-full h-32 object-cover rounded shadow-sm border border-gray-100" />
         </div>
     </div>
 
-    <span
-        class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest"
-    >
+    <span class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest">
         {data.serviceType}
     </span>
 
     <div class="flex items-center gap-4 mt-1">
-        {
-            dateDisplay ? (
-                <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
-                    <CalendarIcon class="w-3.5 h-3.5 text-gray-400" />
-                    {dateDisplay}
-                </span>
-            ) : null
-        }
+        {dateDisplay && (
+            <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
+                <CalendarIcon class="w-3.5 h-3.5 text-gray-400" />
+                {dateDisplay}
+            </span>
+        )}
 
-        {
-            data.city && data.state ? (
-                <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
-                    <MapMarkerIcon class="w-3.5 h-3.5 text-gray-400" />
-                    {data.city}, {data.state}
-                </span>
-            ) : null
-        }
+        {data.city && data.state && (
+            <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
+                <MapMarkerIcon class="w-3.5 h-3.5 text-gray-400" />
+                {data.city}, {data.state}
+            </span>
+        )}
     </div>
 
     <h3 class="font-bold text-lg mt-2 text-[#0b3c5d] leading-tight">

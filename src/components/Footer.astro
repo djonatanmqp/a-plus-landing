@@ -1,29 +1,9 @@
 ---
 // src/components/Footer.astro
-import fs from "fs/promises";
-import path from "path";
 import ArrowUp from "~icons/mdi/chevron-up";
+import { getCompanyData } from "../lib/firebase-admin.ts";
 
-// 🚀 AJUSTE GODADDY: Lendo os dados da empresa de forma dinâmica do local persistente
-const companyPath = path.join(process.cwd(), "public/assets/company.json");
-const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
-let company: any = {};
-
-try {
-  const raw = await fs.readFile(companyPath, "utf8");
-  company = JSON.parse(raw);
-} catch {
-  try {
-    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
-    company = JSON.parse(fallbackRaw);
-  } catch {
-    company = {
-      name: "A-Plus Pavers & Grass",
-      contact: { phone: "", email: "" },
-      address: { city: "Orlando", state: "FL" }
-    };
-  }
-}
+const company = await getCompanyData();
 ---
 
 <footer class="max-w-6xl mx-auto px-4 pb-12 pt-6">
@@ -40,7 +20,6 @@ try {
         </div>
 
         <div class="flex items-center gap-6 shrink-0">
-            
             <div
                 class="hidden sm:block text-right text-gray-400 leading-normal font-medium"
             >
@@ -65,7 +44,6 @@ try {
                     >
                 </button>
             </div>
-
         </div>
     </div>
 </footer>

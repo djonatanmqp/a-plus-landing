@@ -1,6 +1,7 @@
 ---
+// src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
-import Header from '../components/Header.astro'; // Importado com sucesso
+import Header from "../components/Header.astro";
 import Hero from "../components/Hero.astro";
 import Services from "../components/Services.astro";
 import Gallery from "../components/Gallery.astro";
@@ -14,7 +15,6 @@ import Footer from "../components/Footer.astro";
     title="A-Plus Pavers & Grass | Orlando Driveways, Patios & Turf"
     description="A-Plus Pavers & Grass LLC creates premium driveway pavers, patios, walkways and artificial turf for Orlando, FL homeowners and businesses."
 >
-    {/* O Header fica aqui, no topo absoluto, passando as propriedades de Home */}
     <Header isHome={true} showServicesLinks={true} />
 
     <main id="main-content" class="space-y-16">

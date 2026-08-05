@@ -1,9 +1,8 @@
 ---
 // src/components/Services.astro
-import { readServicesConfig } from "../lib/admin.ts";
+import { getServicesData } from "../lib/firebase-admin.ts";
 
-// 🚀 AJUSTE GODADDY: Lendo os serviços dinamicamente para refletir alterações em tempo real no servidor
-const services = await readServicesConfig();
+const services = await getServicesData();
 ---
 
 <section id="services" class="max-w-6xl mx-auto px-4 pt-6">

@@ -1,11 +1,10 @@
 ---
 // src/components/Gallery.astro
-import { readServicesConfig } from "../lib/admin.ts";
+import { getServicesData } from "../lib/firebase-admin.ts";
 import MagnifyIcon from "~icons/mdi/magnify";
 import ZoomModal from "./ZoomModal.astro";
 
-// 🚀 AJUSTE GODADDY: Lendo os serviços (e suas fotos) dinamicamente do local persistente
-const servicesData = await readServicesConfig();
+const servicesData = await getServicesData();
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-2">
@@ -113,7 +112,6 @@ const servicesData = await readServicesConfig();
                     img.alt = `${serviceData.title} view ${index + 1}`;
                     img.className = "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
                     
-                    // Ajuste de segurança: chama a função global com verificação
                     img.addEventListener("click", (e) => {
                         e.stopPropagation();
                         if (typeof (window as any).openZoom === 'function') {

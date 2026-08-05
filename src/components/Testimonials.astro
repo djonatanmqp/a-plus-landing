@@ -1,68 +1,16 @@
 ---
 // src/components/Testimonials.astro
-import fs from "fs/promises";
-import path from "path";
 import TestimonialCard from "./TestimonialCard.astro";
+import { getTestimonialsData } from "../lib/firebase-admin.ts";
 
 import CloseIcon from "~icons/mdi/close";
 import CalendarIcon from "~icons/mdi/calendar-blank";
 import MapMarkerIcon from "~icons/mdi/map-marker";
 
-function parseFrontmatter(raw: string) {
-    const data: Record<string, string> = {};
-    raw.split(/\r?\n/).forEach((line) => {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith("#")) return;
-        const match = /^([^:]+):\s*(?:"((?:\\.|[^"])+)"|(.*))$/.exec(trimmed);
-        if (!match) return;
-        const key = match[1].trim();
-        const value =
-            match[2] !== undefined
-                ? match[2].replace(/\\"/g, '"')
-                : match[3].trim();
-        data[key] = value;
-    });
-    return data;
-}
+// 🚀 BUSCA DIRETA DO FIRESTORE
+const testimonialsList = await getTestimonialsData();
 
-function parseMarkdown(fileContent: string) {
-    const match = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)$/m.exec(fileContent);
-    if (!match) {
-        return { frontmatter: {}, body: fileContent.trim() };
-    }
-    return {
-        frontmatter: parseFrontmatter(match[1]),
-        body: match[2].trim(),
-    };
-}
-
-// 🚀 AJUSTE GODADDY: Lendo os arquivos Markdown diretamente da pasta persistente
-const testimonialsDir: string = path.join(process.cwd(), "public/assets/content/testimonials");
-let allTestimonials: any[] = [];
-
-try {
-    const fileNames: string[] = await fs.readdir(testimonialsDir);
-    allTestimonials = (
-        await Promise.all(
-            fileNames
-                .filter((fileName: string) => fileName.endsWith(".md"))
-                .map(async (fileName: string) => {
-                    const raw = await fs.readFile(path.join(testimonialsDir, fileName), "utf8");
-                    const { frontmatter, body } = parseMarkdown(raw);
-                    const slug = fileName.replace(/\.md$/, "");
-                    return { id: slug, data: frontmatter, body };
-                }),
-        )
-    ).sort((a: any, b: any) => {
-        const aDate = a.data.date ? new Date(a.data.date).valueOf() : 0;
-        const bDate = b.data.date ? new Date(b.data.date).valueOf() : 0;
-        return bDate - aDate;
-    });
-} catch (e) {
-    console.warn("Testimonials directory not found or empty in assets.");
-}
-
-const testimonialsJson = JSON.stringify(allTestimonials);
+const testimonialsJson = JSON.stringify(testimonialsList);
 const testimonialsScript = `
 const testimonials = ${testimonialsJson};
 const grid = document.getElementById("testimonials-grid");
@@ -78,17 +26,16 @@ if (grid && modal) {
     const beforeImg = document.getElementById("testimonial-modal-before");
     const afterImg = document.getElementById("testimonial-modal-after");
 
-    function openModal(testimonial) {
-        if (!testimonial) return;
-        serviceEl.textContent = testimonial.data.serviceType || "";
-        clientEl.textContent = testimonial.data.clientName || "";
-        dateEl.querySelector('span').textContent = testimonial.data.date ? new Date(testimonial.data.date).toLocaleString("en-US", { month: "long", year: "numeric" }) : "";
-        locEl.querySelector('span').textContent = testimonial.data.city && testimonial.data.state ? testimonial.data.city + ", " + testimonial.data.state : "";
-        bodyEl.textContent = testimonial.body || "";
+    function openModal(t) {
+        if (!t) return;
+        serviceEl.textContent = t.serviceType || "";
+        clientEl.textContent = t.clientName || "";
+        dateEl.querySelector('span').textContent = t.date ? new Date(t.date).toLocaleString("en-US", { month: "long", year: "numeric" }) : "";
+        locEl.querySelector('span').textContent = t.city && t.state ? t.city + ", " + t.state : "";
+        bodyEl.textContent = t.message || "";
         
-        // 🚀 AJUSTE GODADDY: As URLs no Markdown já são salvas com "assets/uploads/...", basta adicionar a barra inicial
-        beforeImg.src = \`/\${testimonial.data.beforeImage}\`;
-        afterImg.src = \`/\${testimonial.data.afterImage}\`;
+        beforeImg.src = t.beforeImage.startsWith('/') ? t.beforeImage : '/' + t.beforeImage;
+        afterImg.src = t.afterImage.startsWith('/') ? t.afterImage : '/' + t.afterImage;
         
         modal.classList.remove("hidden");
         modal.classList.add("flex");
@@ -118,14 +65,14 @@ if (grid && modal) {
         What Our Clients Say
     </h2>
 
-    {allTestimonials.length > 0 ? (
+    {testimonialsList.length > 0 ? (
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="testimonials-grid">
-            {allTestimonials.map((t: any) => (
+            {testimonialsList.map((t: any) => (
                 <article
                     class="testimonial-card cursor-pointer rounded-3xl border border-slate-200 bg-white p-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                     data-testimonial-id={t.id}
                 >
-                    <TestimonialCard data={t.data}>{t.body}</TestimonialCard>
+                    <TestimonialCard data={t}>{t.message}</TestimonialCard>
                 </article>
             ))}
         </div>

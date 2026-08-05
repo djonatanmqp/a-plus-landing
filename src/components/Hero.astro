@@ -1,15 +1,14 @@
 ---
 // src/components/Hero.astro
-import { readServicesConfig } from "../lib/admin.ts";
+import { getServicesData } from "../lib/firebase-admin.ts";
 
-// 🚀 AJUSTE GODADDY: Lendo os dados de serviços de forma dinâmica do local persistente
-const servicesData = await readServicesConfig();
+const servicesData = await getServicesData();
 
 const servicesCarousel = servicesData.map((service: any) => ({
     title: service.title,
     description: service.description,
     tagline: service.tagline,
-    image: service.heroImage || service.coverImage || "", // Lê o caminho direto do JSON atualizado
+    image: service.heroImage || service.coverImage || "",
     galleryId: service.id,
 }));
 ---
@@ -28,7 +27,6 @@ const servicesCarousel = servicesData.map((service: any) => ({
                         id={`slide-${index}`}
                         class="w-full h-full flex-shrink-0 snap-start relative"
                     >
-                        {/* Tag <img> pura e limpa focada apenas no arquivo padrão */}
                         <img
                             src={service.image}
                             alt={service.title}
@@ -36,10 +34,8 @@ const servicesCarousel = servicesData.map((service: any) => ({
                             loading={index === 0 ? "eager" : "lazy"}
                         />
 
-                        {/* Camada de Gradiente para Contraste do Texto */}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                        {/* Conteúdo do Slide */}
                         <div class="absolute bottom-6 left-6 right-6 md:left-12 md:bottom-10 text-white max-w-lg z-10">
                             <span class="text-[#d9b310] font-bold text-xs uppercase tracking-widest bg-black/40 px-2 py-1 rounded">
                                 Our Services
@@ -62,7 +58,6 @@ const servicesCarousel = servicesData.map((service: any) => ({
             }
         </div>
 
-        {/* Botões de Navegação (Desktop) */}
         <button
             id="prev-btn"
             class="absolute left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#328cc1] text-white p-2 rounded-full hidden md:block opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -87,7 +82,6 @@ const servicesCarousel = servicesData.map((service: any) => ({
 </style>
 
 <script>
-    // Script do Carrossel (Mantido idêntico)
     const wrapper = document.getElementById("carousel-wrapper");
     const prevBtn = document.getElementById("prev-btn");
     const nextBtn = document.getElementById("next-btn");
@@ -136,7 +130,6 @@ const servicesCarousel = servicesData.map((service: any) => ({
         });
     }
 
-    // Lógica do Menu Mobile
     const toggleBtn = document.getElementById("menu-toggle");
     const closeBtn = document.getElementById("menu-close");
     const mobileMenu = document.getElementById("mobile-menu");

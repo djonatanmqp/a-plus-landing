@@ -1,84 +1,28 @@
 ---
 // src/pages/services/[id].astro
-import fs from "fs/promises";
-import path from "path";
-
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import ZoomModal from "../../components/ZoomModal.astro";
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
+import { getCompanyData, getServicesData } from "../../lib/firebase-admin.ts";
 
-// 🚀 AJUSTE GODADDY: Leitura dinâmica das configurações para o build estático
-const servicesPath = path.join(process.cwd(), "public/assets/services.json");
-const servicesFallbackPath = path.join(process.cwd(), "src/data/services.json");
-const companyPath = path.join(process.cwd(), "public/assets/company.json");
-const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
-
-let servicesData: any[] = [];
-let company: any = {};
-
-// Carrega os dados de Serviços
-try {
-  const rawServices = await fs.readFile(servicesPath, "utf8");
-  servicesData = JSON.parse(rawServices);
-} catch {
-  try {
-    const fallbackServices = await fs.readFile(servicesFallbackPath, "utf8");
-    servicesData = JSON.parse(fallbackServices);
-  } catch {
-    servicesData = [];
-  }
-}
-
-// Carrega os dados da Empresa
-try {
-  const rawCompany = await fs.readFile(companyPath, "utf8");
-  company = JSON.parse(rawCompany);
-} catch {
-  try {
-    const fallbackCompany = await fs.readFile(companyFallbackPath, "utf8");
-    company = JSON.parse(fallbackCompany);
-  } catch {
-    company = {
-      name: "A-Plus Pavers & Grass",
-      contact: { phone: "", phoneRaw: "", email: "", facetime: "" },
-      address: { serviceArea: "Orlando", full: "" }
-    };
-  }
-}
-
-// 🚀 ESSENCIAL: Como o Astro executa getStaticPaths primeiro no build,
-// nós exportamos a função abaixo que mapeia todos os IDs de serviços disponíveis dinamicamente.
+// 🚀 ESSENCIAL: O Astro executa getStaticPaths primeiro no build para gerar os caminhos estáticos
 export async function getStaticPaths() {
-  const fs = await import("fs/promises");
-  const path = await import("path");
-
-  const sPath = path.join(process.cwd(), "public/assets/services.json");
-  const sFallbackPath = path.join(process.cwd(), "src/data/services.json");
-  let sData: any[] = [];
-
-  try {
-    const raw = await fs.readFile(sPath, "utf8");
-    sData = JSON.parse(raw);
-  } catch {
-    try {
-      const fallbackRaw = await fs.readFile(sFallbackPath, "utf8");
-      sData = JSON.parse(fallbackRaw);
-    } catch {
-      sData = [];
-    }
-  }
+  const sData = await getServicesData();
 
   return sData.map((item: any) => ({
     params: { id: item.id },
-    props: { serviceId: item.id } // Passamos o id para encontrar as propriedades corretas em tempo de render
+    props: { serviceId: item.id }
   }));
 }
 
-// Busca o serviço específico baseado no parâmetro da rota
-const service = servicesData.find((item) => item.id === Astro.params.id);
+// Busca todos os dados e localiza o serviço específico
+const servicesData = await getServicesData();
+const company = await getCompanyData();
+
+const service = servicesData.find((item: any) => item.id === Astro.params.id);
 if (!service) {
     throw new Error(`Service not found: ${Astro.params.id}`);
 }
@@ -142,7 +86,7 @@ const breadcrumbData = [
             {galleryImages.length > 0 ? (
                 <div>
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {galleryImages.slice(0, 6).map((image) => (
+                        {galleryImages.slice(0, 6).map((image: string) => (
                             <figure class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 aspect-video cursor-zoom-in hover:scale-[1.02] transition">
                                 <img src={image} alt={service.title} class="js-zoom-trigger h-full w-full object-cover" />
                             </figure>
@@ -167,7 +111,7 @@ const breadcrumbData = [
                 <button id="close-gallery-modal" class="text-3xl text-gray-500 hover:text-black">✕</button>
             </div>
             <div class="overflow-y-auto pr-2 grid gap-4 grid-cols-2 md:grid-cols-3 flex-1 fn-custom-scrollbar">
-                {galleryImages.map((image) => (
+                {galleryImages.map((image: string) => (
                     <figure class="aspect-video rounded-2xl overflow-hidden border border-gray-200 cursor-zoom-in">
                         <img src={image} class="js-zoom-trigger w-full h-full object-cover" />
                     </figure>

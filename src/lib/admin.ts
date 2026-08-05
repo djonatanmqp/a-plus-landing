@@ -3,10 +3,8 @@ import path from "path";
 import crypto from "crypto";
 
 // Carrega `.env` manualmente se as variáveis de ambiente não estiverem presentes.
-// Isso ajuda em ambientes onde o processo não carregou o .env automaticamente.
 try {
   const envPath = path.join(process.cwd(), ".env");
-  // top-level await: ler arquivo e popular process.env se necessário
   await fs.access(envPath);
   const raw = await fs.readFile(envPath, "utf8");
   raw.split(/\r?\n/).forEach((line) => {
@@ -26,7 +24,10 @@ export const SESSION_COOKIE_NAME = "a_plus_admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 const COOKIE_SECRET = process.env.ADMIN_COOKIE_SECRET ?? "change-this-secret-to-a-long-random-value";
 const COOKIE_SECURE = process.env.NODE_ENV === "production";
-export const SESSION_COOKIE_FLAGS = `Path=/admin; HttpOnly; SameSite=Strict; Max-Age=${SESSION_MAX_AGE}${COOKIE_SECURE ? "; Secure" : ""}`;
+// No src/lib/admin.ts
+export const SESSION_COOKIE_FLAGS = "Path=/; HttpOnly; SameSite=Lax"; 
+// Certifique-se de NÃO colocar "Secure" se estiver em localhost sem HTTPS
+/* export const SESSION_COOKIE_FLAGS = `Path=/admin; HttpOnly; SameSite=Strict; Max-Age=${SESSION_MAX_AGE}${COOKIE_SECURE ? "; Secure" : ""}`; */
 export const SESSION_COOKIE_DELETE_FLAGS = `Path=/admin; HttpOnly; SameSite=Strict; Max-Age=0${COOKIE_SECURE ? "; Secure" : ""}`;
 const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = Number(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? 5);
 const LOGIN_RATE_LIMIT_WINDOW_SECONDS = Number(process.env.LOGIN_RATE_LIMIT_WINDOW_SEC ?? 300);
@@ -89,14 +90,21 @@ export function validateAdminToken(token?: string) {
   if (!token) return false;
   const [username, expiresString, signature] = token.split(":");
   if (!username || !expiresString || !signature) return false;
+
   const expires = Number(expiresString);
   if (Number.isNaN(expires) || expires < Math.floor(Date.now() / 1000)) return false;
+
   const expected = crypto.createHmac("sha256", COOKIE_SECRET).update(`${username}:${expires}`).digest("hex");
+
   try {
     const signatureBuffer = Buffer.from(signature, "hex");
     const expectedBuffer = Buffer.from(expected, "hex");
     if (signatureBuffer.length !== expectedBuffer.length) return false;
-    return username === ADMIN_USER && crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
+
+    // Garante que e-mails com '@' sejam considerados válidos
+    const isValidUser = username === ADMIN_USER || username.includes("@");
+
+    return isValidUser && crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
   } catch {
     return false;
   }
@@ -106,21 +114,17 @@ export async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
 }
 
-// 🚀 AJUSTE GODADDY: Caminho persistente para o arquivo de configurações de serviços
 const SERVICES_PERSISTENT_PATH = path.join(process.cwd(), "public/assets/services.json");
 const SERVICES_FALLBACK_PATH = path.join(process.cwd(), "src/data/services.json");
 
 export async function readServicesConfig() {
   try {
-    // Tenta ler o arquivo da pasta de assets persistentes da GoDaddy
     const raw = await fs.readFile(SERVICES_PERSISTENT_PATH, "utf8");
     return JSON.parse(raw);
   } catch (error) {
-    // Se o arquivo persistente não existir (ex: primeiro deploy), migra o estático antigo ou inicia um novo
     try {
       const fallbackRaw = await fs.readFile(SERVICES_FALLBACK_PATH, "utf8");
       const config = JSON.parse(fallbackRaw);
-      // Salva a cópia no novo local persistente de forma automática
       await ensureDir(path.dirname(SERVICES_PERSISTENT_PATH));
       await fs.writeFile(SERVICES_PERSISTENT_PATH, JSON.stringify(config, null, 2) + "\n", "utf8");
       return config;
@@ -135,7 +139,6 @@ export async function writeServicesConfig(config: unknown) {
   await fs.writeFile(SERVICES_PERSISTENT_PATH, JSON.stringify(config, null, 2) + "\n", "utf8");
 }
 
-// 🚀 AJUSTE GODADDY: Listar depoimentos lendo direto do diretório persistente
 export async function listTestimonials() {
   const testimonialsDir = path.join(process.cwd(), "public/assets/content/testimonials");
   await ensureDir(testimonialsDir);

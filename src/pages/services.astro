@@ -1,54 +1,28 @@
 ---
-// src/pages/services.astro
-import fs from "fs/promises";
-import path from "path";
-
+// Importação dos componentes estruturais da página
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
-// 🚀 AJUSTE GODADDY: Carregamento dinâmico dos dados para evitar erros de build com arquivos estáticos ausentes
-const servicesPath = path.join(process.cwd(), "public/assets/services.json");
-const servicesFallbackPath = path.join(process.cwd(), "src/data/services.json");
-const companyPath = path.join(process.cwd(), "public/assets/company.json");
-const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
+import { getCompanyData, getServicesData } from "../lib/firebase-admin";
 
-let servicesData: any[] = [];
-let company: any = {};
+// Fallback da Empresa
+const defaultCompany = {
+  name: "A-Plus Pavers & Grass",
+  description: "QUALITY PAVERS & SYNTHETIC GRASS INSTALLATION",
+  contact: { phone: "", phoneRaw: "", facetime: "", email: "" },
+  address: { full: "", serviceArea: "Orlando", city: "Orlando", state: "FL" },
+  links: { googleReview: "", facebook: "", instagram: "", tiktok: "", googleMapsEmbed: "" }
+};
 
-// Carrega dados de Serviços
-try {
-  const rawServices = await fs.readFile(servicesPath, "utf8");
-  servicesData = JSON.parse(rawServices);
-} catch {
-  try {
-    const fallbackServices = await fs.readFile(servicesFallbackPath, "utf8");
-    servicesData = JSON.parse(fallbackServices);
-  } catch {
-    servicesData = [];
-  }
-}
+const fetchedCompany = await getCompanyData();
+const company = fetchedCompany || defaultCompany;
 
-// Carrega dados da Empresa
-try {
-  const rawCompany = await fs.readFile(companyPath, "utf8");
-  company = JSON.parse(rawCompany);
-} catch {
-  try {
-    const fallbackCompany = await fs.readFile(companyFallbackPath, "utf8");
-    company = JSON.parse(fallbackCompany);
-  } catch {
-    company = {
-      name: "A-Plus Pavers & Grass",
-      description: "Quality installation and long-lasting results",
-      address: { serviceArea: "Orlando" }
-    };
-  }
-}
+const servicesData = (await getServicesData()) || [];
 
 const breadcrumbData = [
-    { label: "Home", href: "/" },
-    { label: "Services", current: true },
+  { label: "Home", url: "/" },
+  { label: "Services", url: "/services" }
 ];
 ---
 

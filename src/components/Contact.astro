@@ -1,8 +1,5 @@
 ---
 // src/components/Contact.astro
-import fs from "fs/promises";
-import path from "path";
-
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 import Email from "~icons/mdi/email";
@@ -12,34 +9,9 @@ import Instagram from "~icons/simple-icons/instagram";
 import Tiktok from "~icons/simple-icons/tiktok";
 import GoogleIcon from "~icons/simple-icons/google";
 
-// 🚀 AJUSTE GODADDY: Lendo os dados da empresa de forma dinâmica do local persistente
-const companyPath = path.join(process.cwd(), "public/assets/company.json");
-const companyFallbackPath = path.join(process.cwd(), "src/data/company.json");
-let company: any = {};
+import { getCompanyData } from "../lib/firebase-admin.ts";
 
-try {
-  const raw = await fs.readFile(companyPath, "utf8");
-  company = JSON.parse(raw);
-} catch {
-  try {
-    const fallbackRaw = await fs.readFile(companyFallbackPath, "utf8");
-    company = JSON.parse(fallbackRaw);
-  } catch {
-    // Configurações padrão de fallback caso ambos os arquivos falhem
-    company = {
-      name: "A-Plus Pavers & Grass",
-      contact: { phone: "", phoneRaw: "", email: "", facetime: "" },
-      address: { full: "" },
-      links: {
-        googleReview: "",
-        facebook: "",
-        instagram: "",
-        tiktok: "",
-        googleMapsEmbed: ""
-      }
-    };
-  }
-}
+const company = await getCompanyData();
 ---
 
 <section id="contact" class="max-w-6xl mx-auto px-4 py-2">
