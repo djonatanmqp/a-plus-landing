@@ -1,6 +1,29 @@
 // src/lib/firebase-admin.ts
 import { adminDb } from "./firebase-server";
 
+// Ordem fixa definida para os serviços
+export const SERVICES_ORDER = [
+  "Driveways",
+  "Artificial Turf & Sod",
+  "Patios & Walkways",
+  "Pergolas & Summer Kitchens",
+  "Pool Decks",
+  "Other Services"
+];
+
+// Helper para ordenar array de serviços com base no título
+export function sortServices(services: any[]) {
+  return services.sort((a, b) => {
+    const indexA = SERVICES_ORDER.indexOf(a.title);
+    const indexB = SERVICES_ORDER.indexOf(b.title);
+
+    const posA = indexA === -1 ? 999 : indexA;
+    const posB = indexB === -1 ? 999 : indexB;
+
+    return posA - posB;
+  });
+}
+
 // --- COMPANY ---
 export async function getCompanyData() {
   try {
@@ -44,7 +67,8 @@ export async function getServicesData() {
     querySnapshot.forEach((docSnap) => {
       services.push({ id: docSnap.id, ...docSnap.data() });
     });
-    return services;
+    // Retorna a lista já ordenada pela ordem pré-definida
+    return sortServices(services);
   } catch (e) {
     console.error("Erro ao buscar serviços:", e);
     return [];
@@ -94,4 +118,11 @@ export async function getFaqData() {
     console.error("Erro ao buscar FAQ:", e);
     return [];
   }
+}
+
+export async function addFaqData(faq: { question: string; answer: string; serviceId: string }) {
+  return await adminDb.collection("faq").add({
+    ...faq,
+    createdAt: new Date(),
+  });
 }

@@ -35,8 +35,9 @@ const services = await getServicesData();
                             {service.title}
                         </h3>
                         
+                        <!-- Ajuste sugerido para melhorar o fallback -->
                         <p class="text-gray-600 text-sm sm:text-base ml-4 mt-1 leading-relaxed">
-                            {service.tagline}
+                            {service.subtitle || service.shortDescription || service.tagline || ""}
                         </p>
                     </div>
                 </div>

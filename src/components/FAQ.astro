@@ -2,7 +2,22 @@
 // src/components/FAQ.astro
 import { getFaqData } from "../lib/firebase-admin.ts";
 
-const faqData = await getFaqData();
+interface Props {
+  serviceId?: string;
+}
+
+const { serviceId = "global" } = Astro.props;
+
+const allFaqData = (await getFaqData()) || [];
+
+// Filtra as FAQs: se serviceId for 'global', pega perguntas globais/sem ID.
+// Se for um serviço específico, pega somente as perguntas vinculadas àquele ID.
+const faqData = allFaqData.filter((item: any) => {
+  if (serviceId === "global") {
+    return !item.serviceId || item.serviceId === "global";
+  }
+  return item.serviceId === serviceId;
+});
 ---
 
 <section id="faq" class="max-w-6xl mx-auto px-4 py-2">

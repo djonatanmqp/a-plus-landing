@@ -1,114 +1,67 @@
-import fs from "fs/promises";
-import path from "path";
-import { ensureDir, parseCookies, readServicesConfig, validateAdminToken, writeServicesConfig, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
+import type { APIRoute } from "astro";
+import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
+import { bufferToWebpBase64 } from "../../../lib/image-optimizer.ts";
+import { getFirestore } from "firebase-admin/firestore";
 
-// 🚀 Forçando estritamente o formato JPG/JPEG
-const allowedImageExtensions = [".jpg", ".jpeg"] as const;
-
-function safeImageExtension(fileName: string) {
-  const ext = path.extname(fileName).toLowerCase();
-  return allowedImageExtensions.includes(ext as any) ? ext : ".jpg";
-}
-
-// 🚀 Validação de assinatura por bytes focada apenas em JPEG
-function isImageSignature(buffer: ArrayBuffer) {
-  const bytes = new Uint8Array(buffer);
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return true;
-  }
-  return false;
-}
-
-async function saveUploadedBlob(file: any, destination: string) {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  if (!isImageSignature(buffer.buffer)) {
-    throw new Error("Invalid image file. Only JPG/JPEG is allowed.");
-  }
-  await fs.writeFile(destination, buffer);
-}
-
-export async function POST({ request }: { request: Request }) {
-  const cookies = parseCookies(request.headers.get("cookie"));
-  if (!validateAdminToken(cookies[SESSION_COOKIE_NAME])) {
-    return new Response(null, {
-      status: 303,
-      headers: { location: "/admin?message=Authentication+required" },
-    });
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const token = cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (!validateAdminToken(token)) {
+    return redirect("/admin?message=Unauthorized", 303);
   }
 
-  const formData = await request.formData();
-  const serviceId = (formData.get("serviceId") ?? "").toString();
-  if (!serviceId) {
-    return new Response(null, {
-      status: 303,
-      headers: { location: "/admin?message=Select+a+service" },
-    });
-  }
+  try {
+    const formData = await request.formData();
+    const serviceId = formData.get("id")?.toString() || formData.get("serviceId")?.toString();
 
-  const services = await readServicesConfig();
-  const service = services.find((item: any) => item.id === serviceId);
-  if (!service) {
-    return new Response(null, {
-      status: 303,
-      headers: { location: "/admin?message=Service+not+found" },
-    });
-  }
-
-  // 🚀 AJUSTE GODADDY: Pasta de uploads mantida na estrutura /public/assets/
-  const serviceDir = path.join(process.cwd(), "public/assets/services", serviceId);
-  await ensureDir(serviceDir);
-
-  // 1. Processamento da Hero Image
-  const heroFile = formData.get("heroImage") as any;
-  if (heroFile && heroFile.size) {
-    const ext = safeImageExtension(heroFile.name);
-    // Padronização: serviceId-hero.jpg
-    const fileName = `${serviceId}-hero${ext}`;
-    const destination = path.join(serviceDir, fileName);
-    await saveUploadedBlob(heroFile, destination);
-    // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
-    service.heroImage = `/assets/services/${serviceId}/${fileName}`;
-  }
-
-  // 2. Processamento da Cover Image
-  const coverFile = formData.get("coverImage") as any;
-  if (coverFile && coverFile.size) {
-    const ext = safeImageExtension(coverFile.name);
-    // Padronização: serviceId-cover.jpg
-    const fileName = `${serviceId}-cover${ext}`;
-    const destination = path.join(serviceDir, fileName);
-    await saveUploadedBlob(coverFile, destination);
-    // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
-    service.coverImage = `/assets/services/${serviceId}/${fileName}`;
-  }
-
-  // 3. Processamento das Imagens Adicionais (Galeria)
-  const galleryFiles = formData.getAll("galleryImages") as any[];
-  if (Array.isArray(galleryFiles)) {
-    if (!Array.isArray(service.images)) service.images = [];
-
-    for (const file of galleryFiles) {
-      if (!file || !file.size) continue;
-
-      const ext = safeImageExtension(file.name);
-      
-      // Padronização: serviceId-01.jpg, serviceId-02.jpg...
-      const nextIndex = (service.images.length + 1).toString().padStart(2, "0");
-      const fileName = `${serviceId}-${nextIndex}${ext}`;
-      const destination = path.join(serviceDir, fileName);
-
-      await saveUploadedBlob(file, destination);
-      // 🚀 AJUSTE GODADDY: O caminho público das imagens no site passa a conter /assets/
-      service.images.push(`/assets/services/${serviceId}/${fileName}`);
+    if (!serviceId) {
+      return redirect("/admin?tab=services&message=Select+a+service", 303);
     }
+
+    const title = formData.get("title")?.toString().trim() || "";
+    const subtitle = formData.get("subtitle")?.toString().trim() || "";
+    const shortDescription = formData.get("shortDescription")?.toString().trim() || "";
+    const description = formData.get("description")?.toString().trim() || "";
+    const bulletPoints = formData.getAll("bulletPoints[]").map((b) => b.toString().trim()).filter(Boolean);
+
+    const db = getFirestore();
+    const serviceRef = db.collection("services").doc(serviceId);
+    
+    const docSnap = await serviceRef.get();
+    const existingData = docSnap.exists ? docSnap.data() : {};
+
+    const updateData: any = {
+      id: serviceId,
+      title,
+      subtitle,
+      shortDescription,
+      description,
+      bulletPoints,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 1. Processamento da Hero Image otimizada via Sharp (se enviada uma nova)
+    const heroFile = formData.get("heroImage") as File;
+    if (heroFile && heroFile.size > 0) {
+      const buffer = Buffer.from(await heroFile.arrayBuffer());
+      updateData.heroImage = await bufferToWebpBase64(buffer);
+    } else if (existingData?.heroImage) {
+      updateData.heroImage = existingData.heroImage;
+    }
+
+    // 2. Processamento da Cover Image otimizada via Sharp (se enviada uma nova)
+    const coverFile = formData.get("coverImage") as File;
+    if (coverFile && coverFile.size > 0) {
+      const buffer = Buffer.from(await coverFile.arrayBuffer());
+      updateData.coverImage = await bufferToWebpBase64(buffer);
+    } else if (existingData?.coverImage) {
+      updateData.coverImage = existingData.coverImage;
+    }
+
+    await serviceRef.set(updateData, { merge: true });
+
+    return redirect("/admin?tab=services&message=Service+updated+successfully.", 303);
+  } catch (error: any) {
+    console.error("Error updating service:", error);
+    return redirect(`/admin?tab=services&message=${encodeURIComponent("Error updating service: " + error.message)}`, 303);
   }
-
-  await writeServicesConfig(services);
-
-  return new Response(null, {
-    status: 303,
-    headers: {
-      location: "/admin?message=Service+updated+successfully.",
-    },
-  });
-}
+};

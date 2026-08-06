@@ -43,49 +43,48 @@ const breadcrumbData = [
             {
                 servicesData.map((service: any) => {
                     const cover = service.coverImage ?? null;
-                    const features = Array.isArray(service.features) ? service.features : [];
+                    // Exibe preferencialmente a shortDescription; usa subtitle ou description se ainda não foi preenchido
+                    const cardDescription = service.shortDescription || service.subtitle || service.description;
 
                     return (
-                        <article class="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-                            {cover ? (
-                                <img
-                                    src={cover}
-                                    alt={`${service.title} project image`}
-                                    class="h-48 w-full object-cover"
-                                    loading="lazy"
-                                />
-                            ) : (
-                                <div class="flex h-48 w-full items-center justify-center bg-[#eef6ff] px-4 text-center">
-                                    <div class="space-y-2">
-                                        <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#dbeafe] text-[#328cc1] text-lg">
-                                            📷
+                        <article class="flex flex-col justify-between rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
+                            <div>
+                                {cover ? (
+                                    <img
+                                        src={cover}
+                                        alt={`${service.title} project image`}
+                                        class="h-48 w-full object-cover"
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div class="flex h-48 w-full items-center justify-center bg-[#eef6ff] px-4 text-center">
+                                        <div class="space-y-2">
+                                            <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#dbeafe] text-[#328cc1] text-lg">
+                                                📷
+                                            </div>
+                                            <p class="text-sm font-semibold text-[#0b3c5d]">
+                                                {service.title} image coming soon
+                                            </p>
                                         </div>
-                                        <p class="text-sm font-semibold text-[#0b3c5d]">
-                                            {service.title} image coming soon
-                                        </p>
                                     </div>
+                                )}
+                                <div class="p-6">
+                                    <h2 class="text-xl font-bold text-[#0b3c5d] mb-3">
+                                        {service.title}
+                                    </h2>
+                                    
+                                    {/* Descrição Curta (1-2 frases no máximo) */}
+                                    <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                                        {cardDescription}
+                                    </p>
                                 </div>
-                            )}
-                            <div class="p-6">
-                                <h2 class="text-xl font-bold text-[#0b3c5d] mb-3">
-                                    {service.title}
-                                </h2>
-                                <p class="text-gray-600 leading-relaxed mb-5 whitespace-pre-line">
-                                    {service.description}
-                                </p>
-                                <ul class="space-y-2 text-sm text-gray-600 mb-6">
-                                    {features.map((feature: string) => (
-                                        <li class="flex items-start gap-2">
-                                            <span class="mt-1 text-[#328cc1]">
-                                                •
-                                            </span>
-                                            {feature}
-                                        </li>
-                                    ))}
-                                </ul>
+                            </div>
+
+                            {/* Botão para forçar a navegação */}
+                            <div class="px-6 pb-6 pt-0">
                                 <a
                                     href={`/services/${service.id}`}
-                                    class="inline-flex items-center justify-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
+                                    class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]"
                                 >
                                     Learn more
                                     <span aria-hidden="true">→</span>
