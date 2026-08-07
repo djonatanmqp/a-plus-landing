@@ -1,12 +1,10 @@
 ---
-// Importação dos componentes estruturais da página
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
 import { getCompanyData, getServicesData } from "../lib/firebase-admin";
 
-// Fallback da Empresa
 const defaultCompany = {
   name: "A-Plus Pavers & Grass",
   description: "QUALITY PAVERS & SYNTHETIC GRASS INSTALLATION",
@@ -42,8 +40,10 @@ const breadcrumbData = [
         <div class="grid gap-6 md:grid-cols-3">
             {
                 servicesData.map((service: any) => {
-                    const cover = service.coverImage ?? null;
-                    // Exibe preferencialmente a shortDescription; usa subtitle ou description se ainda não foi preenchido
+                    const rawCover = service.coverImage ?? null;
+                    const imageVersion = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
+                    const cover = rawCover ? `${rawCover}${rawCover.includes('?') ? '&' : '?'}v=${imageVersion}` : null;
+
                     const cardDescription = service.shortDescription || service.subtitle || service.description;
 
                     return (
@@ -73,14 +73,12 @@ const breadcrumbData = [
                                         {service.title}
                                     </h2>
                                     
-                                    {/* Descrição Curta (1-2 frases no máximo) */}
                                     <p class="text-gray-600 text-sm leading-relaxed mb-6">
                                         {cardDescription}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Botão para forçar a navegação */}
                             <div class="px-6 pb-6 pt-0">
                                 <a
                                     href={`/services/${service.id}`}

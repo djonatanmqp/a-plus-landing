@@ -9,10 +9,6 @@ import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
 import { getCompanyData, getServicesData } from "../../lib/firebase-admin.ts";
 
-// IMPORTANTE: Se você quer que as alterações do admin reflitam instantaneamente 
-// sem precisar de um novo "npm run build", remova o getStaticPaths e use SSR.
-// Se mantiver o getStaticPaths, você DEVE rodar o build após editar no admin.
-
 const { id } = Astro.params;
 const servicesData = await getServicesData();
 const fetchedCompany = await getCompanyData();
@@ -29,16 +25,23 @@ if (!service) {
     throw new Error(`Service not found: ${id}`);
 }
 
-// AJUSTE: Priorizando os campos exatamente como definidos no seu service.ts
 const serviceSubtitle = service.subtitle || service.tagline || "";
 const fullDescription = service.description || service.fullDescription || service.details || "";
 const bulletItems = Array.isArray(service.bulletPoints) 
   ? service.bulletPoints 
   : (Array.isArray(service.features) ? service.features : []);
 
-// AJUSTE: Verificando se a galeria está em 'images' ou 'galleryImages'
 const galleryImages = Array.isArray(service.images) ? service.images : (Array.isArray(service.galleryImages) ? service.galleryImages : []);
-const heroOrCover = service.heroImage || service.coverImage || (galleryImages.length > 0 ? galleryImages[0] : null);
+const rawHeroOrCover = service.heroImage || service.coverImage || (galleryImages.length > 0 ? galleryImages[0] : null);
+
+// Cache Buster base do Firestore
+const imageVersion = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
+const formatWithCacheBust = (url: string | null) => {
+  if (!url) return null;
+  return url.includes('?') ? `${url}&v=${imageVersion}` : `${url}?v=${imageVersion}`;
+};
+
+const heroOrCover = formatWithCacheBust(rawHeroOrCover);
 
 const pageTitle = `${service.title} | ${company.address?.serviceArea || "Orlando"} | ${company.name}`;
 const pageDescription = `${service.shortDescription || serviceSubtitle} Learn how ${company.name} delivers quality installation for homes in ${company.address?.serviceArea || "Orlando"}.`;
@@ -51,7 +54,6 @@ const breadcrumbData = [
 ---
 
 <Layout title={pageTitle} description={pageDescription}>
-    <!-- Header com o Subtitle configurado -->
     <Header
         headerTitle={service.title}
         headerSubtitle={serviceSubtitle}
@@ -69,12 +71,10 @@ const breadcrumbData = [
                       {service.title} in {company.address?.serviceArea || "Orlando"}
                     </h1>
 
-                    <!-- Full Description -->
                     <div class="mt-4 text-gray-600 leading-relaxed text-base sm:text-lg whitespace-pre-line space-y-4">
                       {fullDescription}
                     </div>
 
-                    <!-- Bullet Points do Serviço -->
                     {bulletItems.length > 0 && (
                       <div class="mt-6 rounded-2xl bg-slate-50 p-5 border border-slate-200">
                         <h3 class="text-sm uppercase font-bold text-[#0b3c5d] mb-3 tracking-wide">
@@ -91,7 +91,6 @@ const breadcrumbData = [
                       </div>
                     )}
 
-                    <!-- Ações de Contato -->
                     <div class="mt-8 grid gap-4 sm:grid-cols-2">
                         <a href={`tel:${company.contact?.phoneRaw}`} class="inline-flex items-center justify-center gap-3 rounded-full bg-[#0b3c5d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2570a2]">
                             <Phone class="w-5 h-5 text-gray-400" /> Call now
@@ -102,7 +101,6 @@ const breadcrumbData = [
                     </div>
                 </div>
 
-                <!-- Imagem Hero / Cover -->
                 <div class="rounded-3xl overflow-hidden border border-gray-200 bg-gray-50 aspect-video w-full lg:aspect-auto lg:h-full lg:min-h-80">
                     {heroOrCover ? (
                         <img 
@@ -118,7 +116,6 @@ const breadcrumbData = [
             </div>
         </section>
 
-        <!-- Galeria do Serviço -->
         <section class="rounded-3xl bg-white p-6 sm:p-8 shadow-sm border border-gray-100 mb-10">
             <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-4">Project Gallery</h2>
             {galleryImages.length > 0 ? (
@@ -126,7 +123,7 @@ const breadcrumbData = [
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {galleryImages.slice(0, 6).map((image: string) => (
                             <figure class="overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 aspect-video cursor-zoom-in hover:scale-[1.02] transition">
-                                <img src={image} alt={service.title} class="js-zoom-trigger h-full w-full object-cover" />
+                                <img src={formatWithCacheBust(image)} alt={service.title} class="js-zoom-trigger h-full w-full object-cover" />
                             </figure>
                         ))}
                     </div>
@@ -141,7 +138,6 @@ const breadcrumbData = [
             ) : <p class="text-gray-500">Gallery coming soon</p>}
         </section>
 
-        <!-- FAQ filtrado apenas para este serviço -->
         <FAQ serviceId={service.id} />
     </main>
 
@@ -154,7 +150,7 @@ const breadcrumbData = [
             <div class="overflow-y-auto pr-2 grid gap-4 grid-cols-2 md:grid-cols-3 flex-1 fn-custom-scrollbar">
                 {galleryImages.map((image: string) => (
                     <figure class="aspect-video rounded-2xl overflow-hidden border border-gray-200 cursor-zoom-in">
-                        <img src={image} class="js-zoom-trigger w-full h-full object-cover" />
+                        <img src={formatWithCacheBust(image)} class="js-zoom-trigger w-full h-full object-cover" />
                     </figure>
                 ))}
             </div>

@@ -1,7 +1,8 @@
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
-import { bufferToWebpBase64 } from "../../../lib/image-optimizer.ts";
-import { getFirestore } from "firebase-admin/firestore";
+import { uploadAndCommitImage } from "../../../lib/github-storage.ts";
+import { updateServiceData } from "../../../lib/firebase-admin.ts";
+import { adminDb } from "../../../lib/firebase-server.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -23,10 +24,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const description = formData.get("description")?.toString().trim() || "";
     const bulletPoints = formData.getAll("bulletPoints[]").map((b) => b.toString().trim()).filter(Boolean);
 
-    const db = getFirestore();
-    const serviceRef = db.collection("services").doc(serviceId);
-    
-    const docSnap = await serviceRef.get();
+    const docSnap = await adminDb.collection("services").doc(serviceId).get();
     const existingData = docSnap.exists ? docSnap.data() : {};
 
     const updateData: any = {
@@ -39,29 +37,31 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       updatedAt: new Date().toISOString(),
     };
 
-    // 1. Processamento da Hero Image otimizada via Sharp (se enviada uma nova)
+    const targetFolder = `public/assets/services/${serviceId}`;
+
+    // 1. Hero Image Process (Nome padronizado)
     const heroFile = formData.get("heroImage") as File;
     if (heroFile && heroFile.size > 0) {
       const buffer = Buffer.from(await heroFile.arrayBuffer());
-      updateData.heroImage = await bufferToWebpBase64(buffer);
-    } else if (existingData?.heroImage) {
-      updateData.heroImage = existingData.heroImage;
+      updateData.heroImage = await uploadAndCommitImage(buffer, targetFolder, `${serviceId}-hero`);
+    } else {
+      updateData.heroImage = existingData?.heroImage || `/assets/services/${serviceId}/${serviceId}-hero.webp`;
     }
 
-    // 2. Processamento da Cover Image otimizada via Sharp (se enviada uma nova)
+    // 2. Cover Image Process (Nome padronizado)
     const coverFile = formData.get("coverImage") as File;
     if (coverFile && coverFile.size > 0) {
       const buffer = Buffer.from(await coverFile.arrayBuffer());
-      updateData.coverImage = await bufferToWebpBase64(buffer);
-    } else if (existingData?.coverImage) {
-      updateData.coverImage = existingData.coverImage;
+      updateData.coverImage = await uploadAndCommitImage(buffer, targetFolder, `${serviceId}-cover`);
+    } else {
+      updateData.coverImage = existingData?.coverImage || `/assets/services/${serviceId}/${serviceId}-cover.webp`;
     }
 
-    await serviceRef.set(updateData, { merge: true });
+    await updateServiceData(serviceId, updateData);
 
     return redirect("/admin?tab=services&message=Service+updated+successfully.", 303);
   } catch (error: any) {
     console.error("Error updating service:", error);
-    return redirect(`/admin?tab=services&message=${encodeURIComponent("Error updating service: " + error.message)}`, 303);
+    return redirect(`/admin?tab=services&message=${encodeURIComponent("Error: " + error.message)}`, 303);
   }
 };

@@ -1,7 +1,7 @@
 // src/lib/firebase-admin.ts
 import { adminDb } from "./firebase-server";
 
-// Ordem fixa definida para os serviços
+// Fixed order defined for services
 export const SERVICES_ORDER = [
   "Driveways",
   "Artificial Turf & Sod",
@@ -11,7 +11,7 @@ export const SERVICES_ORDER = [
   "Other Services"
 ];
 
-// Helper para ordenar array de serviços com base no título
+// Helper to sort array of services based on title
 export function sortServices(services: any[]) {
   return services.sort((a, b) => {
     const indexA = SERVICES_ORDER.indexOf(a.title);
@@ -30,7 +30,7 @@ export async function getCompanyData() {
     const docSnap = await adminDb.collection("settings").doc("company").get();
     if (docSnap.exists) return docSnap.data();
   } catch (e) {
-    console.error("Erro ao buscar dados da empresa:", e);
+    console.error("Error fetching company data:", e);
   }
   return {
     name: "A-Plus Pavers & Grass",
@@ -67,10 +67,9 @@ export async function getServicesData() {
     querySnapshot.forEach((docSnap) => {
       services.push({ id: docSnap.id, ...docSnap.data() });
     });
-    // Retorna a lista já ordenada pela ordem pré-definida
     return sortServices(services);
   } catch (e) {
-    console.error("Erro ao buscar serviços:", e);
+    console.error("Error fetching services:", e);
     return [];
   }
 }
@@ -93,16 +92,41 @@ export async function getTestimonialsData() {
     });
     return testimonials;
   } catch (e) {
-    console.error("Erro ao buscar depoimentos:", e);
+    console.error("Error fetching testimonials:", e);
     return [];
   }
 }
 
+export async function getTestimonialById(id: string): Promise<any> {
+  try {
+    const docSnap = await adminDb.collection("testimonials").doc(id).get();
+    if (!docSnap.exists) return null;
+    return { id: docSnap.id, ...docSnap.data() };
+  } catch (e) {
+    console.error("Error fetching testimonial by id:", e);
+    return null;
+  }
+}
+
 export async function addTestimonialData(data: any) {
-  await adminDb.collection("testimonials").add({
+  return await adminDb.collection("testimonials").add({
     ...data,
     createdAt: data.createdAt || new Date(),
   });
+}
+
+export async function updateTestimonialData(id: string, data: any) {
+  await adminDb.collection("testimonials").doc(id).set(
+    {
+      ...data,
+      updatedAt: new Date(),
+    },
+    { merge: true }
+  );
+}
+
+export async function deleteTestimonialData(id: string) {
+  await adminDb.collection("testimonials").doc(id).delete();
 }
 
 // --- FAQ ---
@@ -115,8 +139,19 @@ export async function getFaqData() {
     });
     return faqList;
   } catch (e) {
-    console.error("Erro ao buscar FAQ:", e);
+    console.error("Error fetching FAQ:", e);
     return [];
+  }
+}
+
+export async function getFaqById(id: string): Promise<any> {
+  try {
+    const docSnap = await adminDb.collection("faq").doc(id).get();
+    if (!docSnap.exists) return null;
+    return { id: docSnap.id, ...docSnap.data() };
+  } catch (e) {
+    console.error("Error fetching FAQ by id:", e);
+    return null;
   }
 }
 
@@ -125,4 +160,18 @@ export async function addFaqData(faq: { question: string; answer: string; servic
     ...faq,
     createdAt: new Date(),
   });
+}
+
+export async function updateFaqData(id: string, data: any) {
+  await adminDb.collection("faq").doc(id).set(
+    {
+      ...data,
+      updatedAt: new Date(),
+    },
+    { merge: true }
+  );
+}
+
+export async function deleteFaqData(id: string) {
+  await adminDb.collection("faq").doc(id).delete();
 }

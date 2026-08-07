@@ -6,11 +6,10 @@ import {
   getServicesData,
   getFaqData,
   getTestimonialsData,
-  SERVICES_ORDER,
 } from "../lib/firebase-admin.ts";
 import Layout from "../layouts/Layout.astro";
 
-// ÍCONES UNIFICADOS (Coleção MDI)
+// ÍCONES UNIFICADOS
 import LogoutIcon from "~icons/mdi/logout";
 import CloudUploadIcon from "~icons/mdi/cloud-upload";
 import PlusIcon from "~icons/mdi/plus";
@@ -22,31 +21,43 @@ import ForumOutlineIcon from "~icons/mdi/forum-outline";
 import HelpCircleOutlineIcon from "~icons/mdi/help-circle-outline";
 import TrashCanOutlineIcon from "~icons/mdi/trash-can-outline";
 import ImageMultipleOutlineIcon from "~icons/mdi/image-multiple-outline";
+import FilterVariantIcon from "~icons/mdi/filter-variant";
+import PencilOutlineIcon from "~icons/mdi/pencil-outline";
 
 const token = Astro.cookies.get(SESSION_COOKIE_NAME)?.value;
 const isLoggedIn = validateAdminToken(token);
 
-// Captura a aba ativa via URL (Padrão: 'company')
 const currentTab = Astro.url.searchParams.get("tab") || "company";
 
-// Objeto padrão para fallback
 const defaultCompany = {
-  name: "A-Plus Pavers & Grass",
-  description: "QUALITY PAVERS & SYNTHETIC GRASS INSTALLATION",
-  contact: { phone: "", phoneRaw: "", facetime: "", email: "" },
-  address: { full: "", serviceArea: "Orlando", city: "Orlando", state: "FL" },
-  links: {
-    googleReview: "",
-    facebook: "",
-    instagram: "",
-    tiktok: "",
-    googleMapsEmbed: "",
+  name: "A-Plus Pavers & Grass LLC",
+  tagline: "Professional Installation Services",
+  description: "Professional Paver, Turf & Sod Installation in Central Florida and nearby cities",
+  contact: {
+    phone: "(321) 496-3060",
+    phoneRaw: "3214963060",
+    facetime: "3214963060",
+    email: "contact@apluspaversgrass.com"
   },
+  address: {
+    full: "2459 Cheney Hwy, Titusville, FL 32780",
+    street: "2459 Cheney Hwy",
+    city: "",
+    state: "FL",
+    zip: "32780",
+    serviceArea: "Central Florida and nearby cities"
+  },
+  links: {
+    facebook: "#",
+    instagram: "#",
+    tiktok: "#",
+    googleReview: "https://search.google.com/local/writereview?placeid=ChIJxyeY6PRN54gRV...",
+    googleMapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3504.434..."
+  }
 };
 
-// Carregamento dos dados no servidor (se logado)
 const fetchedCompany = isLoggedIn ? await getCompanyData() : null;
-const company = fetchedCompany || defaultCompany;
+const company = fetchedCompany ? { ...defaultCompany, ...fetchedCompany } : defaultCompany;
 
 const servicesData = isLoggedIn ? (await getServicesData()) || [] : [];
 const faqsData = isLoggedIn ? (await getFaqData()) || [] : [];
@@ -65,24 +76,17 @@ const tabs = [
 
 <Layout title="Admin | A-Plus Landing">
   <header class="border-b bg-white py-2">
-    <div
-      class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2"
-    >
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <img src="/logo.png" alt="A-Plus logo" class="w-10 sm:w-14 h-auto" />
         <div>
-          <div
-            class="text-sm sm:text-base font-extrabold text-[#0b3c5d] leading-none"
-          >
+          <div class="text-sm sm:text-base font-extrabold text-[#0b3c5d] leading-none">
             {company.name}
           </div>
           <div class="text-[10px] sm:text-xs text-slate-500">Control Panel</div>
         </div>
       </div>
-      <a
-        href="/"
-        class="text-xs text-slate-600 hover:text-slate-900 whitespace-nowrap"
-      >
+      <a href="/" class="text-xs text-slate-600 hover:text-slate-900 whitespace-nowrap">
         ← Back
       </a>
     </div>
@@ -96,1137 +100,1040 @@ const tabs = [
           Manage company settings, services, galleries, FAQs, and testimonials.
         </p>
       </div>
-      {
-        isLoggedIn && (
-          <button
-            type="button"
-            id="logout-btn"
-            class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-          >
-            <LogoutIcon class="w-3.5 h-3.5" />
-            <span>Sign Out</span>
-          </button>
-        )
-      }
+      {isLoggedIn && (
+        <button
+          type="button"
+          id="logout-btn"
+          class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+        >
+          <LogoutIcon class="w-3.5 h-3.5" />
+          <span>Sign Out</span>
+        </button>
+      )}
     </div>
 
-    {
-      message && (
-        <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-xs text-slate-800">
-          {message}
-        </div>
-      )
-    }
+    {message && (
+      <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-xs text-slate-800">
+        {message}
+      </div>
+    )}
 
-    {
-      !isLoggedIn ? (
-        <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm max-w-md mx-auto my-4">
-          <h2 class="text-lg font-semibold text-[#0b3c5d] mb-3">Login</h2>
-          <form method="POST" action="/admin/api/login" class="grid gap-3">
-            <label class="grid gap-1 text-xs text-slate-700">
-              Username{" "}
-              <input
-                name="username"
-                type="text"
-                required
-                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs"
-              />
-            </label>
-            <label class="grid gap-1 text-xs text-slate-700">
-              Password{" "}
-              <input
-                name="password"
-                type="password"
-                required
-                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs"
-              />
-            </label>
-            <button
-              type="submit"
-              class="w-fit rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
-            >
-              Sign In
-            </button>
-            <div class="mt-2 text-right">
-              <button
-                type="button"
-                id="forgot-password-btn"
-                class="text-[11px] text-[#328cc1] hover:underline bg-transparent border-none cursor-pointer"
+    {isLoggedIn && (
+      <div>
+        <nav class="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 mb-3">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = currentTab === tab.id;
+            return (
+              <a
+                href={`/admin?tab=${tab.id}`}
+                class={`flex items-center justify-center sm:justify-start gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs transition text-center ${
+                  isActive
+                    ? "bg-[#0b3c5d] text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
               >
-                Esqueci minha senha
-              </button>
-            </div>
-          </form>
+                <Icon class="w-4 h-4 shrink-0" />
+                <span class="truncate">{tab.label}</span>
+              </a>
+            );
+          })}
+        </nav>
 
-          <div class="relative my-4">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-slate-200" />
-            </div>
-            <div class="relative flex justify-center text-[10px] uppercase">
-              <span class="bg-white px-2 text-slate-500">Ou</span>
-            </div>
-          </div>
+        {/* ABA 1: COMPANY INFO */}
+        {currentTab === "company" && (
+          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+              Company Information
+            </h2>
+            <p class="text-[11px] text-slate-500 mb-4">
+              Update global business settings stored in settings/company.
+            </p>
 
-          <button
-            type="button"
-            id="google-login-btn"
-            class="flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
-            </svg>
-            Entrar com o Google
-          </button>
-        </section>
-      ) : (
-        <div>
-          {/* NAVEGAÇÃO RESPONSIVA DAS ABAS */}
-          <nav class="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 mb-3">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = currentTab === tab.id;
-              return (
-                <a
-                  href={`/admin?tab=${tab.id}`}
-                  class={`flex items-center justify-center sm:justify-start gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs transition text-center ${
-                    isActive
-                      ? "bg-[#0b3c5d] text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  <Icon class="w-4 h-4 shrink-0" />
-                  <span class="truncate">{tab.label}</span>
-                </a>
-              );
-            })}
-          </nav>
-
-          {/* ABA 1: COMPANY INFO */}
-          {currentTab === "company" && (
-            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-                Company Information
-              </h2>
-              <p class="text-[11px] text-slate-500 mb-3">
-                Update global contact settings and area info.
-              </p>
-              <form
-                method="POST"
-                action="/admin/api/company"
-                class="grid gap-2.5"
-              >
-                <div class="grid gap-2.5 sm:grid-cols-2">
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Company Name
-                    <input
-                      name="name"
-                      type="text"
-                      value={company.name}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Commercial Service Area
-                    <input
-                      name="serviceArea"
-                      type="text"
-                      value={company.address?.serviceArea || ""}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                </div>
-
-                <label class="grid gap-1 text-xs text-slate-700">
-                  Global SEO Description
-                  <textarea
-                    name="description"
-                    rows="2"
-                    required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                  >
-                    {company.description}
-                  </textarea>
-                </label>
-
-                <div class="grid gap-2.5 sm:grid-cols-3">
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Phone (Display)
-                    <input
-                      name="phone"
-                      type="text"
-                      value={company.contact?.phone || ""}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Phone (Raw Numbers)
-                    <input
-                      name="phoneRaw"
-                      type="text"
-                      value={company.contact?.phoneRaw || ""}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    FaceTime
-                    <input
-                      name="facetime"
-                      type="text"
-                      value={company.contact?.facetime || ""}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                </div>
-
-                <div class="grid gap-2.5 sm:grid-cols-2">
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Business Email
-                    <input
-                      name="email"
-                      type="email"
-                      value={company.contact?.email || ""}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Full Address
-                    <input
-                      name="fullAddress"
-                      type="text"
-                      value={company.address?.full || ""}
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                </div>
-
-                <div class="mt-1">
-                  <button
-                    type="submit"
-                    class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-                  >
-                    <ContentSaveIcon class="w-3.5 h-3.5" />
-                    Save Company Settings
-                  </button>
-                </div>
-              </form>
-            </section>
-          )}
-
-          {/* ABA 2: SERVICES */}
-          {currentTab === "services" && (
-            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-                Edit Services
-              </h2>
-              <p class="text-[11px] text-slate-500 mb-3">
-                Select a service to update its content, highlights, and images.
-              </p>
-              <form
-                id="service-form"
-                method="POST"
-                action="/admin/api/service"
-                enctype="multipart/form-data"
-                class="grid gap-3"
-              >
-                {/* CAMPO OCULTO DO ID DO SERVIÇO */}
-                <input type="hidden" id="svc-id-hidden" name="id" value="" />
-
-                <label class="grid gap-1 text-xs text-slate-700">
-                  Select Service
-                  <select
-                    id="service-select"
-                    name="serviceId"
-                    required
-                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
-                  >
-                    <option value="">Select a service</option>
-                    {servicesData.map((s: any) => (
-                      <option
-                        value={s.id}
-                        data-title={s.title || ""}
-                        data-subtitle={s.subtitle || ""}
-                        data-shortdescription={s.shortDescription || ""}
-                        data-description={s.description || ""}
-                        data-bulletpoints={JSON.stringify(s.bulletPoints || [])}
-                      >
-                        {s.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <div class="grid gap-2.5 sm:grid-cols-2">
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    <div>
-                      <span>Title</span>
-                      <span class="text-[10px] text-slate-400 block font-normal">
-                        (Appears on cards, navigation, and section headers)
-                      </span>
-                    </div>
-                    <input
-                      id="svc-title"
-                      name="title"
-                      type="text"
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    <div>
-                      <span>Subtitle / Short Summary</span>
-                      <span class="text-[10px] text-slate-400 block font-normal">
-                        (Appears under title on page header banner)
-                      </span>
-                    </div>
-                    <input
-                      id="svc-subtitle"
-                      name="subtitle"
-                      type="text"
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </label>
-                </div>
-
-                {/* CAMPO: SHORT DESCRIPTION (CARD) */}
-                <label class="grid gap-1 text-xs text-slate-700">
-                  <div>
-                    <span>Short Description (Card Summary)</span>
-                    <span class="text-[10px] text-slate-400 block font-normal">
-                      (Brief 1-2 sentence overview shown exclusively on the home/services cards)
-                    </span>
-                  </div>
+            <form method="POST" action="/admin/api/company" class="grid gap-4">
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Company Name
                   <input
-                    id="svc-short-description"
-                    name="shortDescription"
+                    name="name"
                     type="text"
-                    placeholder="e.g. Driveway pavers are the premier choice for homeowners looking to elevate curb appeal."
+                    value={company.name}
+                    required
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Tagline
+                  <input
+                    name="tagline"
+                    type="text"
+                    value={company.tagline || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+              </div>
+
+              <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                SEO Description
+                <textarea
+                  name="description"
+                  rows="2"
+                  required
+                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                >{company.description}</textarea>
+              </label>
+
+              <hr class="border-slate-100" />
+
+              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Address Information</h3>
+              <div class="grid gap-2.5 sm:grid-cols-3">
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Street
+                  <input
+                    name="street"
+                    type="text"
+                    value={company.address?.street || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  City
+                  <input
+                    name="city"
+                    type="text"
+                    value={company.address?.city || ""}
+                    placeholder="e.g. Titusville"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    State
+                    <input
+                      name="state"
+                      type="text"
+                      value={company.address?.state || "FL"}
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    ZIP
+                    <input
+                      name="zip"
+                      type="text"
+                      value={company.address?.zip || ""}
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Full Formatted Address
+                  <input
+                    name="fullAddress"
+                    type="text"
+                    value={company.address?.full || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Service Area Text
+                  <input
+                    name="serviceArea"
+                    type="text"
+                    value={company.address?.serviceArea || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+              </div>
+
+              <hr class="border-slate-100" />
+
+              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Contact Methods</h3>
+              <div class="grid gap-2.5 sm:grid-cols-4">
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Phone (Display)
+                  <input
+                    name="phone"
+                    type="text"
+                    value={company.contact?.phone || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Phone Raw (Numbers Only)
+                  <input
+                    name="phoneRaw"
+                    type="text"
+                    value={company.contact?.phoneRaw || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  FaceTime
+                  <input
+                    name="facetime"
+                    type="text"
+                    value={company.contact?.facetime || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Email Address
+                  <input
+                    name="email"
+                    type="email"
+                    value={company.contact?.email || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+              </div>
+
+              <hr class="border-slate-100" />
+
+              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Links & Social Networks</h3>
+              <div class="grid gap-2.5 sm:grid-cols-3">
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Facebook URL
+                  <input
+                    name="facebook"
+                    type="text"
+                    value={company.links?.facebook || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Instagram URL
+                  <input
+                    name="instagram"
+                    type="text"
+                    value={company.links?.instagram || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  TikTok URL
+                  <input
+                    name="tiktok"
+                    type="text"
+                    value={company.links?.tiktok || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+              </div>
+
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Google Review URL
+                  <input
+                    name="googleReview"
+                    type="text"
+                    value={company.links?.googleReview || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+                <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                  Google Map Embed URL (src)
+                  <input
+                    name="googleMapEmbed"
+                    type="text"
+                    value={company.links?.googleMapEmbed || ""}
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                  />
+                </label>
+              </div>
+
+              <div class="mt-2">
+                <button
+                  type="submit"
+                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                >
+                  <ContentSaveIcon class="w-3.5 h-3.5" />
+                  Save Company Settings
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {/* ABA 2: SERVICES */}
+        {currentTab === "services" && (
+          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+              Edit Services
+            </h2>
+            <p class="text-[11px] text-slate-500 mb-3">
+              Select a service to update text and image paths in Firestore.
+            </p>
+            <form
+              id="service-form"
+              method="POST"
+              action="/admin/api/service"
+              enctype="multipart/form-data"
+              class="grid gap-3"
+            >
+              <input type="hidden" id="svc-id-hidden" name="id" value="" />
+
+              <label class="grid gap-1 text-xs text-slate-700">
+                Select Service
+                <select
+                  id="service-select"
+                  name="serviceId"
+                  required
+                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
+                >
+                  <option value="">Select a service</option>
+                  {servicesData.map((s: any) => (
+                    <option
+                      value={s.id}
+                      data-title={s.title || ""}
+                      data-subtitle={s.subtitle || ""}
+                      data-shortdescription={s.shortDescription || ""}
+                      data-description={s.description || ""}
+                      data-bulletpoints={JSON.stringify(s.bulletPoints || [])}
+                    >
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Title
+                  <input
+                    id="svc-title"
+                    name="title"
+                    type="text"
+                    required
                     class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                   />
                 </label>
 
                 <label class="grid gap-1 text-xs text-slate-700">
-                  <div>
-                    <span>Full Description</span>
-                    <span class="text-[10px] text-slate-400 block font-normal">
-                      (Main detailed text for the service's internal page)
-                    </span>
-                  </div>
-                  <textarea
-                    id="svc-description"
-                    name="description"
-                    rows="3"
+                  Subtitle
+                  <input
+                    id="svc-subtitle"
+                    name="subtitle"
+                    type="text"
                     class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                   />
                 </label>
+              </div>
 
-                {/* CAMPO DINÂMICO DE BULLET POINTS */}
-                <div class="grid gap-1.5 text-xs text-slate-700 border border-slate-100 rounded-xl p-3 bg-slate-50/50">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <span class="font-medium text-slate-800">Highlights / Bullet Points</span>
-                      <span class="text-[10px] text-slate-400 block">
-                        (Appears as bullet items inside the service card)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      id="add-bullet-btn"
-                      class="flex items-center gap-1 text-[11px] font-semibold text-[#328cc1] hover:text-[#0b3c5d]"
-                    >
-                      <PlusIcon class="w-3.5 h-3.5" />
-                      Add Point
-                    </button>
-                  </div>
-                  <div id="bullet-points-container" class="grid gap-2 mt-1">
-                    {/* Renderizado dinamicamente via JavaScript ao selecionar o serviço */}
-                  </div>
-                </div>
+              <label class="grid gap-1 text-xs text-slate-700">
+                Short Description (Card)
+                <input
+                  id="svc-short-description"
+                  name="shortDescription"
+                  type="text"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                />
+              </label>
 
-                <div class="grid gap-2.5 sm:grid-cols-2">
-                  {["heroImage", "coverImage"].map((name) => (
-                    <label class="grid gap-1 text-xs text-slate-700 cursor-pointer">
-                      <div>
-                        <span>{name === "heroImage" ? "Hero Image" : "Cover Image"}</span>
-                        <span class="text-[10px] text-slate-400 block font-normal">
-                          {name === "heroImage"
-                            ? "(Main banner image for service page)"
-                            : "(Card cover image on homepage)"}
-                        </span>
-                      </div>
-                      <div class="relative flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 overflow-hidden">
-                        <img
-                          src=""
-                          alt="Preview"
-                          class="hidden w-7 h-7 object-cover rounded border border-slate-200 fn-preview-img"
-                        />
-                        <div class="flex items-center gap-2 text-slate-400 fn-placeholder-box">
-                          <ImageIcon class="w-4 h-4 text-slate-400 shrink-0" />
-                          <span class="text-[11px] truncate fn-filename-text">
-                            No file chosen
-                          </span>
-                        </div>
-                        <input
-                          type="file"
-                          name={name}
-                          accept="image/*"
-                          class="hidden fn-file-input"
-                        />
-                      </div>
-                    </label>
-                  ))}
-                </div>
+              <label class="grid gap-1 text-xs text-slate-700">
+                Full Description
+                <textarea
+                  id="svc-description"
+                  name="description"
+                  rows="3"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                />
+              </label>
 
-                <div class="mt-1">
+              <div class="grid gap-1.5 text-xs text-slate-700 border border-slate-100 rounded-xl p-3 bg-slate-50/50">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-slate-800">Highlights / Bullet Points</span>
                   <button
-                    type="submit"
-                    class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
+                    type="button"
+                    id="add-bullet-btn"
+                    class="flex items-center gap-1 text-[11px] font-semibold text-[#328cc1] hover:text-[#0b3c5d]"
                   >
-                    <ContentSaveIcon class="w-3.5 h-3.5" />
-                    Save Service Changes
+                    <PlusIcon class="w-3.5 h-3.5" />
+                    Add Point
                   </button>
                 </div>
-              </form>
-            </section>
-          )}
+                <div id="bullet-points-container" class="grid gap-2 mt-1"></div>
+              </div>
 
-          {/* ABA 3: GALLERIES */}
-          {currentTab === "galleries" && (
-            <div class="space-y-3">
-              <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-                <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-                  Add Gallery Photos
-                </h2>
-                <p class="text-[11px] text-slate-500 mb-3">
-                  Select a service and upload new portfolio images.
-                </p>
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                {["heroImage", "coverImage"].map((name) => (
+                  <label class="grid gap-1 text-xs text-slate-700 cursor-pointer">
+                    <span>{name === "heroImage" ? "Hero Image" : "Cover Image"}</span>
+                    <div class="relative flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 overflow-hidden">
+                      <img
+                        src=""
+                        alt="Preview"
+                        class="hidden w-7 h-7 object-cover rounded border border-slate-200 fn-preview-img"
+                      />
+                      <div class="flex items-center gap-2 text-slate-400 fn-placeholder-box">
+                        <ImageIcon class="w-4 h-4 text-slate-400 shrink-0" />
+                        <span class="text-[11px] truncate fn-filename-text">No file chosen</span>
+                      </div>
+                      <input
+                        type="file"
+                        name={name}
+                        accept="image/*"
+                        class="hidden fn-file-input"
+                      />
+                    </div>
+                  </label>
+                ))}
+              </div>
 
-                <form
-                  id="gallery-form"
-                  method="POST"
-                  action="/admin/api/gallery"
-                  enctype="multipart/form-data"
-                  class="grid gap-3"
+              <div class="mt-1">
+                <button
+                  type="submit"
+                  class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
                 >
+                  <ContentSaveIcon class="w-3.5 h-3.5" />
+                  Save Service Changes
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {/* ABA 3: GALLERIES */}
+        {currentTab === "galleries" && (
+          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+              Service Galleries
+            </h2>
+            <p class="text-[11px] text-slate-500 mb-4">
+              Upload multiple images to enrich a service's gallery.
+            </p>
+
+            <form
+              method="POST"
+              action="/admin/api/gallery"
+              enctype="multipart/form-data"
+              class="grid gap-3"
+            >
+              <label class="grid gap-1 text-xs text-slate-700">
+                Select Service
+                <select
+                  name="serviceId"
+                  required
+                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
+                >
+                  <option value="">Choose a service...</option>
+                  {servicesData.map((s: any) => (
+                    <option value={s.id}>{s.title}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label class="grid gap-1 text-xs text-slate-700">
+                Gallery Images (Select Multiple)
+                <input
+                  type="file"
+                  name="galleryImages"
+                  accept="image/*"
+                  multiple
+                  required
+                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
+                />
+              </label>
+
+              <div class="mt-2">
+                <button
+                  type="submit"
+                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                >
+                  <CloudUploadIcon class="w-3.5 h-3.5" />
+                  Upload to Gallery
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {/* ABA 4: FAQS */}
+        {currentTab === "faq" && (
+          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+              Manage FAQs
+            </h2>
+            <p class="text-[11px] text-slate-500 mb-4">
+              Add new frequently asked questions to the site or edit existing ones.
+            </p>
+
+            <form id="faq-form" method="POST" action="/admin/api/faq" class="grid gap-3 mb-6">
+              <input type="hidden" id="faq-id" name="id" value="" />
+
+              <label class="grid gap-1 text-xs text-slate-700">
+                Service Category
+                <select
+                  id="faq-service-id"
+                  name="serviceId"
+                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
+                >
+                  <option value="global">Global / General FAQ</option>
+                  {servicesData.map((s: any) => (
+                    <option value={s.id}>{s.title}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label class="grid gap-1 text-xs text-slate-700">
+                Question
+                <input
+                  id="faq-question"
+                  name="question"
+                  type="text"
+                  required
+                  placeholder="e.g. How long does the installation take?"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                />
+              </label>
+
+              <label class="grid gap-1 text-xs text-slate-700">
+                Answer
+                <textarea
+                  id="faq-answer"
+                  name="answer"
+                  rows="3"
+                  required
+                  placeholder="e.g. Most projects take between 2 to 4 days..."
+                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                ></textarea>
+              </label>
+
+              <div class="flex items-center gap-2">
+                <button
+                  type="submit"
+                  id="faq-submit-btn"
+                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                >
+                  <PlusIcon class="w-3.5 h-3.5" />
+                  <span>Add FAQ Item</span>
+                </button>
+                <button
+                  type="button"
+                  id="faq-cancel-btn"
+                  class="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            <div class="border-t border-slate-100 pt-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
+                  Existing FAQs ({faqsData.length})
+                </h3>
+
+                <div class="flex items-center gap-2">
+                  <FilterVariantIcon class="w-4 h-4 text-slate-400 shrink-0" />
                   <select
-                    name="serviceId"
-                    required
-                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
+                    id="faq-filter"
+                    class="rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#0b3c5d]"
                   >
-                    <option value="">Select a service</option>
+                    <option value="all">Show All FAQs</option>
+                    <option value="global">Global / General</option>
                     {servicesData.map((s: any) => (
                       <option value={s.id}>{s.title}</option>
                     ))}
                   </select>
+                </div>
+              </div>
 
-                  <label class="grid gap-1 text-xs text-slate-700 cursor-pointer">
-                    Upload Images
-                    <div class="relative flex items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-3 overflow-hidden">
-                      <div class="flex items-center gap-2 text-slate-400">
-                        <ImageIcon class="w-5 h-5 text-slate-400 shrink-0" />
-                        <span class="text-xs truncate fn-gallery-text">
-                          Click to choose files (multiple allowed)
+              <div id="faq-list-container" class="grid gap-2">
+                {faqsData.map((faq: any) => {
+                  const serviceObj = servicesData.find((s: any) => s.id === faq.serviceId);
+                  const serviceLabel = faq.serviceId === "global" || !faq.serviceId 
+                    ? "Global / General" 
+                    : (serviceObj?.title || faq.serviceId);
+
+                  return (
+                    <div 
+                      class="faq-item flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-slate-50/50 text-xs"
+                      data-service-id={faq.serviceId || "global"}
+                    >
+                      <div>
+                        <div class="font-semibold text-slate-800 mb-1">{faq.question}</div>
+                        <div class="text-slate-600 leading-relaxed">{faq.answer}</div>
+                        <span class="inline-block mt-2 text-[10px] font-medium bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
+                          {serviceLabel}
                         </span>
                       </div>
-                      <input
-                        type="file"
-                        name="galleryImages"
-                        accept="image/*"
-                        multiple
-                        required
-                        class="hidden fn-gallery-input"
-                      />
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          class="edit-faq-btn p-1 text-slate-400 hover:text-[#0b3c5d] transition"
+                          title="Edit FAQ"
+                          data-id={faq.id}
+                          data-service-id={faq.serviceId || "global"}
+                          data-question={faq.question}
+                          data-answer={faq.answer}
+                        >
+                          <PencilOutlineIcon class="w-4 h-4" />
+                        </button>
+                        <form method="POST" action="/admin/api/faq/delete">
+                          <input type="hidden" name="id" value={faq.id} />
+                          <button
+                            type="submit"
+                            class="p-1 text-slate-400 hover:text-red-600 transition"
+                            title="Delete FAQ"
+                          >
+                            <TrashCanOutlineIcon class="w-4 h-4" />
+                          </button>
+                        </form>
+                      </div>
                     </div>
-                  </label>
-
-                  <div>
-                    <button
-                      type="submit"
-                      class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
-                    >
-                      <CloudUploadIcon class="w-4 h-4" />
-                      Upload to Gallery
-                    </button>
-                  </div>
-                </form>
-              </section>
-
-              <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-                <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-3">
-                  Current Gallery Images
-                </h2>
-
-                <div class="space-y-6">
-                  {servicesData.map((service: any) => (
-                    <div class="border-t border-slate-100 pt-3 first:border-0 first:pt-0">
-                      <h3 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-2">
-                        <span>🛠️ {service.title}</span>
-                        <span class="text-[10px] text-slate-400 font-normal">
-                          ({service.galleryImages?.length || 0} photos)
-                        </span>
-                      </h3>
-
-                      {!service.galleryImages ||
-                      service.galleryImages.length === 0 ? (
-                        <p class="text-xs text-slate-400 italic">
-                          No images in this gallery.
-                        </p>
-                      ) : (
-                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                          {service.galleryImages.map((imgUrl: string) => (
-                            <div class="relative group rounded-lg overflow-hidden border border-slate-200 aspect-square bg-slate-100">
-                              <img
-                                src={imgUrl}
-                                alt={service.title}
-                                class="w-full h-full object-cover"
-                              />
-                              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <form
-                                  method="POST"
-                                  action="/admin/api/gallery/delete"
-                                >
-                                  <input
-                                    type="hidden"
-                                    name="serviceId"
-                                    value={service.id}
-                                  />
-                                  <input
-                                    type="hidden"
-                                    name="imageUrl"
-                                    value={imgUrl}
-                                  />
-                                  <button
-                                    type="submit"
-                                    class="p-1.5 bg-rose-600 text-white rounded-full hover:bg-rose-700 transition shadow cursor-pointer"
-                                    title="Delete photo"
-                                    onclick="return confirm('Are you sure you want to delete this photo?');"
-                                  >
-                                    <TrashCanOutlineIcon class="w-4 h-4" />
-                                  </button>
-                                </form>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
+                  );
+                })}
+              </div>
             </div>
-          )}
+          </section>
+        )}
 
-          {/* ABA 4: FAQ MANAGEMENT */}
-          {currentTab === "faq" && (
-            <div class="space-y-3">
-              <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-                <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-2">
-                  Add New FAQ
-                </h2>
-                <form
-                  method="POST"
-                  action="/admin/api/faq"
-                  class="grid gap-2.5"
-                >
-                  <label class="grid gap-1 text-xs text-slate-700">
-                    Target Location / Service
-                    <select
-                      name="serviceId"
-                      required
-                      class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
-                    >
-                      <option value="global">🌐 General (Home Page)</option>
-                      <optgroup label="Specific Services">
-                        {servicesData.map((s: any) => (
-                          <option value={s.id}>{s.title}</option>
-                        ))}
-                      </optgroup>
-                    </select>
-                  </label>
+        {/* ABA 5: TESTIMONIALS */}
+        {currentTab === "testimonials" && (
+          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+              Manage Testimonials
+            </h2>
+            <p class="text-[11px] text-slate-500 mb-4">
+              Create client reviews along with before & after project images, or manage existing ones.
+            </p>
 
+            <form
+              id="testimonial-form"
+              method="POST"
+              action="/admin/api/testimonials"
+              enctype="multipart/form-data"
+              class="grid gap-3 mb-6"
+            >
+              <input type="hidden" id="testimonial-id" name="id" value="" />
+
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Client Name
                   <input
-                    name="question"
-                    placeholder="Question (ex: How long does installation take?)"
+                    id="testimonial-client-name"
+                    name="clientName"
                     type="text"
                     required
+                    placeholder="e.g. John Doe"
                     class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                   />
-                  <textarea
-                    name="answer"
-                    placeholder="Answer details..."
-                    rows="2"
-                    required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                  />
-                  <div>
-                    <button
-                      type="submit"
-                      class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
-                    >
-                      <PlusIcon class="w-3.5 h-3.5" />
-                      Save FAQ
-                    </button>
+                </label>
+
+                <div class="grid gap-1 text-xs text-slate-700">
+                  <span class="font-medium text-slate-700">Services Provided (Select 1 or more)</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-lg border border-slate-300 bg-slate-50/50 max-h-36 overflow-y-auto">
+                    {servicesData.map((s: any) => (
+                      <label class="flex items-center gap-2 cursor-pointer text-xs font-normal text-slate-700 hover:text-slate-900">
+                        <input
+                          type="checkbox"
+                          name="services"
+                          value={s.title}
+                          class="testimonial-service-cb rounded border-slate-300 text-[#0b3c5d] focus:ring-[#0b3c5d]"
+                        />
+                        <span class="truncate">{s.title}</span>
+                      </label>
+                    ))}
                   </div>
-                </form>
-              </section>
-
-              <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-                <h2 class="text-xs sm:text-sm font-semibold text-[#0b3c5d] mb-2">
-                  Existing FAQs ({faqsData.length})
-                </h2>
-                <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
-                  {faqsData.length === 0 ? (
-                    <p class="text-xs text-slate-500">No FAQs found.</p>
-                  ) : (
-                    faqsData.map((faq: any) => {
-                      const matchedService = servicesData.find(
-                        (s: any) => s.id === faq.serviceId,
-                      );
-                      const targetLabel =
-                        faq.serviceId === "global" || !faq.serviceId
-                          ? "🌐 General"
-                          : `🛠️ ${matchedService?.title || faq.serviceId}`;
-
-                      return (
-                        <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50 flex items-start justify-between gap-2">
-                          <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                              <span class="inline-block rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                                {targetLabel}
-                              </span>
-                            </div>
-                            <p class="font-semibold text-slate-800 text-xs wrap-break-word">
-                              {faq.question}
-                            </p>
-                            <p class="text-[11px] text-slate-600 mt-0.5 wrap-break-word">
-                              {faq.answer}
-                            </p>
-                          </div>
-                          <form
-                            method="POST"
-                            action="/admin/api/faq/delete"
-                            class="shrink-0"
-                          >
-                            <input type="hidden" name="id" value={faq.id} />
-                            <button
-                              type="submit"
-                              class="p-1 text-rose-500 hover:text-rose-700 transition cursor-pointer"
-                              title="Delete FAQ"
-                            >
-                              <TrashCanOutlineIcon class="w-4 h-4" />
-                            </button>
-                          </form>
-                        </div>
-                      );
-                    })
-                  )}
                 </div>
-              </section>
-            </div>
-          )}
+              </div>
 
-          {/* ABA 5: TESTIMONIALS */}
-          {currentTab === "testimonials" && (
-            <div class="space-y-3">
-              <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-                <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-2">
-                  Add Testimonial
-                </h2>
-                <form
-                  id="testimonial-form"
-                  method="POST"
-                  action="/admin/api/testimonial"
-                  enctype="multipart/form-data"
-                  class="grid gap-2.5"
-                >
-                  <div class="grid gap-2.5 sm:grid-cols-2">
-                    <input
-                      name="clientName"
-                      placeholder="Client Name"
-                      type="text"
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                    <select
-                      name="serviceType"
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    >
-                      <option value="">Select Service</option>
-                      {SERVICES_ORDER.map((title: string) => (
-                        <option value={title}>{title}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div class="grid gap-2.5 sm:grid-cols-2">
-                    <input
-                      name="city"
-                      placeholder="City"
-                      type="text"
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                    <input
-                      name="state"
-                      placeholder="State"
-                      type="text"
-                      required
-                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                    />
-                  </div>
-
+              <div class="grid gap-2.5 sm:grid-cols-3">
+                <label class="grid gap-1 text-xs text-slate-700">
+                  City
                   <input
+                    id="testimonial-city"
+                    name="city"
+                    type="text"
+                    required
+                    placeholder="e.g. Titusville"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                  />
+                </label>
+
+                <label class="grid gap-1 text-xs text-slate-700">
+                  State
+                  <input
+                    id="testimonial-state"
+                    name="state"
+                    type="text"
+                    required
+                    value="FL"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                  />
+                </label>
+
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Month / Year
+                  <input
+                    id="testimonial-date"
                     name="date"
                     type="month"
                     required
                     class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                   />
+                </label>
+              </div>
 
-                  <div class="grid gap-2.5 sm:grid-cols-2">
-                    {["beforeImage", "afterImage"].map((name) => (
-                      <label class="grid gap-1 text-xs text-slate-700 cursor-pointer">
-                        {name === "beforeImage"
-                          ? "Before Photo"
-                          : "After Photo"}
-                        <div class="relative flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 overflow-hidden">
-                          <img
-                            src=""
-                            alt="Preview"
-                            class="hidden w-7 h-7 object-cover rounded border border-slate-200 fn-preview-img"
-                          />
-                          <div class="flex items-center gap-2 text-slate-400 fn-placeholder-box">
-                            <ImageIcon class="w-4 h-4 text-slate-400 shrink-0" />
-                            <span class="text-[11px] truncate fn-filename-text">
-                              No file chosen
-                            </span>
-                          </div>
-                          <input
-                            type="file"
-                            name={name}
-                            accept="image/*"
-                            required
-                            class="hidden fn-file-input"
-                          />
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  <textarea
-                    name="message"
-                    placeholder="Testimonial text..."
-                    rows="2"
+              <label class="grid gap-1 text-xs text-slate-700">
+                Testimonial Message
+                <textarea
+                  id="testimonial-message"
+                  name="message"
+                  rows="3"
+                  required
+                  placeholder="e.g. Excellent service! Our backyard looks incredible."
+                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                ></textarea>
+              </label>
+
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <label class="grid gap-1 text-xs text-slate-700">
+                  <span id="label-before-image">Before Image</span>
+                  <input
+                    id="testimonial-before-image"
+                    type="file"
+                    name="beforeImage"
+                    accept="image/*"
                     required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
                   />
-                  <div>
-                    <button
-                      type="submit"
-                      class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
-                    >
-                      <PlusIcon class="w-3.5 h-3.5" />
-                      Add Testimonial
-                    </button>
-                  </div>
-                </form>
-              </section>
+                </label>
 
-              <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-                <h2 class="text-xs sm:text-sm font-semibold text-[#0b3c5d] mb-2">
-                  Existing Testimonials ({testimonialsData.length})
-                </h2>
-                <div class="grid gap-2.5 sm:grid-cols-2 max-h-56 overflow-y-auto pr-1">
-                  {testimonialsData.length === 0 ? (
-                    <p class="text-xs text-slate-500">No testimonials found.</p>
-                  ) : (
-                    testimonialsData.map((t: any) => (
-                      <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50 flex flex-col justify-between gap-2">
-                        <div class="min-w-0">
-                          <div class="flex items-center justify-between gap-1">
-                            <h3 class="font-bold text-slate-800 text-xs truncate">
-                              {t.clientName}
-                            </h3>
-                            <span class="text-[10px] text-slate-500 shrink-0">
-                              {t.serviceType}
-                            </span>
-                          </div>
-                          <p class="text-[11px] text-slate-600 mt-1 italic wrap-break-word">
-                            "{t.message}"
-                          </p>
+                <label class="grid gap-1 text-xs text-slate-700">
+                  <span id="label-after-image">After Image</span>
+                  <input
+                    id="testimonial-after-image"
+                    type="file"
+                    name="afterImage"
+                    accept="image/*"
+                    required
+                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
+                  />
+                </label>
+              </div>
+
+              <div class="flex items-center gap-2 mt-2">
+                <button
+                  type="submit"
+                  id="testimonial-submit-btn"
+                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                >
+                  <PlusIcon class="w-3.5 h-3.5" />
+                  <span>Save Testimonial</span>
+                </button>
+                <button
+                  type="button"
+                  id="testimonial-cancel-btn"
+                  class="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            <div class="border-t border-slate-100 pt-4">
+              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider mb-3">
+                Existing Testimonials ({testimonialsData.length})
+              </h3>
+              <div class="grid gap-3">
+                {testimonialsData.map((item: any) => {
+                  const servicesList = Array.isArray(item.services) ? item.services : [item.serviceType].filter(Boolean);
+                  const servicesDisplay = servicesList.join(", ") || "General";
+                  
+                  // Formatação de data (AAAA-MM)
+                  let monthValue = "";
+                  if (item.date) {
+                    monthValue = item.date.slice(0, 7);
+                  }
+
+                  return (
+                    <div class="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-slate-50/50 text-xs">
+                      <div class="grid gap-1">
+                        <div class="font-semibold text-slate-800">
+                          {item.clientName} <span class="text-slate-400 font-normal">({item.city}, {item.state})</span>
                         </div>
-                        <div class="flex items-center justify-between border-t border-slate-200 pt-1.5 mt-auto">
-                          <span class="text-[10px] text-slate-400">
-                            {t.city}, {t.state}
-                          </span>
-                          <form
-                            method="POST"
-                            action="/admin/api/testimonial/delete"
-                            class="shrink-0"
-                          >
-                            <input type="hidden" name="id" value={t.id} />
-                            <button
-                              type="submit"
-                              class="p-1 text-rose-500 hover:text-rose-700 transition cursor-pointer"
-                              title="Delete Testimonial"
-                            >
-                              <TrashCanOutlineIcon class="w-4 h-4" />
-                            </button>
-                          </form>
-                        </div>
+                        <div class="text-[#328cc1] font-medium">{servicesDisplay}</div>
+                        <div class="text-slate-600 italic">"{item.message}"</div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </section>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          class="edit-testimonial-btn p-1 text-slate-400 hover:text-[#0b3c5d] transition"
+                          title="Edit Testimonial"
+                          data-id={item.id}
+                          data-client-name={item.clientName}
+                          data-city={item.city}
+                          data-state={item.state}
+                          data-date={monthValue}
+                          data-message={item.message}
+                          data-services={JSON.stringify(servicesList)}
+                        >
+                          <PencilOutlineIcon class="w-4 h-4" />
+                        </button>
+                        <form method="POST" action="/admin/api/testimonials/delete">
+                          <input type="hidden" name="id" value={item.id} />
+                          <button
+                            type="submit"
+                            class="p-1 text-slate-400 hover:text-red-600 transition"
+                            title="Delete Testimonial"
+                          >
+                            <TrashCanOutlineIcon class="w-4 h-4" />
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
-      )
-    }
+          </section>
+        )}
+      </div>
+    )}
   </main>
 </Layout>
 
 <script>
-  import { initializeApp } from "firebase/app";
-  import {
-    getAuth,
-    signInWithPopup,
-    GoogleAuthProvider,
-    sendPasswordResetEmail,
-    signOut,
-  } from "firebase/auth";
-  import { compressImageToWebP } from "../lib/imageCompressor.ts";
-
-  // Gerenciamento de Bullet Points no formulário de Serviços
-  const bulletContainer = document.getElementById("bullet-points-container");
-  const addBulletBtn = document.getElementById("add-bullet-btn");
-
-  function createBulletRow(value = "") {
-    if (!bulletContainer) return;
-    const row = document.createElement("div");
-    row.className = "flex items-center gap-2";
-    row.innerHTML = `
-      <input
-        type="text"
-        name="bulletPoints[]"
-        value="${value.replace(/"/g, "&quot;")}"
-        placeholder="ex: Custom designs with premium pavers"
-        class="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-      />
-      <button
-        type="button"
-        class="p-1 text-slate-400 hover:text-rose-600 transition remove-bullet-btn cursor-pointer"
-        title="Remove item"
-      >
-        ✕
-      </button>
-    `;
-
-    row.querySelector(".remove-bullet-btn")?.addEventListener("click", () => {
-      row.remove();
-    });
-
-    bulletContainer.appendChild(row);
-  }
-
-  if (addBulletBtn) {
-    addBulletBtn.addEventListener("click", () => createBulletRow(""));
-  }
-
-  // Preenche os campos do formulário ao selecionar um serviço na aba Services
-  const serviceSelect = document.getElementById(
-    "service-select",
-  ) as HTMLSelectElement | null;
-  const hiddenIdInput = document.getElementById(
-    "svc-id-hidden",
-  ) as HTMLInputElement | null;
-
-  if (serviceSelect) {
-    serviceSelect.addEventListener("change", (e) => {
-      const selected = (e.target as HTMLSelectElement).selectedOptions[0];
-      const titleInput = document.getElementById(
-        "svc-title",
-      ) as HTMLInputElement;
-      const subtitleInput = document.getElementById(
-        "svc-subtitle",
-      ) as HTMLInputElement;
-      const shortDescriptionInput = document.getElementById(
-        "svc-short-description",
-      ) as HTMLInputElement;
-      const descriptionTextarea = document.getElementById(
-        "svc-description",
-      ) as HTMLTextAreaElement;
-
-      if (bulletContainer) bulletContainer.innerHTML = "";
-
-      if (selected && selected.value) {
-        if (hiddenIdInput) hiddenIdInput.value = selected.value;
-        if (titleInput) titleInput.value = selected.dataset.title || "";
-        if (subtitleInput) subtitleInput.value = selected.dataset.subtitle || "";
-        if (shortDescriptionInput)
-          shortDescriptionInput.value = selected.dataset.shortdescription || "";
-        if (descriptionTextarea)
-          descriptionTextarea.value = selected.dataset.description || "";
-
-        try {
-          const bullets = JSON.parse(selected.dataset.bulletpoints || "[]");
-          if (Array.isArray(bullets) && bullets.length > 0) {
-            bullets.forEach((b) => createBulletRow(b));
-          } else {
-            createBulletRow("");
-          }
-        } catch (err) {
-          createBulletRow("");
-        }
-      } else {
-        if (hiddenIdInput) hiddenIdInput.value = "";
-        if (titleInput) titleInput.value = "";
-        if (subtitleInput) subtitleInput.value = "";
-        if (shortDescriptionInput) shortDescriptionInput.value = "";
-        if (descriptionTextarea) descriptionTextarea.value = "";
-      }
-    });
-  }
-
-  // Previews Individuais
-  const fileInputs = document.querySelectorAll(".fn-file-input");
-  fileInputs.forEach((input) => {
-    input.addEventListener("change", (e) => {
-      const target = e.target as HTMLInputElement;
-      if (!target.files || target.files.length === 0) return;
-      const file = target.files[0];
-      const parent = target.parentElement;
-      if (!parent) return;
-
-      const img = parent.querySelector(".fn-preview-img") as HTMLImageElement;
-      const placeholder = parent.querySelector(
-        ".fn-placeholder-box",
-      ) as HTMLElement;
-      const filenameSpan = parent.querySelector(
-        ".fn-filename-text",
-      ) as HTMLElement;
-
-      if (img && placeholder && filenameSpan) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            img.src = event.target.result as string;
-            img.classList.remove("hidden");
-            placeholder.classList.add("hidden");
-          }
-        };
-        reader.readAsDataURL(file);
-        filenameSpan.textContent = file.name;
-      }
-    });
-  });
-
-  // Galeria Múltipla
-  const galleryInputs = document.querySelectorAll(".fn-gallery-input");
-  galleryInputs.forEach((input) => {
-    input.addEventListener("change", (e) => {
-      const target = e.target as HTMLInputElement;
-      if (!target.files) return;
-
-      const parent = target.parentElement;
-      if (!parent) return;
-
-      const textSpan = parent.querySelector(".fn-[#gallery-text]");
-      if (textSpan) {
-        textSpan.textContent = `${target.files.length} file(s) selected`;
-      }
-    });
-  });
-
-  // INTEGRAÇÃO DO COMPRESSOR WEB P
-  async function handleCompressedFormSubmit(form: HTMLFormElement) {
-    const formData = new FormData();
-    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-    const originalBtnText = submitBtn ? submitBtn.innerText : '';
-
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Compressing & Saving...';
+  document.addEventListener("DOMContentLoaded", () => {
+    // Logout Handler
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await fetch("/admin/api/logout", { method: "POST" });
+        window.location.href = "/admin";
+      });
     }
 
-    try {
-      for (const element of Array.from(form.elements) as HTMLElement[]) {
-        if ('name' in element && (element as HTMLInputElement).name) {
-          const input = element as HTMLInputElement;
+    // FAQ Filter Handler
+    const faqFilter = document.getElementById("faq-filter") as HTMLSelectElement | null;
+    if (faqFilter) {
+      faqFilter.addEventListener("change", (e) => {
+        const selected = (e.target as HTMLSelectElement).value;
+        const items = document.querySelectorAll(".faq-item");
 
-          if (input.type === 'file' && input.files && input.files.length > 0) {
-            for (let i = 0; i < input.files.length; i++) {
-              const originalFile = input.files[i];
-              if (originalFile.type.startsWith('image/')) {
-                const compressedBlob = await compressImageToWebP(originalFile, 1200, 0.8);
-                const webpFileName = originalFile.name.replace(/\.[^/.]+$/, "") + ".webp";
-                const webpFile = new File([compressedBlob], webpFileName, { type: 'image/webp' });
-                formData.append(input.name, webpFile);
-              } else {
-                formData.append(input.name, originalFile);
-              }
-            }
-          } else if (input.type === 'checkbox' || input.type === 'radio') {
-            if (input.checked) formData.append(input.name, input.value);
-          } else if (input.type !== 'file' && input.type !== 'submit' && input.type !== 'button') {
-            formData.append(input.name, input.value);
+        items.forEach((item) => {
+          const serviceId = item.getAttribute("data-service-id");
+          if (selected === "all" || serviceId === selected) {
+            (item as HTMLElement).style.display = "flex";
+          } else {
+            (item as HTMLElement).style.display = "none";
           }
-        }
-      }
+        });
+      });
+    }
 
-      const response = await fetch(form.action, {
-        method: form.method || 'POST',
-        body: formData,
+    // FAQ Edit Handler
+    const faqIdInput = document.getElementById("faq-id") as HTMLInputElement | null;
+    const faqServiceSelect = document.getElementById("faq-service-id") as HTMLSelectElement | null;
+    const faqQuestionInput = document.getElementById("faq-question") as HTMLInputElement | null;
+    const faqAnswerTextarea = document.getElementById("faq-answer") as HTMLTextAreaElement | null;
+    const faqSubmitBtn = document.getElementById("faq-submit-btn");
+    const faqCancelBtn = document.getElementById("faq-cancel-btn");
+
+    function resetFaqForm() {
+      if (faqIdInput) faqIdInput.value = "";
+      if (faqQuestionInput) faqQuestionInput.value = "";
+      if (faqAnswerTextarea) faqAnswerTextarea.value = "";
+      if (faqServiceSelect) faqServiceSelect.value = "global";
+      if (faqSubmitBtn) faqSubmitBtn.querySelector("span")!.textContent = "Add FAQ Item";
+      if (faqCancelBtn) faqCancelBtn.classList.add("hidden");
+    }
+
+    document.querySelectorAll(".edit-faq-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id") || "";
+        const serviceId = btn.getAttribute("data-service-id") || "global";
+        const question = btn.getAttribute("data-question") || "";
+        const answer = btn.getAttribute("data-answer") || "";
+
+        if (faqIdInput) faqIdInput.value = id;
+        if (faqServiceSelect) faqServiceSelect.value = serviceId;
+        if (faqQuestionInput) faqQuestionInput.value = question;
+        if (faqAnswerTextarea) faqAnswerTextarea.value = answer;
+
+        if (faqSubmitBtn) faqSubmitBtn.querySelector("span")!.textContent = "Update FAQ Item";
+        if (faqCancelBtn) faqCancelBtn.classList.remove("hidden");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    if (faqCancelBtn) faqCancelBtn.addEventListener("click", resetFaqForm);
+
+    // Testimonial Edit Handler
+    const testIdInput = document.getElementById("testimonial-id") as HTMLInputElement | null;
+    const testNameInput = document.getElementById("testimonial-client-name") as HTMLInputElement | null;
+    const testCityInput = document.getElementById("testimonial-city") as HTMLInputElement | null;
+    const testStateInput = document.getElementById("testimonial-state") as HTMLInputElement | null;
+    const testDateInput = document.getElementById("testimonial-date") as HTMLInputElement | null;
+    const testMessageTextarea = document.getElementById("testimonial-message") as HTMLTextAreaElement | null;
+    const testBeforeImg = document.getElementById("testimonial-before-image") as HTMLInputElement | null;
+    const testAfterImg = document.getElementById("testimonial-after-image") as HTMLInputElement | null;
+    const labelBefore = document.getElementById("label-before-image");
+    const labelAfter = document.getElementById("label-after-image");
+    const testSubmitBtn = document.getElementById("testimonial-submit-btn");
+    const testCancelBtn = document.getElementById("testimonial-cancel-btn");
+
+    function resetTestimonialForm() {
+      if (testIdInput) testIdInput.value = "";
+      if (testNameInput) testNameInput.value = "";
+      if (testCityInput) testCityInput.value = "";
+      if (testStateInput) testStateInput.value = "";
+      if (testDateInput) testDateInput.value = "";
+      if (testMessageTextarea) testMessageTextarea.value = "";
+      
+      document.querySelectorAll(".testimonial-service-cb").forEach((cb) => {
+        (cb as HTMLInputElement).checked = false;
       });
 
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else if (response.ok) {
-        window.location.reload();
-      } else {
-        alert("Erro ao salvar os dados. Tente novamente.");
-      }
-    } catch (err) {
-      console.error("Erro durante o processamento do formulário:", err);
-      alert("Erro ao processar as imagens.");
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerText = originalBtnText;
-      }
+      if (testBeforeImg) testBeforeImg.setAttribute("required", "true");
+      if (testAfterImg) testAfterImg.setAttribute("required", "true");
+      if (labelBefore) labelBefore.textContent = "Before Image";
+      if (labelAfter) labelAfter.textContent = "After Image";
+
+      if (testSubmitBtn) testSubmitBtn.querySelector("span")!.textContent = "Save Testimonial";
+      if (testCancelBtn) testCancelBtn.classList.add("hidden");
     }
-  }
 
-  // Intercepta os formulários que tratam envio de imagens
-  const serviceForm = document.getElementById("service-form") as HTMLFormElement | null;
-  if (serviceForm) {
-    serviceForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      handleCompressedFormSubmit(serviceForm);
-    });
-  }
+    document.querySelectorAll(".edit-testimonial-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id") || "";
+        const clientName = btn.getAttribute("data-client-name") || "";
+        const city = btn.getAttribute("data-city") || "";
+        const state = btn.getAttribute("data-state") || "";
+        const date = btn.getAttribute("data-date") || "";
+        const message = btn.getAttribute("data-message") || "";
+        const services = JSON.parse(btn.getAttribute("data-services") || "[]");
 
-  const galleryForm = document.getElementById("gallery-form") as HTMLFormElement | null;
-  if (galleryForm) {
-    galleryForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      handleCompressedFormSubmit(galleryForm);
-    });
-  }
+        if (testIdInput) testIdInput.value = id;
+        if (testNameInput) testNameInput.value = clientName;
+        if (testCityInput) testCityInput.value = city;
+        if (testStateInput) testStateInput.value = state;
+        if (testDateInput) testDateInput.value = date;
+        if (testMessageTextarea) testMessageTextarea.value = message;
 
-  const testimonialForm = document.getElementById("testimonial-form") as HTMLFormElement | null;
-  if (testimonialForm) {
-    testimonialForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      handleCompressedFormSubmit(testimonialForm);
-    });
-  }
-
-  // Firebase Client Setup
-  const firebaseConfig = {
-    apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
-    authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  // Handle Logout
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-        await fetch("/admin/api/logout", { method: "POST" });
-      } catch (err) {
-        console.error("Logout error:", err);
-      } finally {
-        window.location.href = "/admin?message=You+have+been+logged+out";
-      }
-    });
-  }
-
-  // Login Google
-  const googleBtn = document.getElementById("google-login-btn");
-  if (googleBtn) {
-    googleBtn.addEventListener("click", async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const idToken = await result.user.getIdToken();
-
-        const response = await fetch("/admin/api/auth-google", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken }),
+        document.querySelectorAll(".testimonial-service-cb").forEach((cb) => {
+          const input = cb as HTMLInputElement;
+          input.checked = services.includes(input.value);
         });
 
-        if (response.ok) {
-          window.location.href = "/admin?tab=company&message=Login+successful!";
-        } else {
-          alert("E-mail não autorizado para acesso administrativo.");
-          await auth.signOut();
+        // Opcional no modo edição
+        if (testBeforeImg) testBeforeImg.removeAttribute("required");
+        if (testAfterImg) testAfterImg.removeAttribute("required");
+        if (labelBefore) labelBefore.textContent = "Before Image (Optional on edit)";
+        if (labelAfter) labelAfter.textContent = "After Image (Optional on edit)";
+
+        if (testSubmitBtn) testSubmitBtn.querySelector("span")!.textContent = "Update Testimonial";
+        if (testCancelBtn) testCancelBtn.classList.remove("hidden");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    if (testCancelBtn) testCancelBtn.addEventListener("click", resetTestimonialForm);
+
+    // Services Tab Handlers
+    const serviceSelect = document.getElementById("service-select") as HTMLSelectElement | null;
+    const hiddenIdInput = document.getElementById("svc-id-hidden") as HTMLInputElement | null;
+    const titleInput = document.getElementById("svc-title") as HTMLInputElement | null;
+    const subtitleInput = document.getElementById("svc-subtitle") as HTMLInputElement | null;
+    const shortDescInput = document.getElementById("svc-short-description") as HTMLInputElement | null;
+    const descTextarea = document.getElementById("svc-description") as HTMLTextAreaElement | null;
+    const bulletContainer = document.getElementById("bullet-points-container");
+    const addBulletBtn = document.getElementById("add-bullet-btn");
+
+    function addBulletInput(value = "") {
+      if (!bulletContainer) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex items-center gap-2";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = "bulletPoints[]";
+      input.value = value;
+      input.className = "w-full rounded-lg border border-slate-300 px-3 py-1 text-xs";
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "text-red-500 hover:text-red-700 p-1 text-xs font-bold";
+      removeBtn.innerHTML = "✕";
+      removeBtn.onclick = () => wrapper.remove();
+
+      wrapper.appendChild(input);
+      wrapper.appendChild(removeBtn);
+      bulletContainer.appendChild(wrapper);
+    }
+
+    if (addBulletBtn) {
+      addBulletBtn.addEventListener("click", () => addBulletInput());
+    }
+
+    if (serviceSelect) {
+      serviceSelect.addEventListener("change", () => {
+        const opt = serviceSelect.options[serviceSelect.selectedIndex];
+        if (!opt || !opt.value) {
+          if (hiddenIdInput) hiddenIdInput.value = "";
+          if (titleInput) titleInput.value = "";
+          if (subtitleInput) subtitleInput.value = "";
+          if (shortDescInput) shortDescInput.value = "";
+          if (descTextarea) descTextarea.value = "";
+          if (bulletContainer) bulletContainer.innerHTML = "";
+          return;
         }
-      } catch (error) {
-        console.error("Erro no login com Google:", error);
-      }
+
+        if (hiddenIdInput) hiddenIdInput.value = opt.value;
+        if (titleInput) titleInput.value = opt.getAttribute("data-title") || "";
+        if (subtitleInput) subtitleInput.value = opt.getAttribute("data-subtitle") || "";
+        if (shortDescInput) shortDescInput.value = opt.getAttribute("data-shortdescription") || "";
+        if (descTextarea) descTextarea.value = opt.getAttribute("data-description") || "";
+
+        if (bulletContainer) {
+          bulletContainer.innerHTML = "";
+          try {
+            const bullets = JSON.parse(opt.getAttribute("data-bulletpoints") || "[]");
+            bullets.forEach((b: string) => addBulletInput(b));
+          } catch (err) {
+            console.error("Error parsing bullet points:", err);
+          }
+        }
+      });
+    }
+
+    // Custom File Input Preview Handler
+    const fileInputs = document.querySelectorAll(".fn-file-input");
+    fileInputs.forEach((input) => {
+      const container = input.closest("label");
+      if (!container) return;
+
+      const previewImg = container.querySelector(".fn-preview-img") as HTMLImageElement | null;
+      const placeholderBox = container.querySelector(".fn-placeholder-box");
+      const filenameText = container.querySelector(".fn-filename-text");
+
+      container.addEventListener("click", () => {
+        (input as HTMLInputElement).click();
+      });
+
+      input.addEventListener("change", (e: any) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          if (filenameText) filenameText.textContent = file.name;
+          if (file.type.startsWith("image/") && previewImg) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              previewImg.src = event.target?.result as string;
+              previewImg.classList.remove("hidden");
+              if (placeholderBox) placeholderBox.classList.add("hidden");
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
     });
-  }
-
-  // Esqueci minha senha
-  const forgotBtn = document.getElementById("forgot-password-btn");
-  if (forgotBtn) {
-    forgotBtn.addEventListener("click", async () => {
-      const usernameInput = document.querySelector(
-        'input[name="username"]',
-      ) as HTMLInputElement;
-      const email = usernameInput?.value.trim();
-
-      if (!email) {
-        alert(
-          "Por favor, digite o seu e-mail no campo 'Username' acima antes de clicar em Esqueci minha senha.",
-        );
-        return;
-      }
-
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert(
-          "E-mail de recuperação de senha enviado com sucesso! Verifique sua caixa de entrada.",
-        );
-      } catch (error: any) {
-        console.error("Erro ao enviar e-mail de recuperação:", error);
-        alert(
-          "Erro ao enviar e-mail: " +
-            (error.message || "E-mail não cadastrado no Firebase."),
-        );
-      }
-    });
-  }
+  });
 </script>

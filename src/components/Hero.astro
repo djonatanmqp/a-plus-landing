@@ -4,13 +4,19 @@ import { getServicesData } from "../lib/firebase-admin.ts";
 
 const servicesData = await getServicesData();
 
-const servicesCarousel = servicesData.map((service: any) => ({
-    title: service.title,
-    description: service.description,
-    tagline: service.tagline,
-    image: service.heroImage || service.coverImage || "",
-    galleryId: service.id,
-}));
+const servicesCarousel = servicesData.map((service: any) => {
+    const rawImage = service.heroImage || service.coverImage || "";
+    const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
+    const image = rawImage ? `${rawImage}${rawImage.includes('?') ? '&' : '?'}v=${version}` : "";
+
+    return {
+        title: service.title,
+        description: service.description,
+        tagline: service.tagline,
+        image,
+        galleryId: service.id,
+    };
+});
 ---
 
 <section class="block bg-white p-0 m-0 overflow-hidden select-none">

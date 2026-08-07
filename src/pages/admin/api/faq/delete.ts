@@ -1,11 +1,11 @@
-import type { APIContext } from "astro";
-import { getFirestore } from "firebase-admin/firestore";
-import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin";
+import type { APIRoute } from "astro";
+import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin.ts";
+import { deleteFaqData } from "../../../../lib/firebase-admin.ts";
 
-export async function POST({ request, cookies, redirect }: APIContext) {
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
   if (!validateAdminToken(token)) {
-    return redirect("/admin?message=Acesso+não+autorizado", 303);
+    return redirect("/admin?message=Unauthorized", 303);
   }
 
   try {
@@ -13,15 +13,14 @@ export async function POST({ request, cookies, redirect }: APIContext) {
     const id = formData.get("id")?.toString();
 
     if (!id) {
-      return redirect("/admin?tab=faq&message=ID+inválido", 303);
+      return redirect("/admin?tab=faq&message=Invalid+ID", 303);
     }
 
-    const db = getFirestore();
-    await db.collection("faq").doc(id).delete();
+    await deleteFaqData(id);
 
-    return redirect("/admin?tab=faq&message=FAQ+removido+com+sucesso!", 303);
-  } catch (error) {
-    console.error("Erro ao deletar FAQ:", error);
-    return redirect("/admin?tab=faq&message=Erro+ao+deletar+FAQ", 303);
+    return redirect("/admin?tab=faq&message=FAQ+deleted+successfully!", 303);
+  } catch (error: any) {
+    console.error("Error deleting FAQ:", error);
+    return redirect(`/admin?tab=faq&message=${encodeURIComponent("Error deleting FAQ: " + error.message)}`, 303);
   }
-}
+};

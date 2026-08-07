@@ -4,7 +4,21 @@ import { getServicesData } from "../lib/firebase-admin.ts";
 import MagnifyIcon from "~icons/mdi/magnify";
 import ZoomModal from "./ZoomModal.astro";
 
-const servicesData = await getServicesData();
+const rawServicesData = await getServicesData();
+
+// Adiciona o parâmetro v= (cache buster) nos dados do serviço
+const servicesData = rawServicesData.map((service: any) => {
+    const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
+    const addVersion = (url: string) => url ? `${url}${url.includes('?') ? '&' : '?'}v=${version}` : url;
+
+    return {
+        ...service,
+        coverImage: addVersion(service.coverImage),
+        heroImage: addVersion(service.heroImage),
+        images: Array.isArray(service.images) ? service.images.map(addVersion) : [],
+        galleryImages: Array.isArray(service.galleryImages) ? service.galleryImages.map(addVersion) : []
+    };
+});
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-2">
@@ -99,8 +113,12 @@ const servicesData = await getServicesData();
                 modalDescription.textContent = serviceData.description;
                 modalImagesGrid.innerHTML = "";
 
-                const projectImages = serviceData.images && serviceData.images.length > 0
-                    ? serviceData.images
+                const rawImages = (serviceData.galleryImages && serviceData.galleryImages.length > 0)
+                    ? serviceData.galleryImages
+                    : (serviceData.images && serviceData.images.length > 0 ? serviceData.images : []);
+
+                const projectImages = rawImages.length > 0 
+                    ? rawImages 
                     : [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`];
 
                 projectImages.forEach((imgUrl: string, index: number) => {

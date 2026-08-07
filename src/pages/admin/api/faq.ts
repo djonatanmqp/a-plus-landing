@@ -1,27 +1,33 @@
-// src/pages/admin/api/faq.ts
 import type { APIRoute } from "astro";
-import { addFaqData } from "../../../lib/firebase-admin";
+import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
+import { addFaqData, updateFaqData } from "../../../lib/firebase-admin.ts";
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const token = cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (!validateAdminToken(token)) {
+    return redirect("/admin?message=Unauthorized", 303);
+  }
+
   try {
     const formData = await request.formData();
-    const question = formData.get("question")?.toString().trim();
-    const answer = formData.get("answer")?.toString().trim();
-    const serviceId = formData.get("serviceId")?.toString().trim() || "global";
+    const id = formData.get("id")?.toString().trim();
+    const question = formData.get("question")?.toString().trim() || "";
+    const answer = formData.get("answer")?.toString().trim() || "";
+    const serviceId = formData.get("serviceId")?.toString().trim() || "";
 
-    if (!question || !answer) {
-      return redirect("/admin?tab=faq&message=Missing+required+fields");
+    if (!question || !answer || !serviceId) {
+      return redirect("/admin?tab=faq&message=Please+fill+in+all+fields", 303);
     }
 
-    await addFaqData({
-      question,
-      answer,
-      serviceId,
-    });
-
-    return redirect("/admin?tab=faq&message=FAQ+added+successfully!");
-  } catch (error) {
-    console.error("Error adding FAQ:", error);
-    return redirect("/admin?tab=faq&message=Error+adding+FAQ");
+    if (id) {
+      await updateFaqData(id, { question, answer, serviceId });
+      return redirect("/admin?tab=faq&message=FAQ+updated+successfully!", 303);
+    } else {
+      await addFaqData({ question, answer, serviceId });
+      return redirect("/admin?tab=faq&message=FAQ+added+successfully!", 303);
+    }
+  } catch (error: any) {
+    console.error("Error saving FAQ:", error);
+    return redirect(`/admin?tab=faq&message=${encodeURIComponent("Error saving FAQ: " + error.message)}`, 303);
   }
 };
