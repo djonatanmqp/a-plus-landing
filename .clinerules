@@ -1,0 +1,109 @@
+# Diretrizes e Regras do Projeto: A-Plus Pavers & Grass Landing
+
+Este arquivo serve como guia mestre de arquitetura, padrões de código e diretrizes de desenvolvimento para o projeto **a-plus-landing**.
+
+---
+
+## 1. Visão Geral do Projeto
+
+O **A-Plus Pavers & Grass** é uma aplicação híbrida desenvolvida em **Astro 7.x** (SSR / Node Standalone) para a empresa *A-Plus Pavers & Grass LLC* (Orlando, FL). A solução integra:
+1. **Site Institucional (Landing Page)**: Alta performance, SEO local em Orlando, responsividade com Tailwind CSS v4 e suporte a otimização de mídias em formato WebP.
+2. **Painel Administrativo (`/admin`)**: Gerenciamento de serviços, depoimentos, FAQs e dados da empresa com autenticação baseada em sessão segura e Firebase Admin.
+3. **Persistência Dinâmica de Mídia**: Upload e otimização de imagens (Sharp -> WebP 80%) com commit automático no repositório GitHub via Octokit REST API.
+
+---
+
+## 2. Stack Tecnológica
+
+- **Framework**: Astro 7.2.0 (SSR via `@astrojs/node` em modo `standalone`)
+- **Node.js**: `>=22.12.0`
+- **Linguagem**: TypeScript 6.0 (Modo estrito baseado em `astro/tsconfigs/strict`)
+- **Estilização**: Tailwind CSS v4 (`@tailwindcss/vite` + `tailwindcss` 4.3)
+- **Ícones**: `unplugin-icons` (`@iconify-json/mdi`, `@iconify-json/simple-icons`)
+- **Backend / Database**: Firebase Admin SDK (`firebase-admin`, Firestore)
+- **Armazenamento de Mídias**: GitHub REST API (`@octokit/rest`) + Otimização com `sharp`
+- **Utilitários / Outros**: Puppeteer (geração de relatórios PDF), `tsx`, `dotenv`
+
+---
+
+## 3. Arquitetura e Estrutura de Pastas
+
+```text
+/
+├── public/                    # Ativos estáticos públicos e persistidos
+│   ├── assets/                # Dados e mídias por entidade (company.json, faq.json, services.json)
+│   ├── assets/content/        # Mídias dinâmicas de depoimentos
+│   └── assets/services/       # Imagens categorizadas por serviço
+├── src/                       # Código-fonte principal
+│   ├── components/            # Componentes reutilizáveis (.astro / React funcionais)
+│   ├── layouts/               # Estrutura base de página (Layout.astro com meta SEO e Schema.org)
+│   ├── lib/                   # Integrações, serviços backend e utilitários de negócio
+│   │   ├── admin.ts           # Sessões, cookies seguros (HMAC SHA-256) e rate-limiting
+│   │   ├── firebase-admin.ts  # Operações Firestore no servidor (CRUD)
+│   │   ├── firebase-server.ts # Inicialização do Firebase Admin SDK
+│   │   ├── github-storage.ts  # Upload/commit de imagens em WebP via Octokit API
+│   │   ├── image-optimizer.ts # Processamento de mídias via Sharp
+│   │   └── services.ts        # Mapeamento e padronização de caminhos de mídia
+│   ├── pages/                 # Roteamento de páginas e Endpoints SSR
+│   │   ├── admin.astro        # Interface do painel administrativo e login
+│   │   ├── index.astro        # Homepage da Landing Page
+│   │   ├── services.astro     # Listagem de serviços
+│   │   ├── services/[id].astro# Página de detalhe dinâmico por serviço
+│   │   └── admin/api/         # API Endpoints SSR (JSON) para CRUD e Autenticação
+│   ├── scripts/               # Scripts client-side (ex: zoom.js)
+│   ├── styles/                # CSS global e imports Tailwind (`global.css`)
+│   ├── types/                 # Definições de tipos customizados TypeScript
+│   └── content.config.ts      # Coleções de conteúdo Astro (Zod schema)
+├── astro.config.mjs           # Configuração do Astro, Vite, Tailwind e Icons
+├── package.json               # Dependências e scripts do projeto
+└── tsconfig.json              # Configuração TypeScript estrita
+
+---
+
+## 4. Diretrizes e Convenções de Código
+
+### 4.1 Reutilização e Checagem Prévia
+- **Verificação obrigatória**: Antes de criar qualquer novo componente, função utilitária ou endpoint de API, verifique a estrutura existente em `src/` para reaproveitar padrões e evitar duplicidades.
+- **Componentização**:
+  - Dê preferência a código limpo e modular.
+  - Para componentes interativos, utilize componentes funcionais em React ou Astro Components com JavaScript isolado client-side.
+  - Componentes genéricos de UI pertencem a `src/components/`.
+
+### 4.2 TypeScript Estrito
+- Todo código TypeScript deve seguir o modo estrito (`strict: true`).
+- Evite o uso de `any`. Sempre especifique interfaces ou tipos claros para parâmetros de funções, retornos e estruturas do Firestore/Astro Content Collections.
+- Tipagens compartilhadas ou de suporte a ícones/módulos externos devem ser centralizadas na pasta `src/types/`.
+
+### 4.3 Tratamento Claro de Erros e Logging
+- Blocos `try/catch` são **obrigatórios** em todas as rotas de API (`src/pages/admin/api/*`) e funções de comunicação externa (`src/lib/*`).
+- Retornos de API devem utilizar códigos de status HTTP semânticos (ex: `200` para sucesso, `400` para requisição inválida, `401` para não autorizado, `500` para erros internos).
+- As mensagens de erro em respostas de API devem ser claras e em formato JSON estruturado `{ error: "Descrição detalhada" }`.
+
+### 4.4 Mídias e Armazenamento
+- Imagens enviadas pelo admin **devem** ser convertidas para o formato `.webp` com compressão e qualidade otimizada (80% de qualidade através da biblioteca `sharp`).
+- Nomenclaturas de arquivos de imagem devem ser sanitizadas (letras minúsculas, hífens, sem caracteres especiais).
+- Ativos dinâmicos devem ser comitados no GitHub via `github-storage.ts` para sincronização automatizada.
+
+### 4.5 Segurança e Autenticação
+- O controle de acesso ao painel admin deve validar cookies assinados via HMAC SHA-256 (`admin.ts`).
+- Manter o uso do cabeçalho `HttpOnly` e flags de segurança apropriadas nos cookies de sessão.
+- Limitação de taxa (Rate-limiting) em rotas de login para prevenir ataques de força bruta.
+
+---
+
+## 5. Memória e Aprendizado do Projeto
+
+- **Registro de Decisões**: Sempre que houver correção de uma decisão de código, padrão de sintaxe, estrutura de pastas ou atualização de fluxo no projeto, este arquivo `.clinerules` deve ser atualizado para refletir o novo aprendizado.
+
+---
+
+## 6. Comandos e Utilidades Frequentes
+
+| Comando | Descrição |
+| :--- | :--- |
+| `npm run dev` | Inicia o servidor local de desenvolvimento (`localhost:4321`) |
+| `npm run build` | Compila o projeto para produção (Astro Node SSR) |
+| `npm run preview` | Executa o build de produção em ambiente local |
+| `node gerar-pdf.js` | Executa varredura Puppeteer e gera PDFs na pasta `/preview` |
+
+```
