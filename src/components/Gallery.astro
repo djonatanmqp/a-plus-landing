@@ -6,8 +6,8 @@ import ZoomModal from "./ZoomModal.astro";
 
 const rawServicesData = await getServicesData();
 
-// Adiciona o parâmetro v= (cache buster) nos dados do serviço
-const servicesData = rawServicesData.map((service: any) => {
+// Adiciona o parâmetro v= (cache buster) nos dados do serviço com segurança
+const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((service: any) => {
     const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
     const addVersion = (url: string) => url ? `${url}${url.includes('?') ? '&' : '?'}v=${version}` : url;
 
@@ -18,7 +18,7 @@ const servicesData = rawServicesData.map((service: any) => {
         images: Array.isArray(service.images) ? service.images.map(addVersion) : [],
         galleryImages: Array.isArray(service.galleryImages) ? service.galleryImages.map(addVersion) : []
     };
-});
+}) : [];
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-2">
@@ -30,42 +30,46 @@ const servicesData = rawServicesData.map((service: any) => {
             Click on a service to view full project gallery
         </p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {servicesData.map((service: any) => (
-                <div
-                    id={`gallery-${service.id}`}
-                    class="gallery-trigger group cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
-                    data-service={JSON.stringify(service)}
-                >
-                    <div class="relative overflow-hidden aspect-video">
-                        <img
-                            src={service.coverImage}
-                            alt={service.title}
-                            loading="lazy"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}';`}
-                        />
-                        <div class="absolute inset-0 bg-[#0b3c5d]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span class="inline-flex items-center gap-1.5 bg-white/65 text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
-                                View Gallery
-                                <MagnifyIcon class="w-4 h-4" />
-                            </span>
+        {servicesData.length > 0 ? (
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {servicesData.map((service: any) => (
+                    <div
+                        id={`gallery-${service.id}`}
+                        class="gallery-trigger group cursor-pointer bg-gray-50 rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
+                        data-service={JSON.stringify(service)}
+                    >
+                        <div class="relative overflow-hidden aspect-video">
+                            <img
+                                src={service.coverImage}
+                                alt={service.title}
+                                loading="lazy"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                onerror={`this.onerror=null; this.src='https://placehold.co/600x400?text=${encodeURIComponent(service.title)}';`}
+                            />
+                            <div class="absolute inset-0 bg-[#0b3c5d]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="inline-flex items-center gap-1.5 bg-white/65 text-[#0b3c5d] text-xs font-bold py-2 px-4 rounded-full shadow-md">
+                                    View Gallery
+                                    <MagnifyIcon class="w-4 h-4" />
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white border-t border-gray-100">
+                            <h3 class="font-bold text-lg text-[#0b3c5d] group-hover:text-[#328cc1] transition-colors">
+                                {service.title}
+                            </h3>
+                            <a
+                                href={`/services/${service.id}`}
+                                class="js-learn-more mt-4 inline-flex items-center justify-center rounded-full bg-[#328cc1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
+                            >
+                                Learn more
+                            </a>
                         </div>
                     </div>
-                    <div class="p-4 bg-white border-t border-gray-100">
-                        <h3 class="font-bold text-lg text-[#0b3c5d] group-hover:text-[#328cc1] transition-colors">
-                            {service.title}
-                        </h3>
-                        <a
-                            href={`/services/${service.id}`}
-                            class="js-learn-more mt-4 inline-flex items-center justify-center rounded-full bg-[#328cc1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
-                        >
-                            Learn more
-                        </a>
-                    </div>
-                </div>
-            ))}
-        </div>
+                ))}
+            </div>
+        ) : (
+            <p class="text-gray-500 italic">No photo galleries available at the moment.</p>
+        )}
     </div>
 </section>
 
@@ -109,8 +113,8 @@ const servicesData = rawServicesData.map((service: any) => {
             learnMoreBtns.forEach(btn => btn.addEventListener("click", (e) => e.stopPropagation()));
 
             const openModalEvent = (serviceData: any) => {
-                modalTitle.textContent = serviceData.title;
-                modalDescription.textContent = serviceData.description;
+                modalTitle.textContent = serviceData.title || "";
+                modalDescription.textContent = serviceData.description || "";
                 modalImagesGrid.innerHTML = "";
 
                 const rawImages = (serviceData.galleryImages && serviceData.galleryImages.length > 0)
@@ -119,7 +123,7 @@ const servicesData = rawServicesData.map((service: any) => {
 
                 const projectImages = rawImages.length > 0 
                     ? rawImages 
-                    : [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Photos+Coming+Soon`];
+                    : [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title || 'Project')}+Photos+Coming+Soon`];
 
                 projectImages.forEach((imgUrl: string, index: number) => {
                     const imgWrapper = document.createElement("div");
@@ -127,7 +131,7 @@ const servicesData = rawServicesData.map((service: any) => {
 
                     const img = document.createElement("img");
                     img.src = imgUrl;
-                    img.alt = `${serviceData.title} view ${index + 1}`;
+                    img.alt = `${serviceData.title || 'Project'} view ${index + 1}`;
                     img.className = "w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in";
                     
                     img.addEventListener("click", (e) => {
@@ -141,7 +145,7 @@ const servicesData = rawServicesData.map((service: any) => {
 
                     img.onerror = () => {
                         img.onerror = null;
-                        img.src = `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title)}+Image+${index + 1}`;
+                        img.src = `https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title || 'Project')}+Image+${index + 1}`;
                     };
 
                     imgWrapper.appendChild(img);
@@ -159,8 +163,13 @@ const servicesData = rawServicesData.map((service: any) => {
 
             triggers.forEach((trigger) => {
                 trigger.addEventListener("click", () => {
-                    const serviceData = JSON.parse(trigger.getAttribute("data-service") || "{}");
-                    openModalEvent(serviceData);
+                    try {
+                        const rawData = trigger.getAttribute("data-service");
+                        const serviceData = rawData ? JSON.parse(rawData) : {};
+                        openModalEvent(serviceData);
+                    } catch (err) {
+                        console.error("Erro ao processar os dados do serviço da galeria:", err);
+                    }
                 });
             });
 

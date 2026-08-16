@@ -18,11 +18,6 @@ export default defineConfig({
     port: PORT
   },
   
-  preview: {
-    host: '0.0.0.0',
-    port: PORT
-  },
-
   vite: {
     // ESSA SEÇÃO ABAIXO RESOLVE O BLOQUEIO DE HOST DO VITE:
     server: {

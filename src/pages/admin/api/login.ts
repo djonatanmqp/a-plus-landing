@@ -1,19 +1,53 @@
 // src/pages/admin/api/login.ts
 import type { APIContext } from "astro";
-import { SESSION_COOKIE_NAME, createAdminToken } from "../../../lib/admin";
+import {
+  SESSION_COOKIE_NAME,
+  createAdminToken,
+  isAdminEmail,
+  isLoginAllowed,
+  recordLoginAttempt,
+  getLoginAttemptInfo,
+} from "../../../lib/admin";
 
 export async function POST({ request, cookies, redirect }: APIContext) {
   try {
     const formData = await request.formData();
-    const email = formData.get("username")?.toString();
+    const email = formData.get("username")?.toString().trim();
     const password = formData.get("password")?.toString();
 
     if (!email || !password) {
-      return redirect("/admin?message=E-mail+e+senha+são+obrigatórios", 303);
+      // A1 — mensagens de erro sempre prefixadas com "Error:"
+      return redirect(
+        `/admin?message=${encodeURIComponent("Error: Email and password are required")}`,
+        303
+      );
+    }
+
+    // C2 — Rate limiting por IP + e-mail para bloquear ataques de força bruta
+    const clientIp =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitKey = `${clientIp}:${email.toLowerCase()}`;
+
+    if (!isLoginAllowed(rateLimitKey)) {
+      const { remainingSeconds } = getLoginAttemptInfo(rateLimitKey);
+      return redirect(
+        `/admin?message=${encodeURIComponent(
+          `Error: Too many login attempts. Try again in ${remainingSeconds}s.`
+        )}`,
+        303
+      );
     }
 
     // Autentica as credenciais na REST API do Firebase Auth
     const apiKey = import.meta.env.PUBLIC_FIREBASE_API_KEY;
+
+    if (!apiKey) {
+      return redirect(
+        `/admin?message=${encodeURIComponent("Error: Firebase is not configured on the server.")}`,
+        303
+      );
+    }
+
     const firebaseUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
 
     const response = await fetch(firebaseUrl, {
@@ -29,9 +63,27 @@ export async function POST({ request, cookies, redirect }: APIContext) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Erro Firebase Auth:", data);
-      return redirect("/admin?message=Credenciais+inválidas", 303);
+      console.error("Firebase Auth error:", data);
+      recordLoginAttempt(rateLimitKey, false);
+      return redirect(
+        `/admin?message=${encodeURIComponent("Error: Invalid email or password.")}`,
+        303
+      );
     }
+
+    // C1 — Allowlist: somente e-mails autorizados recebem cookie de sessão
+    if (!isAdminEmail(data.email)) {
+      console.error("Unauthorized admin login attempt:", data.email);
+      recordLoginAttempt(rateLimitKey, false);
+      return redirect(
+        `/admin?message=${encodeURIComponent(
+          "Error: This account is not authorized to access the admin panel."
+        )}`,
+        303
+      );
+    }
+
+    recordLoginAttempt(rateLimitKey, true);
 
     // Gera o token/sessão do admin
     const token = createAdminToken(data.email);
@@ -45,9 +97,12 @@ export async function POST({ request, cookies, redirect }: APIContext) {
       maxAge: 60 * 60 * 24 * 7, // 7 dias
     });
 
-    return redirect("/admin?message=Login+realizado+com+sucesso!", 303);
+    return redirect("/admin?message=Login+successful", 303);
   } catch (error) {
-    console.error("Erro no processamento do login:", error);
-    return redirect("/admin?message=Erro+interno+no+servidor", 303);
+    console.error("Login processing error:", error);
+    return redirect(
+      `/admin?message=${encodeURIComponent("Error: Internal server error.")}`,
+      303
+    );
   }
 }

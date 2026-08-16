@@ -34,8 +34,12 @@ if (grid && modal) {
         locEl.querySelector('span').textContent = t.city && t.state ? t.city + ", " + t.state : "";
         bodyEl.textContent = t.message || "";
         
-        beforeImg.src = t.beforeImage.startsWith('/') ? t.beforeImage : '/' + t.beforeImage;
-        afterImg.src = t.afterImage.startsWith('/') ? t.afterImage : '/' + t.afterImage;
+        // Tratamento limpo e seguro para os caminhos das imagens
+        const beforeImagePath = t.beforeImage ? (t.beforeImage.startsWith('/') ? t.beforeImage : '/' + t.beforeImage) : \`/assets/testimonials/\${t.id}-before.webp\`;
+        const afterImagePath = t.afterImage ? (t.afterImage.startsWith('/') ? t.afterImage : '/' + t.afterImage) : \`/assets/testimonials/\${t.id}-after.webp\`;
+
+        beforeImg.src = beforeImagePath;
+        afterImg.src = afterImagePath;
         
         modal.classList.remove("hidden");
         modal.classList.add("flex");

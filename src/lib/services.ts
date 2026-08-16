@@ -1,4 +1,5 @@
 // src/utils/services.ts
+import { type Service } from '../types/firebase';
 
 export type ServiceImageType = "hero" | "cover" | "gallery";
 
@@ -11,7 +12,7 @@ export type ServiceImageType = "hero" | "cover" | "gallery";
  * - gallery: /assets/services/{serviceId}/{serviceId}-01.webp
  */
 export function getServiceImagePath(
-  serviceId: string,
+  serviceId: Service['id'],
   type: ServiceImageType,
   index?: number
 ): string {

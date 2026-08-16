@@ -2,55 +2,43 @@
 // src/components/Services.astro
 import { getServicesData } from "../lib/firebase-admin.ts";
 
-const services = await getServicesData();
+const services = (await getServicesData()) || [];
 ---
 
-<section id="services" class="max-w-6xl mx-auto px-4 pt-6">
-    <div
-        class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 relative overflow-hidden"
-    >
-        <div
-            class="absolute top-0 right-0 w-32 h-32 opacity-[0.03] pointer-events-none select-none"
-        >
-            <img
-                src="/paver-pattern.png"
-                alt=""
-                class="w-full h-full object-cover"
-            />
-        </div>
-
+<section class="max-w-6xl mx-auto px-4 py-2">
+    <div class="bg-white rounded-xl p-8 sm:p-10 shadow-sm border border-gray-100">
         <h2
-            class="text-3xl font-extrabold text-[#0b3c5d] mb-6 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-12 after:h-1 after:bg-[#328cc1] pb-2"
+            class="text-3xl font-extrabold text-[#0b3c5d] mb-8 relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-12 after:h-1 after:bg-[#328cc1] pb-2"
         >
             Our Services
         </h2>
 
-        <div class="space-y-6">
+        <!-- Grid de 2 colunas distribuindo 3 itens em cada lado -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
             {services.map((service: any) => (
-                <div class="flex items-start gap-3">
+                <div class="flex items-start gap-3.5">
                     <span class="text-[#328cc1] text-xl select-none leading-none mt-1">▪</span>
                     
                     <div class="flex-1">
-                        <h3 class="text-[#0b3c5d] font-bold text-base sm:text-lg leading-snug">
+                        <h3 class="text-[#0b3c5d] font-bold text-lg sm:text-xl leading-snug">
                             {service.title}
                         </h3>
                         
-                        <!-- Ajuste sugerido para melhorar o fallback -->
-                        <p class="text-gray-600 text-sm sm:text-base ml-4 mt-1 leading-relaxed">
+                        <p class="text-gray-600 text-base sm:text-lg ml-4 mt-1.5 leading-relaxed">
                             {service.subtitle || service.shortDescription || service.tagline || ""}
                         </p>
                     </div>
                 </div>
             ))}
+        </div>
 
-            <div class="pt-4">
-                <a
-                    href="/services"
-                    class="inline-flex items-center justify-center rounded-full bg-[#328cc1] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
-                >
-                    All Services
-                </a>
-            </div>
+        <div class="pt-8 mt-4 border-t border-gray-100">
+            <a
+                href="/services"
+                class="inline-flex items-center justify-center rounded-full bg-[#328cc1] px-6 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#2570a2]"
+            >
+                All Services
+            </a>
         </div>
     </div>
 </section>

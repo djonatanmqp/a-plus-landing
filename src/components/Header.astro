@@ -2,7 +2,7 @@
 // src/components/Header.astro
 import { getCompanyData } from "../lib/firebase-admin.ts";
 
-const company = await getCompanyData();
+const company: any = (await getCompanyData()) || {};
 
 export interface BreadcrumbItem {
     label: string;
@@ -16,14 +16,16 @@ interface Props {
     breadcrumb?: BreadcrumbItem[];
     isHome?: boolean;
     showServicesLinks?: boolean;
+    hideMenu?: boolean;
 }
 
 const {
-    headerTitle = company.name,
-    headerSubtitle = (company.description || "").toUpperCase(),
+    headerTitle = company?.name || "A-Plus Pavers & Grass LLC",
+    headerSubtitle = (company?.tagline || "").toUpperCase(),
     breadcrumb = [],
     isHome = false,
     showServicesLinks = false,
+    hideMenu = false,
 } = Astro.props as Props;
 
 const servicesHref = isHome ? "#services" : "/services";
@@ -46,7 +48,7 @@ const contactHref = isHome ? "#contact" : "/#contact";
             >
                 <img
                     src="/logo.png"
-                    alt={`${company.name} Logo`}
+                    alt={`${company?.name || 'Company'} Logo`}
                     class="w-20 sm:w-28 md:w-36 h-auto drop-shadow-lg transition-transform duration-300 hover:scale-105"
                 />
             </a>
@@ -74,117 +76,113 @@ const contactHref = isHome ? "#contact" : "/#contact";
             </div>
         </div>
 
-        <div class="relative z-50 flex items-center gap-4 flex-shrink-0">
-            <nav
-                class="hidden md:flex items-center gap-6 font-bold text-sm uppercase tracking-wider text-[#0b3c5d]"
-            >
-                {
-                    showServicesLinks && (
-                        <>
-                            <a
-                                href="/services"
-                                class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
-                                style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
-                            >
-                                All Services
-                            </a>
-                            <a
-                                href={servicesHref}
-                                class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
-                                style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
-                            >
-                                Services
-                            </a>
-                            <a
-                                href={galleryHref}
-                                class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
-                                style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
-                            >
-                                Gallery
-                            </a>
-                        </>
-                    )
-                }
-                <a
-                    href={contactHref}
-                    class="hover:text-[#328cc1] transition-colors drop-shadow-sm bg-[#0b3c5d] text-white px-4 py-2 rounded shadow-sm"
-                >
-                    Contact Us
-                </a>
-            </nav>
+        {
+            !hideMenu && (
+                <div class="relative z-50 flex items-center gap-4 flex-shrink-0">
+                    <nav class="hidden md:flex items-center gap-6 font-bold text-sm uppercase tracking-wider text-[#0b3c5d]">
+                        {showServicesLinks && (
+                            <>
+                                <a
+                                    href="/services"
+                                    class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
+                                    style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
+                                >
+                                    All Services
+                                </a>
+                                <a
+                                    href={servicesHref}
+                                    class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
+                                    style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
+                                >
+                                    Services
+                                </a>
+                                <a
+                                    href={galleryHref}
+                                    class="hover:text-[#328cc1] transition-colors drop-shadow-sm"
+                                    style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.85), 0 0 5px rgba(255, 255, 255, 0.5);"
+                                >
+                                    Gallery
+                                </a>
+                            </>
+                        )}
+                        <a
+                            href={contactHref}
+                            class="hover:text-[#328cc1] transition-colors drop-shadow-sm bg-[#0b3c5d] text-white px-4 py-2 rounded shadow-sm"
+                        >
+                            Contact Us
+                        </a>
+                    </nav>
 
-            <button
-                id="menu-toggle"
-                class="md:hidden flex flex-col justify-between w-6 h-4 text-white focus:outline-none bg-black/20 p-2 box-content rounded"
-                aria-label="Toggle navigation menu"
-            >
-                <span
-                    class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 origin-left line-1"
-                ></span>
-                <span
-                    class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 line-2"
-                ></span>
-                <span
-                    class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 origin-left line-3"
-                ></span>
-            </button>
-        </div>
+                    <button
+                        id="menu-toggle"
+                        class="md:hidden flex flex-col justify-between w-6 h-4 text-white focus:outline-none bg-black/20 p-2 box-content rounded"
+                        aria-label="Toggle navigation menu"
+                    >
+                        <span class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 origin-left line-1" />
+                        <span class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 line-2" />
+                        <span class="w-6 h-0.5 bg-[#0b3c5d] transition-all duration-300 origin-left line-3" />
+                    </button>
+                </div>
+            )
+        }
     </div>
 
-    <div
-        id="mobile-menu"
-        class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm pointer-events-none opacity-0 transition-all duration-300 md:hidden"
-    >
-        <div
-            class="absolute right-0 top-0 h-full w-64 bg-white shadow-2xl p-6 flex flex-col translate-x-full transition-transform duration-300 ease-out menu-content"
-        >
-            <div class="flex justify-between items-center mb-8 border-b pb-4">
-                <span class="font-extrabold text-[#0b3c5d] text-lg"
-                    >Navigation</span
-                >
-                <button
-                    id="menu-close"
-                    class="text-2xl text-gray-400 hover:text-black leading-none focus:outline-none"
-                    >&times;</button
-                >
-            </div>
-            <nav
-                class="flex flex-col gap-5 text-base font-bold uppercase tracking-wider text-[#0b3c5d]"
+    {
+        !hideMenu && (
+            <div
+                id="mobile-menu"
+                class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm pointer-events-none opacity-0 transition-all duration-300 md:hidden"
             >
-                {
-                    !isHome && (
+                <div class="absolute right-0 top-0 h-full w-64 bg-white shadow-2xl p-6 flex flex-col translate-x-full transition-transform duration-300 ease-out menu-content">
+                    <div class="flex justify-between items-center mb-8 border-b pb-4">
+                        <span class="font-extrabold text-[#0b3c5d] text-lg">
+                            Navigation
+                        </span>
+                        <button
+                            id="menu-close"
+                            class="text-2xl text-gray-400 hover:text-black leading-none focus:outline-none"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <nav class="flex flex-col gap-5 text-base font-bold uppercase tracking-wider text-[#0b3c5d]">
+                        {!isHome && (
+                            <a
+                                href="/"
+                                class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
+                            >
+                                Home
+                            </a>
+                        )}
                         <a
-                            href="/"
+                            href="/services"
                             class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
                         >
-                            Home
+                            All Services
                         </a>
-                    )
-                }
-                <a
-                    href="/services"
-                    class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
-                    >All Services</a
-                >
-                <a
-                    href={servicesHref}
-                    class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
-                    >Our Services</a
-                >
-                <a
-                    href={galleryHref}
-                    class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
-                    >Photo Gallery</a
-                >
-                <a
-                    href={contactHref}
-                    class="mobile-link bg-[#0b3c5d] text-white text-center py-3 rounded-md shadow mt-4 block"
-                >
-                    Get Free Estimate
-                </a>
-            </nav>
-        </div>
-    </div>
+                        <a
+                            href={servicesHref}
+                            class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
+                        >
+                            Our Services
+                        </a>
+                        <a
+                            href={galleryHref}
+                            class="mobile-link hover:text-[#328cc1] py-2 border-b border-gray-100"
+                        >
+                            Photo Gallery
+                        </a>
+                        <a
+                            href={contactHref}
+                            class="mobile-link bg-[#0b3c5d] text-white text-center py-3 rounded-md shadow mt-4 block"
+                        >
+                            Get Free Estimate
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        )
+    }
 </header>
 
 {
@@ -255,7 +253,7 @@ const contactHref = isHome ? "#contact" : "/#contact";
         if (!header) return;
 
         const menu = header.querySelector('.flex-shrink-0');
-        const menuWidth = menu ? (menu as HTMLElement).offsetWidth : 44;
+        const menuWidth = menu ? (menu as HTMLElement).offsetWidth : 0;
 
         const safetyBuffer = 15;
         const availableWidth = header.clientWidth - 96 - menuWidth - 32 - safetyBuffer;

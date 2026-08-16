@@ -22,6 +22,23 @@ export const ADMIN_USER = process.env.ADMIN_USER ?? "admin";
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Str0ngP@ssw0rd!2026";
 export const SESSION_COOKIE_NAME = "a_plus_admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+// C1 — Allowlist centralizada de e-mails autorizados no painel.
+// Aceita ADMIN_USER (quando for um e-mail) e ADMIN_ALLOWED_EMAILS
+// (lista separada por vírgulas no .env).
+const ADMIN_ALLOWED_EMAILS = (
+  process.env.ADMIN_ALLOWED_EMAILS ?? "djonatanmqp@gmail.com,detlev@apluspaversgrass.com"
+)
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  if (ADMIN_ALLOWED_EMAILS.includes(normalized)) return true;
+  const adminUser = (ADMIN_USER ?? "").trim().toLowerCase();
+  return adminUser.includes("@") && adminUser === normalized;
+}
 const COOKIE_SECRET = process.env.ADMIN_COOKIE_SECRET ?? "change-this-secret-to-a-long-random-value";
 const COOKIE_SECURE = process.env.NODE_ENV === "production";
 // No src/lib/admin.ts
@@ -32,6 +49,7 @@ export const SESSION_COOKIE_DELETE_FLAGS = `Path=/admin; HttpOnly; SameSite=Stri
 const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = Number(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? 5);
 const LOGIN_RATE_LIMIT_WINDOW_SECONDS = Number(process.env.LOGIN_RATE_LIMIT_WINDOW_SEC ?? 300);
 const loginAttempts = new Map<string, { count: number; firstAttempt: number }>();
+const googleLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
 
 export function isLoginAllowed(key: string) {
   const now = Date.now();
@@ -101,8 +119,8 @@ export function validateAdminToken(token?: string) {
     const expectedBuffer = Buffer.from(expected, "hex");
     if (signatureBuffer.length !== expectedBuffer.length) return false;
 
-    // Garante que e-mails com '@' sejam considerados válidos
-    const isValidUser = username === ADMIN_USER || username.includes("@");
+    // C1 — Apenas e-mails autorizados (allowlist) podem manter uma sessão ativa
+    const isValidUser = isAdminEmail(username);
 
     return isValidUser && crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
   } catch {

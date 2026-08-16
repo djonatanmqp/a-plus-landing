@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
+import { type FAQ } from "../../../types/firebase";
 import { addFaqData, updateFaqData } from "../../../lib/firebase-admin.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
@@ -15,15 +16,25 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const answer = formData.get("answer")?.toString().trim() || "";
     const serviceId = formData.get("serviceId")?.toString().trim() || "";
 
-    if (!question || !answer || !serviceId) {
+    if (!question || !answer) {
       return redirect("/admin?tab=faq&message=Please+fill+in+all+fields", 303);
     }
 
     if (id) {
-      await updateFaqData(id, { question, answer, serviceId });
+      await updateFaqData(id, {
+        question,
+        answer,
+        ...(serviceId ? { serviceId } : {})
+      } as any);
+
       return redirect("/admin?tab=faq&message=FAQ+updated+successfully!", 303);
     } else {
-      await addFaqData({ question, answer, serviceId });
+      await addFaqData({
+        question,
+        answer,
+        ...(serviceId ? { serviceId } : {})
+      } as any);
+
       return redirect("/admin?tab=faq&message=FAQ+added+successfully!", 303);
     }
   } catch (error: any) {

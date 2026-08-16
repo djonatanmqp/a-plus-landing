@@ -27,8 +27,8 @@ if (!service) {
 
 const serviceSubtitle = service.subtitle || service.tagline || "";
 const fullDescription = service.description || service.fullDescription || service.details || "";
-const bulletItems = Array.isArray(service.bulletPoints) 
-  ? service.bulletPoints 
+const bulletItems = Array.isArray(service.highlights) 
+  ? service.highlights 
   : (Array.isArray(service.features) ? service.features : []);
 
 const galleryImages = Array.isArray(service.images) ? service.images : (Array.isArray(service.galleryImages) ? service.galleryImages : []);

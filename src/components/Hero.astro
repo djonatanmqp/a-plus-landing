@@ -4,19 +4,23 @@ import { getServicesData } from "../lib/firebase-admin.ts";
 
 const servicesData = await getServicesData();
 
-const servicesCarousel = servicesData.map((service: any) => {
-    const rawImage = service.heroImage || service.coverImage || "";
+const servicesCarousel = Array.isArray(servicesData) ? servicesData.map((service: any) => {
     const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
-    const image = rawImage ? `${rawImage}${rawImage.includes('?') ? '&' : '?'}v=${version}` : "";
+
+    // Força o caminho estruturado padrão diretamente usando o ID do serviço,
+    // garantindo que sempre aponte para a pasta correta independentemente do banco.
+    const basePath = `/assets/services/${service.id}/${service.id}-hero.webp`;
+    const image = `${basePath}?v=${version}`;
 
     return {
-        title: service.title,
-        description: service.description,
-        tagline: service.tagline,
+        title: service.title || "",
+        subtitle: service.subtitle || service.shortDescription || "",
+        shortDescription: service.shortDescription || "",
+        description: service.description || "",
         image,
         galleryId: service.id,
     };
-});
+}) : [];
 ---
 
 <section class="block bg-white p-0 m-0 overflow-hidden select-none">
@@ -38,6 +42,7 @@ const servicesCarousel = servicesData.map((service: any) => {
                             alt={service.title}
                             class="w-full h-full object-cover"
                             loading={index === 0 ? "eager" : "lazy"}
+                            onerror={`this.onerror=null; this.src='https://placehold.co/1200x600?text=${encodeURIComponent(service.title)}';`}
                         />
 
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -49,8 +54,8 @@ const servicesCarousel = servicesData.map((service: any) => {
                             <h2 class="text-xl sm:text-3xl font-extrabold mt-2 tracking-tight">
                                 {service.title}
                             </h2>
-                            <p class="text-xs sm:text-sm text-gray-200 mt-1 mb-4 hidden sm:block">
-                                {service.tagline}
+                            <p class="text-xs sm:text-sm text-gray-200 font-bold mt-1 mb-4 hidden sm:block">
+                                {service.subtitle}
                             </p>
                             <a
                                 href={`#gallery-${service.galleryId}`}
@@ -67,12 +72,14 @@ const servicesCarousel = servicesData.map((service: any) => {
         <button
             id="prev-btn"
             class="absolute left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#328cc1] text-white p-2 rounded-full hidden md:block opacity-0 group-hover:opacity-100 transition-opacity z-10"
-            >◀</button
+            aria-label="Previous slide"
+            >&#9664;</button
         >
         <button
             id="next-btn"
             class="absolute right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#328cc1] text-white p-2 rounded-full hidden md:block opacity-0 group-hover:opacity-100 transition-opacity z-10"
-            >▶</button
+            aria-label="Next slide"
+            >&#9654;</button
         >
     </div>
 </section>
@@ -106,7 +113,7 @@ const servicesCarousel = servicesData.map((service: any) => {
 
         const prevSlide = () => {
             if (wrapper.scrollLeft <= 0) {
-                wrapper.scrollWidth - wrapper.clientWidth;
+                wrapper.scrollLeft = wrapper.scrollWidth - wrapper.clientWidth;
             } else {
                 wrapper.scrollLeft -= wrapper.clientWidth;
             }

@@ -1,0 +1,110 @@
+---
+import { getCompanyData, getServicesData } from "../lib/firebase-admin.ts";
+
+const company: any = (await getCompanyData()) || {};
+const servicesData = (await getServicesData()) || [];
+
+const serviceHeros = servicesData
+  .map((service: any) => {
+    const rawImage = service.heroImage || service.coverImage || "";
+    const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
+    return rawImage ? `${rawImage}${rawImage.includes('?') ? '&' : '?'}v=${version}` : "";
+  })
+  .filter(Boolean);
+
+interface Props {
+    title?: string;
+}
+
+const {
+    title = company?.name || "A-Plus Pavers & Grass LLC"
+} = Astro.props;
+---
+
+<div class="relative w-full bg-transparent overflow-hidden select-none pb-0">
+    <div class="relative w-full">
+        <!-- 1. CARROSSEL DE FOTOS COM DIVISÃO AZUL NA BASE -->
+        <div class="relative w-full h-52 sm:h-60 overflow-hidden bg-slate-900 border-b-4 border-[#328cc1] shadow-md">
+            <div id="vcard-carousel" class="flex w-full h-full transition-transform duration-700 ease-in-out">
+                {serviceHeros.length > 0 ? (
+                    serviceHeros.map((imgUrl: string, index: number) => (
+                        <div class="w-full h-full flex-shrink-0 relative">
+                            <img src={imgUrl} alt={`Service Hero ${index + 1}`} class="w-full h-full object-cover" />
+                        </div>
+                    ))
+                ) : (
+                    <div class="w-full h-full relative">
+                        <img src="/paver-pattern.png" alt="Default Hero" class="w-full h-full object-cover" />
+                    </div>
+                )}
+            </div>
+
+            <!-- Overlay para legibilidade do título -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none"></div>
+
+            <!-- Título em Branco no Canto Inferior Direito -->
+            <div class="absolute bottom-3 right-4 z-25 text-right max-w-[70%]">
+                <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                    {title}
+                </h1>
+            </div>
+
+            <!-- Indicator Dots -->
+            {serviceHeros.length > 1 && (
+                <div class="absolute top-3 right-4 flex gap-1.5 z-25">
+                    {serviceHeros.map((_: any, index: number) => (
+                        <span class={`vcard-dot w-2 h-2 rounded-full transition-all ${index === 0 ? 'bg-white w-4' : 'bg-white/50'}`}></span>
+                    ))}
+                </div>
+            )}
+        </div>
+
+        <!-- 2. FAIXA DE PAVERS (sincronizada com o fundo do card) -->
+        <div 
+            class="relative w-full h-20 bg-repeat bg-top"
+            style="background-image: url('/paver-pattern.png'); background-size: 240px;"
+        ></div>
+
+        <!-- 3. LOGO NA DIVISÃO DA LINHA AZUL COM SOMBRA PROFUNDA -->
+        <div class="max-w-md mx-auto px-4 absolute inset-0 pointer-events-none z-30">
+            <div class="absolute top-[208px] sm:top-[240px] -translate-y-1/2 left-4 w-28 sm:w-32">
+                <a href="/" aria-label="Go to homepage" class="inline-block pointer-events-auto">
+                    <img
+                        src="/logo.png"
+                        alt={`${title} Logo`}
+                        class="w-full h-auto drop-shadow-[0_12px_20px_rgba(0,0,0,0.65)] transition-transform duration-300 hover:scale-105"
+                    />
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initVCardCarousel() {
+        const carousel = document.getElementById('vcard-carousel');
+        const dots = document.querySelectorAll('.vcard-dot');
+        if (!carousel || dots.length <= 1) return;
+
+        let currentIndex = 0;
+        const totalSlides = dots.length;
+
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % totalSlides;
+            carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+            dots.forEach((dot, idx) => {
+                if (idx === currentIndex) {
+                    dot.classList.add('bg-white', 'w-4');
+                    dot.classList.remove('bg-white/50');
+                } else {
+                    dot.classList.remove('bg-white', 'w-4');
+                    dot.classList.add('bg-white/50');
+                }
+            });
+        }, 3500);
+    }
+
+    initVCardCarousel();
+    document.addEventListener('astro:after-swap', initVCardCarousel);
+</script>

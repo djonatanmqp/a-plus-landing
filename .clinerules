@@ -78,6 +78,7 @@ O **A-Plus Pavers & Grass** é uma aplicação híbrida desenvolvida em **Astro 
 - Blocos `try/catch` são **obrigatórios** em todas as rotas de API (`src/pages/admin/api/*`) e funções de comunicação externa (`src/lib/*`).
 - Retornos de API devem utilizar códigos de status HTTP semânticos (ex: `200` para sucesso, `400` para requisição inválida, `401` para não autorizado, `500` para erros internos).
 - As mensagens de erro em respostas de API devem ser claras e em formato JSON estruturado `{ error: "Descrição detalhada" }`.
+- **Convenção de mensagens (A1)**: mensagens de erro em redirects (`?message=`) e em JSON `{ error }` **devem começar com `Error:`** para que o frontmatter do painel (`isErrorMessage` em `admin.astro`) renderize banners/toasts vermelhos em vez de verdes.
 
 ### 4.4 Mídias e Armazenamento
 - Imagens enviadas pelo admin **devem** ser convertidas para o formato `.webp` com compressão e qualidade otimizada (80% de qualidade através da biblioteca `sharp`).
@@ -88,6 +89,11 @@ O **A-Plus Pavers & Grass** é uma aplicação híbrida desenvolvida em **Astro 
 - O controle de acesso ao painel admin deve validar cookies assinados via HMAC SHA-256 (`admin.ts`).
 - Manter o uso do cabeçalho `HttpOnly` e flags de segurança apropriadas nos cookies de sessão.
 - Limitação de taxa (Rate-limiting) em rotas de login para prevenir ataques de força bruta.
+- **Allowlist de e-mails (C1)**: somente e-mails em `ADMIN_USER` (quando for um e-mail) ou na lista `ADMIN_ALLOWED_EMAILS` (separada por vírgulas no `.env`) podem obter sessão. Validação centralizada em `isAdminEmail()` em `src/lib/admin.ts` e aplicada em `api/login.ts` e `api/auth-google.ts`.
+- **Rate limiting conectado (C2)**: `api/login.ts` deve chamar `isLoginAllowed`/`recordLoginAttempt`/`getLoginAttemptInfo` de `lib/admin.ts` com chave `IP:e-mail` antes e depois de cada tentativa.
+- **Deep merge da Company (A2/A3)**: ao salvar dados da empresa, fazer deep merge com o documento atual do Firestore para preservar campos aninhados não editados pelo formulário (ex.: `whatsapp`, `googleMapsEmbed`). O mesmo vale para o merge de defaults no frontmatter de `admin.astro`.
+- **Imagens de testimonials (A4)**: ao editar um depoimento sem enviar novas imagens, não incluir `beforeImage`/`afterImage` no payload (o `merge` do Firestore preserva os valores atuais).
+- **Google sign-in no painel (A5)**: no script client de `admin.astro`, o Auth do Firebase deve ser criado com `initializeAuth` + `inMemoryPersistence` (e `browserPopupRedirectResolver`). Motivo: a persistência padrão usa `IndexedDBLocalPersistence`, que fecha o banco quando a página fica `hidden` (aba em segundo plano durante o popup do Google) e lança `Database is closing/hidden` ao persistir a sessão, bloqueando o login. Como o painel valida sessão por cookie no servidor, a persistência client é apenas momentânea. Além disso, `signInWithPopup` deve ser chamado de forma **síncrona** dentro do handler de clique (sem `await` antes) para preservar o user gesture e o popup abrir como janela modal centralizada.
 
 ---
 
@@ -107,3 +113,46 @@ O **A-Plus Pavers & Grass** é uma aplicação híbrida desenvolvida em **Astro 
 | `node gerar-pdf.js` | Executa varredura Puppeteer e gera PDFs na pasta `/preview` |
 
 ```
+## 7. Schema Global do Firebase e Regras de Dados (OBRIGATÓRIO)
+
+### 7.1 Princípios Inegociáveis
+- **Zero Fallbacks e Zero Hardcoded**: Nenhuma página ou componente pode utilizar dados fixos ou fallbacks estáticos para conteúdo dinâmico. 100% dos dados devem vir do Firestore.
+- **Persistência de Mídia**: Todas as imagens enviadas pelo painel devem ser processadas via `sharp` (convertidas para `.webp` com 80% de qualidade) e comitadas no repositório GitHub via Octokit REST API (`github-storage.ts`).
+
+### 7.2 Schemas Oficiais das Coleções
+
+1. **`Service`** (Coleção `services`):
+   - `id` (string)
+   - `title` (string)
+   - `subtitle` (string)
+   - `shortDescription` (string)
+   - `description` (string)
+   - `highlights` (string[]) — *Substitui qualquer uso legado de features ou bulletPoints*
+   - `heroImage` (string) — Caminho: `/assets/services/[id]/[id]-hero.webp`
+   - `coverImage` (string) — Caminho: `/assets/services/[id]/[id]-cover.webp`
+   - `images` (string[]) — Caminho: `/assets/services/[id]/[id]-[n].webp`
+   - `faq` (Array de `{ question: string, answer: string }`)
+
+2. **`Company`** (Coleção `settings`, documento `company`):
+   - `name` (string)
+   - `tagline` (string) — *Substitui qualquer description de company*
+   - `address`: `{ street, city, state, zip, full, serviceArea }`
+   - `contact`: `{ phone, phoneRaw, facetime, email }`
+   - `links`: `{ instagram, facebook, tiktok, googleMapEmbed, googleReview }`
+
+3. **`Testimonial`** (Coleção `testimonials`):
+   - `id` (string)
+   - `name` (string)
+   - `location` (string)
+   - `text` (string)
+   - `rating` (number)
+   - `service` (string)
+   - `date` (string)
+   - `beforeImage` (string) — Caminho: `/assets/testimonials/[id]-before.webp`
+   - `afterImage` (string) — Caminho: `/assets/testimonials/[id]-after.webp`
+
+4. **`FAQ`** (Coleção `faq` geral):
+   - `id` (string)
+   - `question` (string)
+   - `answer` (string)
+   - `category` (string, opcional)

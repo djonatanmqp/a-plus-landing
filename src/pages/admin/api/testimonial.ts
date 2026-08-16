@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { parseCookies, validateAdminToken, SESSION_COOKIE_NAME, sanitizeSlug } from "../../../lib/admin.ts";
 import { uploadAndCommitImage } from "../../../lib/github-storage.ts";
-import { addTestimonialData, updateTestimonialData, getTestimonialById } from "../../../lib/firebase-admin.ts";
+import { addTestimonialData, updateTestimonialData } from "../../../lib/firebase-admin.ts";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
     let beforeImagePath: string | undefined;
     let afterImagePath: string | undefined;
-    const targetFolder = "public/assets/content/testimonials";
+    const targetFolder = "public/assets/testimonials";
 
     if (beforeFile && beforeFile.size > 0) {
       if (!ALLOWED_MIME_TYPES.includes(beforeFile.type) || beforeFile.size > MAX_FILE_SIZE) {
@@ -58,41 +58,42 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
 
     if (id) {
-      const existingData = await getTestimonialById(id);
-      
-      await updateTestimonialData(id, {
-        clientName,
-        services,
-        serviceType,
-        city,
-        state,
+      const updatePayload: Record<string, unknown> = {
+        name: clientName,
+        service: services[0] || serviceType,
+        location: `${city}, ${state}`,
         date: dateString,
-        message,
-        beforeImage: beforeImagePath || existingData?.beforeImage,
-        afterImage: afterImagePath || existingData?.afterImage,
+        text: message,
+        rating: 5,
         updatedAt: new Date().toISOString()
-      });
+      };
+
+      if (beforeImagePath) updatePayload.beforeImage = beforeImagePath;
+      if (afterImagePath) updatePayload.afterImage = afterImagePath;
+
+      await updateTestimonialData(id, updatePayload);
 
       return redirect("/admin?tab=testimonials&message=Testimonial+updated+successfully!", 303);
     } else {
       await addTestimonialData({
-        slug,
-        clientName,
-        services,
-        serviceType,
-        city,
-        state,
+        name: clientName,
+        service: services[0] || serviceType,
+        location: `${city}, ${state}`,
         beforeImage: beforeImagePath!,
         afterImage: afterImagePath!,
         date: dateString,
-        message,
-        createdAt: new Date().toISOString()
+        text: message,
+        rating: 5
       });
 
       return redirect("/admin?tab=testimonials&message=Testimonial+added+successfully!", 303);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error saving testimonial:", error);
-    return redirect(`/admin?tab=testimonials&message=${encodeURIComponent("Error saving testimonial: " + error.message)}`, 303);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return redirect(
+      `/admin?tab=testimonials&message=${encodeURIComponent("Error: " + errorMessage)}`,
+      303
+    );
   }
 };

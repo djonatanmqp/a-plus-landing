@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
 import { uploadAndCommitImage } from "../../../lib/github-storage.ts";
+import { validateImage } from "../../../lib/image-optimizer.ts";
 import { updateServiceData } from "../../../lib/firebase-admin.ts";
 import { adminDb } from "../../../lib/firebase-server.ts";
 
@@ -22,35 +23,49 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const subtitle = formData.get("subtitle")?.toString().trim() || "";
     const shortDescription = formData.get("shortDescription")?.toString().trim() || "";
     const description = formData.get("description")?.toString().trim() || "";
-    const bulletPoints = formData.getAll("bulletPoints[]").map((b) => b.toString().trim()).filter(Boolean);
+
+    // Coleta correta dos destaques (substitui bulletPoints/features)
+    const highlights = formData.getAll("highlights[]").map((h) => h.toString().trim()).filter(Boolean);
 
     const docSnap = await adminDb.collection("services").doc(serviceId).get();
     const existingData = docSnap.exists ? docSnap.data() : {};
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       id: serviceId,
       title,
       subtitle,
       shortDescription,
       description,
-      bulletPoints,
+      highlights,
       updatedAt: new Date().toISOString(),
     };
 
     const targetFolder = `public/assets/services/${serviceId}`;
 
-    // 1. Hero Image Process (Nome padronizado)
-    const heroFile = formData.get("heroImage") as File;
-    if (heroFile && heroFile.size > 0) {
+    // 1. Hero Image Process (Validação + Nome padronizado)
+    const heroFile = formData.get("heroImage");
+    if (heroFile && heroFile instanceof File && heroFile.size > 0) {
+      if (!validateImage(heroFile)) {
+        return redirect(
+          "/admin?tab=services&message=Error:+Invalid+hero+image+format+or+size+exceeds+5MB",
+          303
+        );
+      }
       const buffer = Buffer.from(await heroFile.arrayBuffer());
       updateData.heroImage = await uploadAndCommitImage(buffer, targetFolder, `${serviceId}-hero`);
     } else {
       updateData.heroImage = existingData?.heroImage || `/assets/services/${serviceId}/${serviceId}-hero.webp`;
     }
 
-    // 2. Cover Image Process (Nome padronizado)
-    const coverFile = formData.get("coverImage") as File;
-    if (coverFile && coverFile.size > 0) {
+    // 2. Cover Image Process (Validação + Nome padronizado)
+    const coverFile = formData.get("coverImage");
+    if (coverFile && coverFile instanceof File && coverFile.size > 0) {
+      if (!validateImage(coverFile)) {
+        return redirect(
+          "/admin?tab=services&message=Error:+Invalid+cover+image+format+or+size+exceeds+5MB",
+          303
+        );
+      }
       const buffer = Buffer.from(await coverFile.arrayBuffer());
       updateData.coverImage = await uploadAndCommitImage(buffer, targetFolder, `${serviceId}-cover`);
     } else {
@@ -60,8 +75,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     await updateServiceData(serviceId, updateData);
 
     return redirect("/admin?tab=services&message=Service+updated+successfully.", 303);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating service:", error);
-    return redirect(`/admin?tab=services&message=${encodeURIComponent("Error: " + error.message)}`, 303);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return redirect(`/admin?tab=services&message=${encodeURIComponent("Error: " + errorMessage)}`, 303);
   }
 };

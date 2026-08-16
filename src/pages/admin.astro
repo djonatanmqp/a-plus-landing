@@ -15,6 +15,8 @@ import CloudUploadIcon from "~icons/mdi/cloud-upload";
 import PlusIcon from "~icons/mdi/plus";
 import ImageIcon from "~icons/mdi/image";
 import ContentSaveIcon from "~icons/mdi/content-save";
+import EyeIcon from "~icons/mdi/eye";
+import EyeOffIcon from "~icons/mdi/eye-off";
 import DomainIcon from "~icons/mdi/domain";
 import BriefcaseOutlineIcon from "~icons/mdi/briefcase-outline";
 import ForumOutlineIcon from "~icons/mdi/forum-outline";
@@ -32,12 +34,13 @@ const currentTab = Astro.url.searchParams.get("tab") || "company";
 const defaultCompany = {
   name: "A-Plus Pavers & Grass LLC",
   tagline: "Professional Installation Services",
-  description: "Professional Paver, Turf & Sod Installation in Central Florida and nearby cities",
+  description:
+    "Professional Paver, Turf & Sod Installation in Central Florida and nearby cities",
   contact: {
     phone: "(321) 496-3060",
     phoneRaw: "3214963060",
     facetime: "3214963060",
-    email: "contact@apluspaversgrass.com"
+    email: "contact@apluspaversgrass.com",
   },
   address: {
     full: "2459 Cheney Hwy, Titusville, FL 32780",
@@ -45,25 +48,70 @@ const defaultCompany = {
     city: "",
     state: "FL",
     zip: "32780",
-    serviceArea: "Central Florida and nearby cities"
+    serviceArea: "Central Florida and nearby cities",
   },
   links: {
     facebook: "#",
     instagram: "#",
     tiktok: "#",
-    googleReview: "https://search.google.com/local/writereview?placeid=ChIJxyeY6PRN54gRV...",
-    googleMapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3504.434..."
-  }
+    googleReview:
+      "https://search.google.com/local/writereview?placeid=ChIJxyeY6PRN54gRV...",
+    googleMapsEmbed:
+      "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7008.868573171923!2d-80.831329!3d28.556719!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88e74df4e89827c7%3A0x62929890360ad056!2sA-Plus%20Pavers%20%26%20Grass%20LLC!5e0!3m2!1spt-BR!2sbr!4v1786839260310!5m2!1spt-BR!2sbr",
+  },
 };
 
 const fetchedCompany = isLoggedIn ? await getCompanyData() : null;
-const company = fetchedCompany ? { ...defaultCompany, ...fetchedCompany } : defaultCompany;
+
+// A2 — Deep merge recursivo dos defaults com o documento do Firestore
+function deepMerge(
+  base: Record<string, unknown>,
+  override: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(override || {})) {
+    const current = result[key];
+    if (
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      current !== null &&
+      typeof current === "object" &&
+      !Array.isArray(current)
+    ) {
+      result[key] = deepMerge(
+        current as Record<string, unknown>,
+        value as Record<string, unknown>,
+      );
+    } else if (value !== undefined && value !== null) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+const company = fetchedCompany
+  ? (deepMerge(
+      defaultCompany as unknown as Record<string, unknown>,
+      fetchedCompany as unknown as Record<string, unknown>,
+    ) as typeof defaultCompany)
+  : defaultCompany;
+
+// Remove campos legados (description) e garante uso de tagline de forma segura
+const sanitizedCompany = { ...company };
+// @ts-ignore
+delete sanitizedCompany.description;
 
 const servicesData = isLoggedIn ? (await getServicesData()) || [] : [];
 const faqsData = isLoggedIn ? (await getFaqData()) || [] : [];
 const testimonialsData = isLoggedIn ? (await getTestimonialsData()) || [] : [];
 
 const message = Astro.url.searchParams.get("message") ?? "";
+
+const isErrorMessage =
+  /^(Error|Invalid|Please|Select|Upload|Fill|Authentication|Unauthorized|Missing|Failed)/i.test(
+    message.trim(),
+  );
 
 const tabs = [
   { id: "company", label: "Company Info", icon: DomainIcon },
@@ -76,23 +124,36 @@ const tabs = [
 
 <Layout title="Admin | A-Plus Landing">
   <header class="border-b bg-white py-2">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2">
+    <div
+      class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2"
+    >
       <div class="flex items-center gap-2">
         <img src="/logo.png" alt="A-Plus logo" class="w-10 sm:w-14 h-auto" />
         <div>
-          <div class="text-sm sm:text-base font-extrabold text-[#0b3c5d] leading-none">
+          <div
+            class="text-sm sm:text-base font-extrabold text-[#0b3c5d] leading-none"
+          >
             {company.name}
           </div>
           <div class="text-[10px] sm:text-xs text-slate-500">Control Panel</div>
         </div>
       </div>
-      <a href="/" class="text-xs text-slate-600 hover:text-slate-900 whitespace-nowrap">
+      <a
+        href="/"
+        class="text-xs text-slate-600 hover:text-slate-900 whitespace-nowrap"
+      >
         ← Back
       </a>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3">
+    <div
+      id="toast-container"
+      class="fixed top-4 right-4 z-50 grid gap-2 w-80 max-w-[calc(100vw-2rem)]"
+    >
+    </div>
+
     <div class="flex items-center justify-between gap-2 mb-3">
       <div>
         <h1 class="text-lg sm:text-xl font-bold text-slate-900">Admin Panel</h1>
@@ -100,818 +161,1357 @@ const tabs = [
           Manage company settings, services, galleries, FAQs, and testimonials.
         </p>
       </div>
-      {isLoggedIn && (
-        <button
-          type="button"
-          id="logout-btn"
-          class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-        >
-          <LogoutIcon class="w-3.5 h-3.5" />
-          <span>Sign Out</span>
-        </button>
-      )}
+      {
+        isLoggedIn && (
+          <button
+            type="button"
+            id="logout-btn"
+            class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+          >
+            <LogoutIcon class="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
+        )
+      }
     </div>
 
-    {message && (
-      <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-xs text-slate-800">
-        {message}
-      </div>
-    )}
+    {
+      message && (
+        <div
+          class={`mb-3 rounded-lg border p-2 text-xs ${
+            isErrorMessage
+              ? "border-red-200 bg-red-50 text-red-800"
+              : "border-emerald-200 bg-emerald-50 text-slate-800"
+          }`}
+        >
+          {message}
+        </div>
+      )
+    }
 
-    {isLoggedIn && (
-      <div>
-        <nav class="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 mb-3">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = currentTab === tab.id;
-            return (
-              <a
-                href={`/admin?tab=${tab.id}`}
-                class={`flex items-center justify-center sm:justify-start gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs transition text-center ${
-                  isActive
-                    ? "bg-[#0b3c5d] text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+    {
+      isLoggedIn ? (
+        <div>
+          <nav class="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 mb-3">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <a
+                  href={`/admin?tab=${tab.id}`}
+                  class={`flex items-center justify-center sm:justify-start gap-1.5 px-2.5 py-2 rounded-lg font-medium text-xs transition text-center ${
+                    isActive
+                      ? "bg-[#0b3c5d] text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  <Icon class="w-4 h-4 shrink-0" />
+                  <span class="truncate">{tab.label}</span>
+                </a>
+              );
+            })}
+          </nav>
+
+          {/* ABA 1: COMPANY INFO */}
+          {currentTab === "company" && (
+            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+                Company Information
+              </h2>
+              <p class="text-[11px] text-slate-500 mb-4">
+                Update global business settings stored in settings/company.
+              </p>
+
+              <form
+                id="company-form"
+                method="POST"
+                action="/admin/api/company"
+                class="grid gap-4"
               >
-                <Icon class="w-4 h-4 shrink-0" />
-                <span class="truncate">{tab.label}</span>
-              </a>
-            );
-          })}
-        </nav>
-
-        {/* ABA 1: COMPANY INFO */}
-        {currentTab === "company" && (
-          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-              Company Information
-            </h2>
-            <p class="text-[11px] text-slate-500 mb-4">
-              Update global business settings stored in settings/company.
-            </p>
-
-            <form method="POST" action="/admin/api/company" class="grid gap-4">
-              <div class="grid gap-2.5 sm:grid-cols-2">
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Company Name
-                  <input
-                    name="name"
-                    type="text"
-                    value={company.name}
-                    required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Tagline
-                  <input
-                    name="tagline"
-                    type="text"
-                    value={company.tagline || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-              </div>
-
-              <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                SEO Description
-                <textarea
-                  name="description"
-                  rows="2"
-                  required
-                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                >{company.description}</textarea>
-              </label>
-
-              <hr class="border-slate-100" />
-
-              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Address Information</h3>
-              <div class="grid gap-2.5 sm:grid-cols-3">
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Street
-                  <input
-                    name="street"
-                    type="text"
-                    value={company.address?.street || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  City
-                  <input
-                    name="city"
-                    type="text"
-                    value={company.address?.city || ""}
-                    placeholder="e.g. Titusville"
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <div class="grid grid-cols-2 gap-2">
+                <div
+                  id="company-form-error"
+                  role="alert"
+                  class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
+                />
+                <div class="grid gap-2.5 sm:grid-cols-2">
                   <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                    State
+                    Company Name
                     <input
-                      name="state"
+                      name="name"
                       type="text"
-                      value={company.address?.state || "FL"}
+                      value={company.name}
+                      required
                       class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
                     />
                   </label>
+
                   <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                    ZIP
+                    Tagline
                     <input
-                      name="zip"
+                      name="tagline"
                       type="text"
-                      value={company.address?.zip || ""}
+                      value={company.tagline || ""}
                       class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
                     />
                   </label>
                 </div>
-              </div>
 
-              <div class="grid gap-2.5 sm:grid-cols-2">
                 <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Full Formatted Address
-                  <input
-                    name="fullAddress"
-                    type="text"
-                    value={company.address?.full || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Service Area Text
-                  <input
-                    name="serviceArea"
-                    type="text"
-                    value={company.address?.serviceArea || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-              </div>
-
-              <hr class="border-slate-100" />
-
-              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Contact Methods</h3>
-              <div class="grid gap-2.5 sm:grid-cols-4">
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Phone (Display)
-                  <input
-                    name="phone"
-                    type="text"
-                    value={company.contact?.phone || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Phone Raw (Numbers Only)
-                  <input
-                    name="phoneRaw"
-                    type="text"
-                    value={company.contact?.phoneRaw || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  FaceTime
-                  <input
-                    name="facetime"
-                    type="text"
-                    value={company.contact?.facetime || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Email Address
-                  <input
-                    name="email"
-                    type="email"
-                    value={company.contact?.email || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-              </div>
-
-              <hr class="border-slate-100" />
-
-              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Links & Social Networks</h3>
-              <div class="grid gap-2.5 sm:grid-cols-3">
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Facebook URL
-                  <input
-                    name="facebook"
-                    type="text"
-                    value={company.links?.facebook || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Instagram URL
-                  <input
-                    name="instagram"
-                    type="text"
-                    value={company.links?.instagram || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  TikTok URL
-                  <input
-                    name="tiktok"
-                    type="text"
-                    value={company.links?.tiktok || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-              </div>
-
-              <div class="grid gap-2.5 sm:grid-cols-2">
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Google Review URL
-                  <input
-                    name="googleReview"
-                    type="text"
-                    value={company.links?.googleReview || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-                <label class="grid gap-1 text-xs font-semibold text-slate-700">
-                  Google Map Embed URL (src)
-                  <input
-                    name="googleMapEmbed"
-                    type="text"
-                    value={company.links?.googleMapEmbed || ""}
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
-                  />
-                </label>
-              </div>
-
-              <div class="mt-2">
-                <button
-                  type="submit"
-                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-                >
-                  <ContentSaveIcon class="w-3.5 h-3.5" />
-                  Save Company Settings
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
-
-        {/* ABA 2: SERVICES */}
-        {currentTab === "services" && (
-          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-              Edit Services
-            </h2>
-            <p class="text-[11px] text-slate-500 mb-3">
-              Select a service to update text and image paths in Firestore.
-            </p>
-            <form
-              id="service-form"
-              method="POST"
-              action="/admin/api/service"
-              enctype="multipart/form-data"
-              class="grid gap-3"
-            >
-              <input type="hidden" id="svc-id-hidden" name="id" value="" />
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Select Service
-                <select
-                  id="service-select"
-                  name="serviceId"
-                  required
-                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
-                >
-                  <option value="">Select a service</option>
-                  {servicesData.map((s: any) => (
-                    <option
-                      value={s.id}
-                      data-title={s.title || ""}
-                      data-subtitle={s.subtitle || ""}
-                      data-shortdescription={s.shortDescription || ""}
-                      data-description={s.description || ""}
-                      data-bulletpoints={JSON.stringify(s.bulletPoints || [])}
-                    >
-                      {s.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div class="grid gap-2.5 sm:grid-cols-2">
-                <label class="grid gap-1 text-xs text-slate-700">
-                  Title
-                  <input
-                    id="svc-title"
-                    name="title"
-                    type="text"
+                  SEO Description
+                  <textarea
+                    name="description"
+                    rows="2"
                     required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                  />
-                </label>
-
-                <label class="grid gap-1 text-xs text-slate-700">
-                  Subtitle
-                  <input
-                    id="svc-subtitle"
-                    name="subtitle"
-                    type="text"
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                  />
-                </label>
-              </div>
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Short Description (Card)
-                <input
-                  id="svc-short-description"
-                  name="shortDescription"
-                  type="text"
-                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                />
-              </label>
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Full Description
-                <textarea
-                  id="svc-description"
-                  name="description"
-                  rows="3"
-                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                />
-              </label>
-
-              <div class="grid gap-1.5 text-xs text-slate-700 border border-slate-100 rounded-xl p-3 bg-slate-50/50">
-                <div class="flex items-center justify-between">
-                  <span class="font-medium text-slate-800">Highlights / Bullet Points</span>
-                  <button
-                    type="button"
-                    id="add-bullet-btn"
-                    class="flex items-center gap-1 text-[11px] font-semibold text-[#328cc1] hover:text-[#0b3c5d]"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
                   >
-                    <PlusIcon class="w-3.5 h-3.5" />
-                    Add Point
+                    {company.description}
+                  </textarea>
+                </label>
+
+                <hr class="border-slate-100" />
+
+                <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
+                  Address Information
+                </h3>
+                <div class="grid gap-2.5 sm:grid-cols-3">
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Street
+                    <input
+                      name="street"
+                      type="text"
+                      value={company.address?.street || ""}
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    City
+                    <input
+                      name="city"
+                      type="text"
+                      value={company.address?.city || ""}
+                      placeholder="e.g. Titusville"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                      State
+                      <input
+                        name="state"
+                        type="text"
+                        value={company.address?.state || "FL"}
+                        class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                      />
+                    </label>
+                    <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                      ZIP
+                      <input
+                        name="zip"
+                        type="text"
+                        value={company.address?.zip || ""}
+                        class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Full Formatted Address
+                    <input
+                      name="fullAddress"
+                      type="text"
+                      value={company.address?.full || ""}
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Service Area Text
+                    <input
+                      name="serviceArea"
+                      type="text"
+                      value={company.address?.serviceArea || ""}
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                </div>
+
+                <hr class="border-slate-100" />
+
+                <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
+                  Contact Methods
+                </h3>
+                <div class="grid gap-2.5 sm:grid-cols-4">
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Phone (Display)
+                    <input
+                      name="phone"
+                      type="tel"
+                      inputmode="tel"
+                      pattern="^(\+1\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$"
+                      required
+                      value={company.contact?.phone || ""}
+                      placeholder="(407) 000-0000"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Phone Raw (Numbers Only)
+                    <input
+                      name="phoneRaw"
+                      type="tel"
+                      inputmode="tel"
+                      pattern="^(\+1\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$"
+                      required
+                      value={company.contact?.phoneRaw || ""}
+                      placeholder="(407) 000-0000"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    FaceTime (Apple ID email or phone number)
+                    <input
+                      name="facetime"
+                      type="text"
+                      value={company.contact?.facetime || ""}
+                      placeholder="e.g. (407) 000-0000 or user@icloud.com"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Email Address
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      value={company.contact?.email || ""}
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                </div>
+
+                <hr class="border-slate-100" />
+
+                <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
+                  Links & Social Networks
+                </h3>
+                <div class="grid gap-2.5 sm:grid-cols-3">
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Facebook URL
+                    <input
+                      name="facebook"
+                      type="url"
+                      value={company.links?.facebook || ""}
+                      placeholder="https://..."
+                      class="admin-url-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Instagram URL
+                    <input
+                      name="instagram"
+                      type="url"
+                      value={company.links?.instagram || ""}
+                      placeholder="https://..."
+                      class="admin-url-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    TikTok URL
+                    <input
+                      name="tiktok"
+                      type="url"
+                      value={company.links?.tiktok || ""}
+                      placeholder="https://..."
+                      class="admin-url-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                </div>
+
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Google Review URL
+                    <input
+                      name="googleReview"
+                      type="url"
+                      value={company.links?.googleReview || ""}
+                      placeholder="https://..."
+                      class="admin-url-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                  <label class="grid gap-1 text-xs font-semibold text-slate-700">
+                    Google Map Embed URL (src)
+                    <input
+                      name="googleMapsEmbed"
+                      type="url"
+                      value={company.links?.googleMapsEmbed || ""}
+                      placeholder="https://..."
+                      class="admin-url-input w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-normal"
+                    />
+                  </label>
+                </div>
+
+                <div class="mt-2">
+                  <button
+                    type="submit"
+                    class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                  >
+                    <ContentSaveIcon class="w-3.5 h-3.5" />
+                    <span>Save Company Settings</span>
                   </button>
                 </div>
-                <div id="bullet-points-container" class="grid gap-2 mt-1"></div>
-              </div>
+              </form>
+            </section>
+          )}
 
-              <div class="grid gap-2.5 sm:grid-cols-2">
-                {["heroImage", "coverImage"].map((name) => (
-                  <label class="grid gap-1 text-xs text-slate-700 cursor-pointer">
-                    <span>{name === "heroImage" ? "Hero Image" : "Cover Image"}</span>
-                    <div class="relative flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 overflow-hidden">
-                      <img
-                        src=""
-                        alt="Preview"
-                        class="hidden w-7 h-7 object-cover rounded border border-slate-200 fn-preview-img"
-                      />
-                      <div class="flex items-center gap-2 text-slate-400 fn-placeholder-box">
-                        <ImageIcon class="w-4 h-4 text-slate-400 shrink-0" />
-                        <span class="text-[11px] truncate fn-filename-text">No file chosen</span>
-                      </div>
-                      <input
-                        type="file"
-                        name={name}
-                        accept="image/*"
-                        class="hidden fn-file-input"
-                      />
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              <div class="mt-1">
-                <button
-                  type="submit"
-                  class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
-                >
-                  <ContentSaveIcon class="w-3.5 h-3.5" />
-                  Save Service Changes
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
-
-        {/* ABA 3: GALLERIES */}
-        {currentTab === "galleries" && (
-          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-              Service Galleries
-            </h2>
-            <p class="text-[11px] text-slate-500 mb-4">
-              Upload multiple images to enrich a service's gallery.
-            </p>
-
-            <form
-              method="POST"
-              action="/admin/api/gallery"
-              enctype="multipart/form-data"
-              class="grid gap-3"
-            >
-              <label class="grid gap-1 text-xs text-slate-700">
-                Select Service
-                <select
-                  name="serviceId"
-                  required
-                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
-                >
-                  <option value="">Choose a service...</option>
-                  {servicesData.map((s: any) => (
-                    <option value={s.id}>{s.title}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Gallery Images (Select Multiple)
-                <input
-                  type="file"
-                  name="galleryImages"
-                  accept="image/*"
-                  multiple
-                  required
-                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
+          {/* ABA 2: SERVICES */}
+          {currentTab === "services" && (
+            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+                Edit Services
+              </h2>
+              <p class="text-[11px] text-slate-500 mb-3">
+                Select a service to update text and image paths in Firestore.
+              </p>
+              <form
+                id="service-form"
+                method="POST"
+                action="/admin/api/service"
+                enctype="multipart/form-data"
+                class="grid gap-3"
+              >
+                <div
+                  id="service-form-error"
+                  role="alert"
+                  class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
                 />
-              </label>
+                <input type="hidden" id="svc-id-hidden" name="id" value="" />
 
-              <div class="mt-2">
-                <button
-                  type="submit"
-                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-                >
-                  <CloudUploadIcon class="w-3.5 h-3.5" />
-                  Upload to Gallery
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
-
-        {/* ABA 4: FAQS */}
-        {currentTab === "faq" && (
-          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-              Manage FAQs
-            </h2>
-            <p class="text-[11px] text-slate-500 mb-4">
-              Add new frequently asked questions to the site or edit existing ones.
-            </p>
-
-            <form id="faq-form" method="POST" action="/admin/api/faq" class="grid gap-3 mb-6">
-              <input type="hidden" id="faq-id" name="id" value="" />
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Service Category
-                <select
-                  id="faq-service-id"
-                  name="serviceId"
-                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
-                >
-                  <option value="global">Global / General FAQ</option>
-                  {servicesData.map((s: any) => (
-                    <option value={s.id}>{s.title}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Question
-                <input
-                  id="faq-question"
-                  name="question"
-                  type="text"
-                  required
-                  placeholder="e.g. How long does the installation take?"
-                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                />
-              </label>
-
-              <label class="grid gap-1 text-xs text-slate-700">
-                Answer
-                <textarea
-                  id="faq-answer"
-                  name="answer"
-                  rows="3"
-                  required
-                  placeholder="e.g. Most projects take between 2 to 4 days..."
-                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                ></textarea>
-              </label>
-
-              <div class="flex items-center gap-2">
-                <button
-                  type="submit"
-                  id="faq-submit-btn"
-                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-                >
-                  <PlusIcon class="w-3.5 h-3.5" />
-                  <span>Add FAQ Item</span>
-                </button>
-                <button
-                  type="button"
-                  id="faq-cancel-btn"
-                  class="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-
-            <div class="border-t border-slate-100 pt-4">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
-                  Existing FAQs ({faqsData.length})
-                </h3>
-
-                <div class="flex items-center gap-2">
-                  <FilterVariantIcon class="w-4 h-4 text-slate-400 shrink-0" />
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Select Service
                   <select
-                    id="faq-filter"
-                    class="rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#0b3c5d]"
+                    id="service-select"
+                    name="serviceId"
+                    required
+                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
                   >
-                    <option value="all">Show All FAQs</option>
-                    <option value="global">Global / General</option>
+                    <option value="">Select a service</option>
+                    {servicesData.map((s: any) => (
+                      <option
+                        value={s.id}
+                        data-title={s.title || ""}
+                        data-subtitle={s.subtitle || ""}
+                        data-shortdescription={s.shortDescription || ""}
+                        data-description={s.description || ""}
+                        data-highlights={JSON.stringify(
+                          s.highlights || s.features || s.bulletPoints || [],
+                        )}
+                      >
+                        {s.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    Title
+                    <input
+                      id="svc-title"
+                      name="title"
+                      type="text"
+                      required
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    Subtitle
+                    <input
+                      id="svc-subtitle"
+                      name="subtitle"
+                      type="text"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+                </div>
+
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Short Description (Card)
+                  <input
+                    id="svc-short-description"
+                    name="shortDescription"
+                    type="text"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                  />
+                </label>
+
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Full Description
+                  <textarea
+                    id="svc-description"
+                    name="description"
+                    rows="3"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                  />
+                </label>
+
+                <div class="grid gap-1.5 text-xs text-slate-700 border border-slate-100 rounded-xl p-3 bg-slate-50/50">
+                  <div class="flex items-center justify-between">
+                    <span class="font-medium text-slate-800">
+                      Highlights / Bullet Points
+                    </span>
+                    <button
+                      type="button"
+                      id="add-bullet-btn"
+                      class="flex items-center gap-1 text-[11px] font-semibold text-[#328cc1] hover:text-[#0b3c5d]"
+                    >
+                      <PlusIcon class="w-3.5 h-3.5" />
+                      Add Point
+                    </button>
+                  </div>
+                  <div id="bullet-points-container" class="grid gap-2 mt-1" />
+                </div>
+
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                  {["heroImage", "coverImage"].map((name) => (
+                    <label class="grid gap-1 text-xs text-slate-700 cursor-pointer">
+                      <span>
+                        {name === "heroImage" ? "Hero Image" : "Cover Image"}
+                      </span>
+                      <div class="relative flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 overflow-hidden">
+                        <img
+                          src=""
+                          alt="Preview"
+                          class="hidden w-7 h-7 object-cover rounded border border-slate-200 fn-preview-img"
+                        />
+                        <div class="flex items-center gap-2 text-slate-400 fn-placeholder-box">
+                          <ImageIcon class="w-4 h-4 text-slate-400 shrink-0" />
+                          <span class="text-[11px] truncate fn-filename-text">
+                            No file chosen
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          name={name}
+                          accept="image/*"
+                          class="hidden fn-file-input"
+                        />
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div class="mt-1">
+                  <button
+                    type="submit"
+                    id="service-submit-btn"
+                    class="flex items-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
+                  >
+                    <ContentSaveIcon class="w-3.5 h-3.5" />
+                    <span>Save Service Changes</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
+
+          {/* ABA 3: GALLERIES */}
+          {currentTab === "galleries" && (
+            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+                Service Galleries
+              </h2>
+              <p class="text-[11px] text-slate-500 mb-4">
+                Upload multiple images to enrich a service's gallery.
+              </p>
+
+              <form
+                id="gallery-form"
+                method="POST"
+                action="/admin/api/gallery"
+                enctype="multipart/form-data"
+                class="grid gap-3"
+              >
+                <div
+                  id="gallery-form-error"
+                  role="alert"
+                  class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
+                />
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Select Service
+                  <select
+                    name="serviceId"
+                    required
+                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
+                  >
+                    <option value="">Choose a service...</option>
                     {servicesData.map((s: any) => (
                       <option value={s.id}>{s.title}</option>
                     ))}
                   </select>
-                </div>
-              </div>
+                </label>
 
-              <div id="faq-list-container" class="grid gap-2">
-                {faqsData.map((faq: any) => {
-                  const serviceObj = servicesData.find((s: any) => s.id === faq.serviceId);
-                  const serviceLabel = faq.serviceId === "global" || !faq.serviceId 
-                    ? "Global / General" 
-                    : (serviceObj?.title || faq.serviceId);
-
-                  return (
-                    <div 
-                      class="faq-item flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-slate-50/50 text-xs"
-                      data-service-id={faq.serviceId || "global"}
-                    >
-                      <div>
-                        <div class="font-semibold text-slate-800 mb-1">{faq.question}</div>
-                        <div class="text-slate-600 leading-relaxed">{faq.answer}</div>
-                        <span class="inline-block mt-2 text-[10px] font-medium bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
-                          {serviceLabel}
-                        </span>
-                      </div>
-                      <div class="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          class="edit-faq-btn p-1 text-slate-400 hover:text-[#0b3c5d] transition"
-                          title="Edit FAQ"
-                          data-id={faq.id}
-                          data-service-id={faq.serviceId || "global"}
-                          data-question={faq.question}
-                          data-answer={faq.answer}
-                        >
-                          <PencilOutlineIcon class="w-4 h-4" />
-                        </button>
-                        <form method="POST" action="/admin/api/faq/delete">
-                          <input type="hidden" name="id" value={faq.id} />
-                          <button
-                            type="submit"
-                            class="p-1 text-slate-400 hover:text-red-600 transition"
-                            title="Delete FAQ"
-                          >
-                            <TrashCanOutlineIcon class="w-4 h-4" />
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ABA 5: TESTIMONIALS */}
-        {currentTab === "testimonials" && (
-          <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-            <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
-              Manage Testimonials
-            </h2>
-            <p class="text-[11px] text-slate-500 mb-4">
-              Create client reviews along with before & after project images, or manage existing ones.
-            </p>
-
-            <form
-              id="testimonial-form"
-              method="POST"
-              action="/admin/api/testimonials"
-              enctype="multipart/form-data"
-              class="grid gap-3 mb-6"
-            >
-              <input type="hidden" id="testimonial-id" name="id" value="" />
-
-              <div class="grid gap-2.5 sm:grid-cols-2">
                 <label class="grid gap-1 text-xs text-slate-700">
-                  Client Name
+                  Gallery Images (Select Multiple)
                   <input
-                    id="testimonial-client-name"
-                    name="clientName"
+                    type="file"
+                    name="galleryImages"
+                    accept="image/*"
+                    multiple
+                    required
+                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
+                  />
+                </label>
+
+                <div class="mt-2">
+                  <button
+                    type="submit"
+                    class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                  >
+                    <CloudUploadIcon class="w-3.5 h-3.5" />
+                    <span>Upload to Gallery</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
+
+          {/* ABA 4: FAQS */}
+          {currentTab === "faq" && (
+            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+                Manage FAQs
+              </h2>
+              <p class="text-[11px] text-slate-500 mb-4">
+                Add new frequently asked questions to the site or edit existing
+                ones.
+              </p>
+
+              <form
+                id="faq-form"
+                method="POST"
+                action="/admin/api/faq"
+                class="grid gap-3 mb-6"
+              >
+                <div
+                  id="faq-form-error"
+                  role="alert"
+                  class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
+                />
+                <input type="hidden" id="faq-id" name="id" value="" />
+
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Service Category
+                  <select
+                    id="faq-service-id"
+                    name="serviceId"
+                    required
+                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800"
+                  >
+                    <option value="global">Global / General FAQ</option>
+                    {servicesData.map((s: any) => (
+                      <option value={s.id}>{s.title}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Question
+                  <input
+                    id="faq-question"
+                    name="question"
                     type="text"
                     required
-                    placeholder="e.g. John Doe"
+                    placeholder="e.g. How long does the installation take?"
                     class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                   />
                 </label>
 
-                <div class="grid gap-1 text-xs text-slate-700">
-                  <span class="font-medium text-slate-700">Services Provided (Select 1 or more)</span>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-lg border border-slate-300 bg-slate-50/50 max-h-36 overflow-y-auto">
-                    {servicesData.map((s: any) => (
-                      <label class="flex items-center gap-2 cursor-pointer text-xs font-normal text-slate-700 hover:text-slate-900">
-                        <input
-                          type="checkbox"
-                          name="services"
-                          value={s.title}
-                          class="testimonial-service-cb rounded border-slate-300 text-[#0b3c5d] focus:ring-[#0b3c5d]"
-                        />
-                        <span class="truncate">{s.title}</span>
-                      </label>
-                    ))}
+                <label class="grid gap-1 text-xs text-slate-700">
+                  Answer
+                  <textarea
+                    id="faq-answer"
+                    name="answer"
+                    rows="3"
+                    required
+                    placeholder="e.g. Most projects take between 2 to 4 days..."
+                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                  />
+                </label>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    id="faq-submit-btn"
+                    class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                  >
+                    <PlusIcon class="w-3.5 h-3.5" />
+                    <span>Add FAQ Item</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="faq-cancel-btn"
+                    class="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+
+              <div class="border-t border-slate-100 pt-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
+                    Existing FAQs ({faqsData.length})
+                  </h3>
+
+                  <div class="flex items-center gap-2">
+                    <FilterVariantIcon class="w-4 h-4 text-slate-400 shrink-0" />
+                    <select
+                      id="faq-filter"
+                      class="rounded-lg border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#0b3c5d]"
+                    >
+                      <option value="all">Show All FAQs</option>
+                      <option value="global">Global / General</option>
+                      {servicesData.map((s: any) => (
+                        <option value={s.id}>{s.title}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
+
+                <div id="faq-list-container" class="grid gap-2">
+                  {faqsData.map((faq: any) => {
+                    const serviceObj = servicesData.find(
+                      (s: any) => s.id === faq.serviceId,
+                    );
+                    const serviceLabel =
+                      faq.serviceId === "global" || !faq.serviceId
+                        ? "Global / General"
+                        : serviceObj?.title || faq.serviceId;
+
+                    return (
+                      <div
+                        class="faq-item flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-slate-50/50 text-xs"
+                        data-service-id={faq.serviceId || "global"}
+                      >
+                        <div>
+                          <div class="font-semibold text-slate-800 mb-1">
+                            {faq.question}
+                          </div>
+                          <div class="text-slate-600 leading-relaxed">
+                            {faq.answer}
+                          </div>
+                          <span class="inline-block mt-2 text-[10px] font-medium bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
+                            {serviceLabel}
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            class="edit-faq-btn p-1 text-slate-400 hover:text-[#0b3c5d] transition"
+                            title="Edit FAQ"
+                            data-id={faq.id}
+                            data-service-id={faq.serviceId || "global"}
+                            data-question={faq.question}
+                            data-answer={faq.answer}
+                          >
+                            <PencilOutlineIcon class="w-4 h-4" />
+                          </button>
+                          <form
+                            method="POST"
+                            action="/admin/api/faq/delete"
+                            onsubmit="return confirm('Delete this FAQ permanently? This cannot be undone.');"
+                          >
+                            <input type="hidden" name="id" value={faq.id} />
+                            <button
+                              type="submit"
+                              class="p-1 text-slate-400 hover:text-red-600 transition"
+                              title="Delete FAQ"
+                            >
+                              <TrashCanOutlineIcon class="w-4 h-4" />
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            </section>
+          )}
 
-              <div class="grid gap-2.5 sm:grid-cols-3">
+          {/* ABA 5: TESTIMONIALS */}
+          {currentTab === "testimonials" && (
+            <section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+              <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+                Manage Testimonials
+              </h2>
+              <p class="text-[11px] text-slate-500 mb-4">
+                Create client reviews along with before & after project images,
+                or manage existing ones.
+              </p>
+
+              <form
+                id="testimonial-form"
+                method="POST"
+                action="/admin/api/testimonials"
+                enctype="multipart/form-data"
+                class="grid gap-3 mb-6"
+              >
+                <div
+                  id="testimonial-form-error"
+                  role="alert"
+                  class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
+                />
+                <input type="hidden" id="testimonial-id" name="id" value="" />
+
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    Client Name
+                    <input
+                      id="testimonial-client-name"
+                      name="clientName"
+                      type="text"
+                      required
+                      placeholder="e.g. John Doe"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+
+                  <div class="grid gap-1 text-xs text-slate-700">
+                    <span class="font-medium text-slate-700">
+                      Services Provided (Select 1 or more)
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-lg border border-slate-300 bg-slate-50/50 max-h-36 overflow-y-auto">
+                      {servicesData.map((s: any) => (
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-normal text-slate-700 hover:text-slate-900">
+                          <input
+                            type="checkbox"
+                            name="services"
+                            value={s.title}
+                            required
+                            class="testimonial-service-cb rounded border-slate-300 text-[#0b3c5d] focus:ring-[#0b3c5d]"
+                          />
+                          <span class="truncate">{s.title}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid gap-2.5 sm:grid-cols-3">
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    City
+                    <input
+                      id="testimonial-city"
+                      name="city"
+                      type="text"
+                      required
+                      placeholder="e.g. Titusville"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    State
+                    <input
+                      id="testimonial-state"
+                      name="state"
+                      type="text"
+                      required
+                      value="FL"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    Month / Year
+                    <input
+                      id="testimonial-date"
+                      name="date"
+                      type="month"
+                      required
+                      class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+                </div>
+
                 <label class="grid gap-1 text-xs text-slate-700">
-                  City
-                  <input
-                    id="testimonial-city"
-                    name="city"
-                    type="text"
+                  Testimonial Message
+                  <textarea
+                    id="testimonial-message"
+                    name="message"
+                    rows="3"
                     required
-                    placeholder="e.g. Titusville"
+                    placeholder="e.g. Excellent service! Our backyard looks incredible."
                     class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                   />
                 </label>
 
-                <label class="grid gap-1 text-xs text-slate-700">
-                  State
-                  <input
-                    id="testimonial-state"
-                    name="state"
-                    type="text"
-                    required
-                    value="FL"
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                  />
-                </label>
+                <div class="grid gap-2.5 sm:grid-cols-2">
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    <span id="label-before-image">Before Image</span>
+                    <input
+                      id="testimonial-before-image"
+                      type="file"
+                      name="beforeImage"
+                      accept="image/*"
+                      required
+                      class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
+                    />
+                  </label>
 
-                <label class="grid gap-1 text-xs text-slate-700">
-                  Month / Year
-                  <input
-                    id="testimonial-date"
-                    name="date"
-                    type="month"
-                    required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                  />
-                </label>
+                  <label class="grid gap-1 text-xs text-slate-700">
+                    <span id="label-after-image">After Image</span>
+                    <input
+                      id="testimonial-after-image"
+                      type="file"
+                      name="afterImage"
+                      accept="image/*"
+                      required
+                      class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
+                    />
+                  </label>
+                </div>
+
+                <div class="flex items-center gap-2 mt-2">
+                  <button
+                    type="submit"
+                    id="testimonial-submit-btn"
+                    class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
+                  >
+                    <PlusIcon class="w-3.5 h-3.5" />
+                    <span>Save Testimonial</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="testimonial-cancel-btn"
+                    class="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+
+              <div class="border-t border-slate-100 pt-4">
+                <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider mb-3">
+                  Existing Testimonials ({testimonialsData.length})
+                </h3>
+                <div class="grid gap-3">
+                  {testimonialsData.map((item: any) => {
+                    const servicesList = Array.isArray(item.services)
+                      ? item.services
+                      : [item.serviceType].filter(Boolean);
+                    const servicesDisplay =
+                      servicesList.join(", ") || "General";
+
+                    let monthValue = "";
+                    if (item.date) {
+                      monthValue = item.date.slice(0, 7);
+                    }
+
+                    return (
+                      <div class="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-slate-50/50 text-xs">
+                        <div class="grid gap-1">
+                          <div class="font-semibold text-slate-800">
+                            {item.clientName}{" "}
+                            <span class="text-slate-400 font-normal">
+                              ({item.city}, {item.state})
+                            </span>
+                          </div>
+                          <div class="text-[#328cc1] font-medium">
+                            {servicesDisplay}
+                          </div>
+                          <div class="text-slate-600 italic">
+                            "{item.message}"
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            class="edit-testimonial-btn p-1 text-slate-400 hover:text-[#0b3c5d] transition"
+                            title="Edit Testimonial"
+                            data-id={item.id}
+                            data-client-name={item.clientName}
+                            data-city={item.city}
+                            data-state={item.state}
+                            data-date={monthValue}
+                            data-message={item.message}
+                            data-services={JSON.stringify(servicesList)}
+                          >
+                            <PencilOutlineIcon class="w-4 h-4" />
+                          </button>
+                          <form
+                            method="POST"
+                            action="/admin/api/testimonials/delete"
+                            onsubmit="return confirm('Delete this testimonial permanently? This cannot be undone.');"
+                          >
+                            <input type="hidden" name="id" value={item.id} />
+                            <button
+                              type="submit"
+                              class="p-1 text-slate-400 hover:text-red-600 transition"
+                              title="Delete Testimonial"
+                            >
+                              <TrashCanOutlineIcon class="w-4 h-4" />
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            </section>
+          )}
+        </div>
+      ) : (
+        <section class="mx-auto mt-4 max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+          <h2 class="text-lg font-semibold text-[#0b3c5d]">Admin Login</h2>
+          <p class="mb-4 text-[11px] text-slate-500">
+            Sign in to manage the A-Plus landing content.
+          </p>
 
-              <label class="grid gap-1 text-xs text-slate-700">
-                Testimonial Message
-                <textarea
-                  id="testimonial-message"
-                  name="message"
-                  rows="3"
+          <form method="POST" action="/admin/api/login" class="grid gap-3">
+            <label class="grid gap-1 text-xs font-semibold text-slate-700">
+              Email
+              <input
+                name="username"
+                type="email"
+                required
+                autocomplete="email"
+                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-normal"
+              />
+            </label>
+            <label class="grid gap-1 text-xs font-semibold text-slate-700">
+              Password
+              <div class="relative">
+                <input
+                  name="password"
+                  id="password-input"
+                  type="password"
                   required
-                  placeholder="e.g. Excellent service! Our backyard looks incredible."
-                  class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                ></textarea>
-              </label>
-
-              <div class="grid gap-2.5 sm:grid-cols-2">
-                <label class="grid gap-1 text-xs text-slate-700">
-                  <span id="label-before-image">Before Image</span>
-                  <input
-                    id="testimonial-before-image"
-                    type="file"
-                    name="beforeImage"
-                    accept="image/*"
-                    required
-                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
-                  />
-                </label>
-
-                <label class="grid gap-1 text-xs text-slate-700">
-                  <span id="label-after-image">After Image</span>
-                  <input
-                    id="testimonial-after-image"
-                    type="file"
-                    name="afterImage"
-                    accept="image/*"
-                    required
-                    class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs"
-                  />
-                </label>
-              </div>
-
-              <div class="flex items-center gap-2 mt-2">
-                <button
-                  type="submit"
-                  id="testimonial-submit-btn"
-                  class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
-                >
-                  <PlusIcon class="w-3.5 h-3.5" />
-                  <span>Save Testimonial</span>
-                </button>
+                  autocomplete="current-password"
+                  class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 pr-9 text-xs font-normal"
+                />
                 <button
                   type="button"
-                  id="testimonial-cancel-btn"
-                  class="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  id="toggle-password-btn"
+                  aria-label="Show password"
+                  title="Show password"
+                  class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center text-slate-400 transition hover:text-slate-600"
                 >
-                  Cancel
+                  <EyeIcon id="eye-icon" class="h-4 w-4" />
+                  <EyeOffIcon id="eye-off-icon" class="hidden h-4 w-4" />
                 </button>
               </div>
-            </form>
+            </label>
+            <button
+              type="submit"
+              class="mt-1 flex items-center justify-center gap-1.5 rounded-full bg-[#328cc1] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#0b3c5d]"
+            >
+              <ContentSaveIcon class="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          </form>
 
-            <div class="border-t border-slate-100 pt-4">
-              <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider mb-3">
-                Existing Testimonials ({testimonialsData.length})
-              </h3>
-              <div class="grid gap-3">
-                {testimonialsData.map((item: any) => {
-                  const servicesList = Array.isArray(item.services) ? item.services : [item.serviceType].filter(Boolean);
-                  const servicesDisplay = servicesList.join(", ") || "General";
-                  
-                  // Formatação de data (AAAA-MM)
-                  let monthValue = "";
-                  if (item.date) {
-                    monthValue = item.date.slice(0, 7);
-                  }
-
-                  return (
-                    <div class="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 bg-slate-50/50 text-xs">
-                      <div class="grid gap-1">
-                        <div class="font-semibold text-slate-800">
-                          {item.clientName} <span class="text-slate-400 font-normal">({item.city}, {item.state})</span>
-                        </div>
-                        <div class="text-[#328cc1] font-medium">{servicesDisplay}</div>
-                        <div class="text-slate-600 italic">"{item.message}"</div>
-                      </div>
-                      <div class="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          class="edit-testimonial-btn p-1 text-slate-400 hover:text-[#0b3c5d] transition"
-                          title="Edit Testimonial"
-                          data-id={item.id}
-                          data-client-name={item.clientName}
-                          data-city={item.city}
-                          data-state={item.state}
-                          data-date={monthValue}
-                          data-message={item.message}
-                          data-services={JSON.stringify(servicesList)}
-                        >
-                          <PencilOutlineIcon class="w-4 h-4" />
-                        </button>
-                        <form method="POST" action="/admin/api/testimonials/delete">
-                          <input type="hidden" name="id" value={item.id} />
-                          <button
-                            type="submit"
-                            class="p-1 text-slate-400 hover:text-red-600 transition"
-                            title="Delete Testimonial"
-                          >
-                            <TrashCanOutlineIcon class="w-4 h-4" />
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          <div class="mt-4 grid gap-2.5">
+            <div class="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+              <span class="h-px flex-1 bg-slate-200" />
+              or
+              <span class="h-px flex-1 bg-slate-200" />
             </div>
-          </section>
-        )}
-      </div>
-    )}
+
+            <button
+              type="button"
+              id="google-signin-btn"
+              class="flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              <svg
+                class="w-4 h-4 shrink-0"
+                viewBox="0 0 48 48"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+              </svg>
+              <span>Sign in with Google</span>
+            </button>
+
+            <button
+              type="button"
+              id="forgot-password-btn"
+              class="w-full text-center text-[11px] font-semibold text-[#328cc1] transition hover:text-[#0b3c5d]"
+            >
+              Forgot Password?
+            </button>
+          </div>
+        </section>
+      )
+    }
   </main>
 </Layout>
 
 <script>
+  import { initializeApp, getApps, getApp } from "firebase/app";
+  import {
+    initializeAuth,
+    browserPopupRedirectResolver,
+    signInWithPopup,
+    GoogleAuthProvider,
+    sendPasswordResetEmail,
+    inMemoryPersistence,
+    type Auth,
+  } from "firebase/auth";
+
   document.addEventListener("DOMContentLoaded", () => {
-    // Logout Handler
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", async () => {
-        await fetch("/admin/api/logout", { method: "POST" });
-        window.location.href = "/admin";
+    // ===== Helpers de feedback visual (toast + estados de botão) =====
+    const toastContainer = document.getElementById("toast-container");
+
+    function showToast(message: string, type: "success" | "error" = "success") {
+      if (!toastContainer || !message) return;
+      const toast = document.createElement("div");
+      toast.className = `flex items-start gap-2 rounded-lg border px-4 py-3 text-xs font-medium shadow-sm ${
+        type === "success"
+          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+          : "border-red-200 bg-red-50 text-red-800"
+      }`;
+      toast.setAttribute("role", "status");
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      window.setTimeout(() => toast.remove(), 6000);
+    }
+
+    function getUrlMessage(url: string): string {
+      try {
+        return new URL(url).searchParams.get("message") || "";
+      } catch {
+        return "";
+      }
+    }
+
+    function isErrorMessage(message: string): boolean {
+      return /^(Error|Invalid|Please|Select|Upload|Fill|Authentication|Unauthorized|Missing|Failed)/i.test(
+        message.trim(),
+      );
+    }
+
+    function setButtonLoading(
+      button: HTMLButtonElement | null,
+      label: string = "Saving...",
+    ) {
+      if (!button) return;
+      const span = button.querySelector("span");
+      if (span) {
+        button.dataset.originalText = span.textContent || "";
+        span.textContent = label;
+      }
+      button.disabled = true;
+      button.classList.add("opacity-60", "cursor-not-allowed");
+    }
+
+    function restoreButton(button: HTMLButtonElement | null) {
+      if (!button) return;
+      button.disabled = false;
+      button.classList.remove("opacity-60", "cursor-not-allowed");
+      const span = button.querySelector("span");
+      if (span && button.dataset.originalText) {
+        span.textContent = button.dataset.originalText;
+      }
+    }
+
+    function hideError(box: HTMLElement | null) {
+      if (!box) return;
+      box.textContent = "";
+      box.classList.add("hidden");
+    }
+
+    function showError(box: HTMLElement | null, message: string) {
+      if (!box) return;
+      box.textContent = message;
+      box.classList.remove("hidden");
+    }
+
+    async function submitForm(
+      form: HTMLFormElement | null,
+      { errorBoxId = "", loadingLabel = "Saving..." } = {},
+    ) {
+      if (!form) return;
+      const submitBtn = form.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement | null;
+      const errorBox = errorBoxId ? document.getElementById(errorBoxId) : null;
+      hideError(errorBox);
+      setButtonLoading(submitBtn, loadingLabel);
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+        });
+
+        const message = getUrlMessage(response.url);
+        const failed = message ? isErrorMessage(message) : !response.ok;
+
+        if (failed) {
+          if (message) {
+            showError(errorBox, message);
+          } else {
+            let apiError = "";
+            try {
+              const json = await response.json();
+              apiError = json?.error || "";
+            } catch {
+              /* corpo não é JSON */
+            }
+            showError(
+              errorBox,
+              apiError || "Something went wrong. Please try again.",
+            );
+          }
+          restoreButton(submitBtn);
+          return;
+        }
+
+        showToast(message || "Saved successfully!", "success");
+        window.setTimeout(() => window.location.reload(), 900);
+      } catch (err) {
+        console.error("Form submission error:", err);
+        showError(
+          errorBox,
+          "Network error: unable to save. Please check your connection and try again.",
+        );
+        restoreButton(submitBtn);
+      }
+    }
+
+    document
+      .querySelectorAll<HTMLInputElement>('input[type="url"]')
+      .forEach((input) => {
+        if (input.value.trim() === "#") input.value = "";
+      });
+
+    const mainFormConfigs = [
+      {
+        id: "company-form",
+        errorId: "company-form-error",
+        loading: "Saving...",
+      },
+      {
+        id: "service-form",
+        errorId: "service-form-error",
+        loading: "Saving...",
+      },
+      {
+        id: "gallery-form",
+        errorId: "gallery-form-error",
+        loading: "Uploading...",
+      },
+      { id: "faq-form", errorId: "faq-form-error", loading: "Saving..." },
+      {
+        id: "testimonial-form",
+        errorId: "testimonial-form-error",
+        loading: "Saving...",
+      },
+    ];
+
+    mainFormConfigs.forEach(({ id, errorId, loading }) => {
+      const form = document.getElementById(id) as HTMLFormElement | null;
+      if (!form) return;
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        submitForm(form, { errorBoxId: errorId, loadingLabel: loading });
+      });
+    });
+
+    function getFirebaseConfig() {
+      const apiKey = import.meta.env.PUBLIC_FIREBASE_API_KEY;
+      const authDomain = import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN;
+      const projectId = import.meta.env.PUBLIC_FIREBASE_PROJECT_ID;
+      if (!apiKey || !authDomain || !projectId) return null;
+      return {
+        apiKey,
+        authDomain,
+        projectId,
+        storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
+      };
+    }
+
+    let cachedAuth: Auth | null = null;
+    try {
+      const config = getFirebaseConfig();
+      if (config) {
+        const app = getApps().length ? getApp() : initializeApp(config);
+        cachedAuth = initializeAuth(app, {
+          popupRedirectResolver: browserPopupRedirectResolver,
+          persistence: inMemoryPersistence,
+        });
+      }
+    } catch (error) {
+      console.error("Firebase client init error:", error);
+      cachedAuth = null;
+    }
+
+    const googleBtn = document.getElementById(
+      "google-signin-btn",
+    ) as HTMLButtonElement | null;
+    if (googleBtn) {
+      googleBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (!cachedAuth) {
+          showToast(
+            "Error: Firebase is not configured or unavailable.",
+            "error",
+          );
+          return;
+        }
+        setButtonLoading(googleBtn, "Signing in...");
+        signInWithPopup(cachedAuth, new GoogleAuthProvider())
+          .then(async (result) => {
+            try {
+              const idToken = await result.user.getIdToken();
+              const res = await fetch("/admin/api/auth-google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken }),
+              });
+              const data = await res.json();
+              if (!res.ok || !data?.success) {
+                throw new Error(data?.error || "Google sign-in failed");
+              }
+              window.location.href = "/admin?message=Login+successful";
+            } catch (error) {
+              console.error("Google sign-in exchange error:", error);
+              restoreButton(googleBtn);
+              const err = (error ?? {}) as { message?: string };
+              showToast(
+                `Error: ${err.message || "Google sign-in failed"}`,
+                "error",
+              );
+            }
+          })
+          .catch((error) => {
+            console.error("Google sign-in popup error:", error);
+            restoreButton(googleBtn);
+            const err = (error ?? {}) as { code?: string; message?: string };
+            if (
+              err.code === "auth/popup-closed-by-user" ||
+              err.code === "auth/cancelled-popup-request"
+            ) {
+              return;
+            }
+            if (err.code === "auth/popup-blocked") {
+              showToast(
+                "Error: Popup blocked. Allow pop-ups for this site and try again.",
+                "error",
+              );
+              return;
+            }
+            showToast(
+              `Error: ${err.message || "Google sign-in failed"}`,
+              "error",
+            );
+          });
       });
     }
 
-    // FAQ Filter Handler
-    const faqFilter = document.getElementById("faq-filter") as HTMLSelectElement | null;
+    const forgotBtn = document.getElementById(
+      "forgot-password-btn",
+    ) as HTMLButtonElement | null;
+    if (forgotBtn) {
+      forgotBtn.addEventListener("click", async (event) => {
+        event.preventDefault();
+        const emailInput = document.querySelector<HTMLInputElement>(
+          'input[name="username"]',
+        );
+        const email = emailInput?.value.trim() || "";
+        if (!email) {
+          showToast(
+            "Error: Enter your email address to reset your password.",
+            "error",
+          );
+          return;
+        }
+        if (!cachedAuth) {
+          showToast(
+            "Error: Firebase is not configured or unavailable.",
+            "error",
+          );
+          return;
+        }
+        setButtonLoading(forgotBtn, "Sending...");
+        try {
+          await sendPasswordResetEmail(cachedAuth, email);
+          restoreButton(forgotBtn);
+          showToast("Password reset email sent. Check your inbox.", "success");
+        } catch (error) {
+          console.error("Password reset error:", error);
+          restoreButton(forgotBtn);
+          const err = (error ?? {}) as { message?: string };
+          showToast(
+            `Error: ${err.message || "Could not send the password reset email"}`,
+            "error",
+          );
+        }
+      });
+    }
+
+    const togglePasswordBtn = document.getElementById(
+      "toggle-password-btn",
+    ) as HTMLButtonElement | null;
+    const passwordInput = document.getElementById(
+      "password-input",
+    ) as HTMLInputElement | null;
+    if (togglePasswordBtn && passwordInput) {
+      togglePasswordBtn.addEventListener("click", () => {
+        const show = passwordInput.type === "password";
+        passwordInput.type = show ? "text" : "password";
+        const eyeIcon = document.getElementById("eye-icon");
+        const eyeOffIcon = document.getElementById("eye-off-icon");
+        if (eyeIcon) eyeIcon.classList.toggle("hidden", !show);
+        if (eyeOffIcon) eyeOffIcon.classList.toggle("hidden", show);
+        togglePasswordBtn.setAttribute(
+          "aria-label",
+          show ? "Hide password" : "Show password",
+        );
+        togglePasswordBtn.setAttribute(
+          "title",
+          show ? "Hide password" : "Show password",
+        );
+      });
+    }
+
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        try {
+          await fetch("/admin/api/logout", { method: "POST" });
+        } catch (err) {
+          console.error("Logout error:", err);
+        }
+        window.location.href = "/admin?message=Logged+out+successfully";
+      });
+    }
+
+    const faqFilter = document.getElementById(
+      "faq-filter",
+    ) as HTMLSelectElement | null;
     if (faqFilter) {
       faqFilter.addEventListener("change", (e) => {
         const selected = (e.target as HTMLSelectElement).value;
@@ -928,11 +1528,18 @@ const tabs = [
       });
     }
 
-    // FAQ Edit Handler
-    const faqIdInput = document.getElementById("faq-id") as HTMLInputElement | null;
-    const faqServiceSelect = document.getElementById("faq-service-id") as HTMLSelectElement | null;
-    const faqQuestionInput = document.getElementById("faq-question") as HTMLInputElement | null;
-    const faqAnswerTextarea = document.getElementById("faq-answer") as HTMLTextAreaElement | null;
+    const faqIdInput = document.getElementById(
+      "faq-id",
+    ) as HTMLInputElement | null;
+    const faqServiceSelect = document.getElementById(
+      "faq-service-id",
+    ) as HTMLSelectElement | null;
+    const faqQuestionInput = document.getElementById(
+      "faq-question",
+    ) as HTMLInputElement | null;
+    const faqAnswerTextarea = document.getElementById(
+      "faq-answer",
+    ) as HTMLTextAreaElement | null;
     const faqSubmitBtn = document.getElementById("faq-submit-btn");
     const faqCancelBtn = document.getElementById("faq-cancel-btn");
 
@@ -941,7 +1548,8 @@ const tabs = [
       if (faqQuestionInput) faqQuestionInput.value = "";
       if (faqAnswerTextarea) faqAnswerTextarea.value = "";
       if (faqServiceSelect) faqServiceSelect.value = "global";
-      if (faqSubmitBtn) faqSubmitBtn.querySelector("span")!.textContent = "Add FAQ Item";
+      if (faqSubmitBtn)
+        faqSubmitBtn.querySelector("span")!.textContent = "Add FAQ Item";
       if (faqCancelBtn) faqCancelBtn.classList.add("hidden");
     }
 
@@ -957,7 +1565,8 @@ const tabs = [
         if (faqQuestionInput) faqQuestionInput.value = question;
         if (faqAnswerTextarea) faqAnswerTextarea.value = answer;
 
-        if (faqSubmitBtn) faqSubmitBtn.querySelector("span")!.textContent = "Update FAQ Item";
+        if (faqSubmitBtn)
+          faqSubmitBtn.querySelector("span")!.textContent = "Update FAQ Item";
         if (faqCancelBtn) faqCancelBtn.classList.remove("hidden");
 
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -966,15 +1575,30 @@ const tabs = [
 
     if (faqCancelBtn) faqCancelBtn.addEventListener("click", resetFaqForm);
 
-    // Testimonial Edit Handler
-    const testIdInput = document.getElementById("testimonial-id") as HTMLInputElement | null;
-    const testNameInput = document.getElementById("testimonial-client-name") as HTMLInputElement | null;
-    const testCityInput = document.getElementById("testimonial-city") as HTMLInputElement | null;
-    const testStateInput = document.getElementById("testimonial-state") as HTMLInputElement | null;
-    const testDateInput = document.getElementById("testimonial-date") as HTMLInputElement | null;
-    const testMessageTextarea = document.getElementById("testimonial-message") as HTMLTextAreaElement | null;
-    const testBeforeImg = document.getElementById("testimonial-before-image") as HTMLInputElement | null;
-    const testAfterImg = document.getElementById("testimonial-after-image") as HTMLInputElement | null;
+    const testIdInput = document.getElementById(
+      "testimonial-id",
+    ) as HTMLInputElement | null;
+    const testNameInput = document.getElementById(
+      "testimonial-client-name",
+    ) as HTMLInputElement | null;
+    const testCityInput = document.getElementById(
+      "testimonial-city",
+    ) as HTMLInputElement | null;
+    const testStateInput = document.getElementById(
+      "testimonial-state",
+    ) as HTMLInputElement | null;
+    const testDateInput = document.getElementById(
+      "testimonial-date",
+    ) as HTMLInputElement | null;
+    const testMessageTextarea = document.getElementById(
+      "testimonial-message",
+    ) as HTMLTextAreaElement | null;
+    const testBeforeImg = document.getElementById(
+      "testimonial-before-image",
+    ) as HTMLInputElement | null;
+    const testAfterImg = document.getElementById(
+      "testimonial-after-image",
+    ) as HTMLInputElement | null;
     const labelBefore = document.getElementById("label-before-image");
     const labelAfter = document.getElementById("label-after-image");
     const testSubmitBtn = document.getElementById("testimonial-submit-btn");
@@ -987,17 +1611,20 @@ const tabs = [
       if (testStateInput) testStateInput.value = "";
       if (testDateInput) testDateInput.value = "";
       if (testMessageTextarea) testMessageTextarea.value = "";
-      
-      document.querySelectorAll(".testimonial-service-cb").forEach((cb) => {
-        (cb as HTMLInputElement).checked = false;
-      });
+
+      document
+        .querySelectorAll<HTMLInputElement>(".testimonial-service-cb")
+        .forEach((cb) => {
+          cb.checked = false;
+        });
 
       if (testBeforeImg) testBeforeImg.setAttribute("required", "true");
       if (testAfterImg) testAfterImg.setAttribute("required", "true");
       if (labelBefore) labelBefore.textContent = "Before Image";
       if (labelAfter) labelAfter.textContent = "After Image";
 
-      if (testSubmitBtn) testSubmitBtn.querySelector("span")!.textContent = "Save Testimonial";
+      if (testSubmitBtn)
+        testSubmitBtn.querySelector("span")!.textContent = "Save Testimonial";
       if (testCancelBtn) testCancelBtn.classList.add("hidden");
     }
 
@@ -1018,33 +1645,49 @@ const tabs = [
         if (testDateInput) testDateInput.value = date;
         if (testMessageTextarea) testMessageTextarea.value = message;
 
-        document.querySelectorAll(".testimonial-service-cb").forEach((cb) => {
-          const input = cb as HTMLInputElement;
-          input.checked = services.includes(input.value);
-        });
+        document
+          .querySelectorAll<HTMLInputElement>(".testimonial-service-cb")
+          .forEach((input) => {
+            input.checked = services.includes(input.value);
+          });
 
-        // Opcional no modo edição
         if (testBeforeImg) testBeforeImg.removeAttribute("required");
         if (testAfterImg) testAfterImg.removeAttribute("required");
-        if (labelBefore) labelBefore.textContent = "Before Image (Optional on edit)";
-        if (labelAfter) labelAfter.textContent = "After Image (Optional on edit)";
+        if (labelBefore)
+          labelBefore.textContent = "Before Image (Optional on edit)";
+        if (labelAfter)
+          labelAfter.textContent = "After Image (Optional on edit)";
 
-        if (testSubmitBtn) testSubmitBtn.querySelector("span")!.textContent = "Update Testimonial";
+        if (testSubmitBtn)
+          testSubmitBtn.querySelector("span")!.textContent =
+            "Update Testimonial";
         if (testCancelBtn) testCancelBtn.classList.remove("hidden");
 
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
     });
 
-    if (testCancelBtn) testCancelBtn.addEventListener("click", resetTestimonialForm);
+    if (testCancelBtn)
+      testCancelBtn.addEventListener("click", resetTestimonialForm);
 
-    // Services Tab Handlers
-    const serviceSelect = document.getElementById("service-select") as HTMLSelectElement | null;
-    const hiddenIdInput = document.getElementById("svc-id-hidden") as HTMLInputElement | null;
-    const titleInput = document.getElementById("svc-title") as HTMLInputElement | null;
-    const subtitleInput = document.getElementById("svc-subtitle") as HTMLInputElement | null;
-    const shortDescInput = document.getElementById("svc-short-description") as HTMLInputElement | null;
-    const descTextarea = document.getElementById("svc-description") as HTMLTextAreaElement | null;
+    const serviceSelect = document.getElementById(
+      "service-select",
+    ) as HTMLSelectElement | null;
+    const hiddenIdInput = document.getElementById(
+      "svc-id-hidden",
+    ) as HTMLInputElement | null;
+    const titleInput = document.getElementById(
+      "svc-title",
+    ) as HTMLInputElement | null;
+    const subtitleInput = document.getElementById(
+      "svc-subtitle",
+    ) as HTMLInputElement | null;
+    const shortDescInput = document.getElementById(
+      "svc-short-description",
+    ) as HTMLInputElement | null;
+    const descTextarea = document.getElementById(
+      "svc-description",
+    ) as HTMLTextAreaElement | null;
     const bulletContainer = document.getElementById("bullet-points-container");
     const addBulletBtn = document.getElementById("add-bullet-btn");
 
@@ -1057,11 +1700,13 @@ const tabs = [
       input.type = "text";
       input.name = "bulletPoints[]";
       input.value = value;
-      input.className = "w-full rounded-lg border border-slate-300 px-3 py-1 text-xs";
+      input.className =
+        "w-full rounded-lg border border-slate-300 px-3 py-1 text-xs";
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
-      removeBtn.className = "text-red-500 hover:text-red-700 p-1 text-xs font-bold";
+      removeBtn.className =
+        "text-red-500 hover:text-red-700 p-1 text-xs font-bold";
       removeBtn.innerHTML = "✕";
       removeBtn.onclick = () => wrapper.remove();
 
@@ -1089,29 +1734,36 @@ const tabs = [
 
         if (hiddenIdInput) hiddenIdInput.value = opt.value;
         if (titleInput) titleInput.value = opt.getAttribute("data-title") || "";
-        if (subtitleInput) subtitleInput.value = opt.getAttribute("data-subtitle") || "";
-        if (shortDescInput) shortDescInput.value = opt.getAttribute("data-shortdescription") || "";
-        if (descTextarea) descTextarea.value = opt.getAttribute("data-description") || "";
+        if (subtitleInput)
+          subtitleInput.value = opt.getAttribute("data-subtitle") || "";
+        if (shortDescInput)
+          shortDescInput.value =
+            opt.getAttribute("data-shortdescription") || "";
+        if (descTextarea)
+          descTextarea.value = opt.getAttribute("data-description") || "";
 
         if (bulletContainer) {
           bulletContainer.innerHTML = "";
           try {
-            const bullets = JSON.parse(opt.getAttribute("data-bulletpoints") || "[]");
-            bullets.forEach((b: string) => addBulletInput(b));
+            const highlights = JSON.parse(
+              opt.getAttribute("data-highlights") || "[]",
+            );
+            highlights.forEach((h: string) => addBulletInput(h));
           } catch (err) {
-            console.error("Error parsing bullet points:", err);
+            console.error("Error parsing highlights:", err);
           }
         }
       });
     }
 
-    // Custom File Input Preview Handler
     const fileInputs = document.querySelectorAll(".fn-file-input");
     fileInputs.forEach((input) => {
       const container = input.closest("label");
       if (!container) return;
 
-      const previewImg = container.querySelector(".fn-preview-img") as HTMLImageElement | null;
+      const previewImg = container.querySelector(
+        ".fn-preview-img",
+      ) as HTMLImageElement | null;
       const placeholderBox = container.querySelector(".fn-placeholder-box");
       const filenameText = container.querySelector(".fn-filename-text");
 

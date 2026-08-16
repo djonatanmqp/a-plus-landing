@@ -1,11 +1,24 @@
-import servicesData from "../data/services.json";
+import { getServicesData } from "../lib/firebase-admin";
 
 export async function GET({ request }: { request: Request }) {
   const baseUrl = process.env.SITE_URL || new URL(request.url).origin;
+
+  let servicesData: Array<{ id: string }> = [];
+  try {
+    const fetchedServices = await getServicesData();
+    if (Array.isArray(fetchedServices)) {
+      servicesData = fetchedServices;
+    }
+  } catch (error) {
+    console.error("Erro ao carregar serviços para o sitemap:", error);
+  }
+
   const urls = [
     `${baseUrl}/`,
     `${baseUrl}/services`,
-    ...servicesData.map((service) => `${baseUrl}/services/${service.id}`),
+    ...servicesData
+      .filter((service) => service && service.id)
+      .map((service) => `${baseUrl}/services/${service.id}`),
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
