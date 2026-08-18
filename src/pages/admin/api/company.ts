@@ -1,31 +1,11 @@
 // src/pages/admin/api/company.ts
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
-import { getFirestore } from "firebase-admin/firestore";
-
-type JsonObject = Record<string, unknown>;
-
-function isPlainObject(value: unknown): value is JsonObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-// A2/A3 — Deep merge recursivo: preserva campos aninhados (contact/address/links)
-// que não são editados pelo formulário (ex.: whatsapp, googleMapsEmbed).
-function deepMerge(base: JsonObject, override: JsonObject): JsonObject {
-  const result: JsonObject = { ...base };
-  for (const [key, value] of Object.entries(override)) {
-    const current = result[key];
-    if (isPlainObject(value) && isPlainObject(current)) {
-      result[key] = deepMerge(current, value);
-    } else if (value !== undefined) {
-      result[key] = value;
-    }
-  }
-  return result;
-}
+import { supabase } from "../../../lib/supabase.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
+  
   if (!validateAdminToken(token)) {
     return redirect("/admin?message=Unauthorized", 303);
   }
@@ -33,13 +13,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   try {
     const formData = await request.formData();
 
-    const db = getFirestore();
-    const companyRef = db.collection("settings").doc("company");
-
-    // Dados enviados pelo formulário (objetos aninhados parciais)
-    const formDataObj: JsonObject = {
+    // Construção dos dados seguindo a estrutura esperada pelo Supabase
+    const updateData = {
+      id: "company", // Garante que o upsert sempre afete o mesmo registro
       name: formData.get("name")?.toString().trim() || "",
       tagline: formData.get("tagline")?.toString().trim() || "",
+      description: formData.get("description")?.toString().trim() || "",
       address: {
         street: formData.get("street")?.toString().trim() || "",
         city: formData.get("city")?.toString().trim() || "",
@@ -61,21 +40,23 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
         googleReview: formData.get("googleReview")?.toString().trim() || "",
         googleMapsEmbed: formData.get("googleMapsEmbed")?.toString().trim() || "",
       },
-      updatedAt: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
-    // Lê o documento atual e faz deep merge para nunca sobrescrever campos
-    // desconhecidos que existem apenas no Firestore.
-    const docSnap = await companyRef.get();
-    const currentData: JsonObject = (docSnap.exists ? docSnap.data() : {}) ?? {};
-    const updateData = deepMerge(currentData, formDataObj);
+    // Upsert no Supabase
+    const { error: upsertError } = await supabase
+      .from("settings")
+      .upsert(updateData, { onConflict: "id" });
 
-    await companyRef.set(updateData, { merge: true });
+    if (upsertError) {
+      throw new Error(upsertError.message);
+    }
 
     return redirect("/admin?tab=company&message=Company+settings+saved+successfully.", 303);
+    
   } catch (error: unknown) {
     console.error("Error updating company settings:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return redirect(
       `/admin?tab=company&message=${encodeURIComponent("Error: " + errorMessage)}`,
       303

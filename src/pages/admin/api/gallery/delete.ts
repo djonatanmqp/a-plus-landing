@@ -1,7 +1,7 @@
 // src/pages/admin/api/gallery/delete.ts
 import type { APIRoute } from "astro";
-import { getFirestore } from "firebase-admin/firestore";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin.ts";
+import { supabase } from "../../../../lib/supabase.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -18,19 +18,58 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirect("/admin?tab=galleries&message=Missing+required+fields", 303);
     }
 
-    const db = getFirestore();
-    const serviceRef = db.collection("services").doc(serviceId);
-    const doc = await serviceRef.get();
+    // 1. Busca o serviço atual no Supabase
+    const { data: service, error: fetchError } = await supabase
+      .from("services")
+      .select("images")
+      .eq("id", serviceId)
+      .single();
 
-    if (doc.exists) {
-      const data = doc.data();
-      const currentGallery: string[] = data?.galleryImages || [];
+    if (fetchError) {
+      throw new Error(fetchError.message);
+    }
+
+    if (service) {
+      const currentGallery: string[] = service.images || [];
       const updatedGallery = currentGallery.filter((url) => url !== imageUrl);
 
-      await serviceRef.update({
-        galleryImages: updatedGallery,
-        updatedAt: new Date().toISOString(),
-      });
+      // 2. Atualiza o array filtrado no banco de dados
+      const { error: updateError } = await supabase
+        .from("services")
+        .update({
+          images: updatedGallery,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", serviceId);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      // 3. Deleta o arquivo do Supabase Storage
+      try {
+        // A URL pública do Supabase costuma ser algo como: 
+        // https://<project>.supabase.co/storage/v1/object/public/images/gallery/123/file.webp
+        // Precisamos extrair a parte após o nome do bucket ('images/')
+        const urlObj = new URL(imageUrl);
+        const pathParts = urlObj.pathname.split("/public/images/");
+        
+        if (pathParts.length > 1) {
+          const filePath = pathParts[1]; // Ex: gallery/123/file.webp
+          
+          const { error: storageError } = await supabase.storage
+            .from("images")
+            .remove([filePath]);
+
+          if (storageError) {
+            console.error("Warning: Could not delete file from storage:", storageError.message);
+          }
+        }
+      } catch (storageErr) {
+        console.error("Error parsing image URL for deletion:", storageErr);
+        // Não interrompe o fluxo principal caso a exclusão do storage falhe, 
+        // mas o registro já foi removido do banco.
+      }
     }
 
     return redirect("/admin?tab=galleries&message=Image+deleted+successfully", 303);

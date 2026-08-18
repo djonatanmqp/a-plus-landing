@@ -1,0 +1,149 @@
+---
+// src/components/admin/FaqTab.astro
+import ContentSaveIcon from "~icons/mdi/content-save";
+import PencilIcon from "~icons/mdi/pencil";
+import PlusIcon from "~icons/mdi/plus";
+import DeleteIcon from "~icons/mdi/delete";
+
+const { faqs = [], services = [] } = Astro.props;
+const selectedServiceId = Astro.url.searchParams.get("service_id") ?? "";
+
+// Filtra os FAQs com base no serviço selecionado (vazio/global ou ID específico)
+const filteredFaqs = selectedServiceId === "" 
+  ? faqs.filter((f: any) => !f.service_id) 
+  : faqs.filter((f: any) => f.service_id === selectedServiceId);
+---
+
+<section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 border-b pb-3">
+    <div>
+      <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d]">FAQs Management</h2>
+      <p class="text-xs text-slate-500">Manage questions for the home page (Global) or specific services.</p>
+    </div>
+
+    {/* Seletor de Serviço (Dropdown) com opção Global e os serviços */}
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <select
+        id="faq-service-selector"
+        class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white text-slate-800 font-medium focus:outline-none flex-1 sm:w-64"
+        onchange="window.location.href = `/admin?tab=faq&service_id=${this.value}`"
+      >
+        <option value="" selected={selectedServiceId === ""}>Global (Home Page)</option>
+        {services.map((s: any) => (
+          <option value={s.id} selected={s.id === selectedServiceId}>
+            {s.title}
+          </option>
+        ))}
+      </select>
+
+      <button
+        type="button"
+        id="open-new-faq-modal"
+        class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2570a2] whitespace-nowrap"
+      >
+        <PlusIcon class="w-4 h-4" /> New FAQ
+      </button>
+    </div>
+  </div>
+
+  {/* Formulário para Adicionar Novo FAQ */}
+  <form
+    id="new-faq-form"
+    method="POST"
+    action="/admin/api/faq"
+    class="hidden mb-6 rounded-xl border border-slate-300 bg-slate-50 p-4 gap-3 shadow-inner"
+  >
+    <input type="hidden" name="action" value="create" />
+    <input type="hidden" name="service_id" value={selectedServiceId} />
+    
+    <div class="flex items-center justify-between">
+      <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">
+        Create New FAQ {selectedServiceId === "" ? "(Global / Home)" : "for Selected Service"}
+      </h3>
+      <button type="button" id="close-new-faq" class="text-xs text-slate-500 hover:text-slate-800 font-bold">✕ Cancel</button>
+    </div>
+
+    <label class="grid gap-1 text-xs font-semibold text-slate-700">
+      Question *
+      <input type="text" name="question" required placeholder="Type the question..." class="rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none" />
+    </label>
+
+    <label class="grid gap-1 text-xs font-semibold text-slate-700">
+      Answer *
+      <textarea name="answer" required rows="3" placeholder="Type the answer..." class="rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none"></textarea>
+    </label>
+
+    <div class="flex justify-end pt-2">
+      <button type="submit" class="flex items-center gap-1 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+        <PlusIcon class="w-4 h-4" /> Save & Create FAQ
+      </button>
+    </div>
+  </form>
+
+  {/* Listagem de FAQs Filtrados */}
+  <div class="grid gap-3">
+    {filteredFaqs.length === 0 ? (
+      <p class="text-xs text-slate-400 italic py-6 text-center">No FAQs found for this context. Click "New FAQ" to add one.</p>
+    ) : (
+      filteredFaqs.map((faq: any) => (
+        <form method="POST" action="/admin/api/faq" class="grid gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <input type="hidden" name="action" value="update" />
+          <input type="hidden" name="id" value={faq.id} />
+          <input type="hidden" name="service_id" value={selectedServiceId} />
+
+          <div class="grid gap-2 sm:grid-cols-1">
+            <input
+              type="text"
+              name="question"
+              value={faq.question || ""}
+              required
+              class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white font-semibold text-slate-800 focus:outline-none"
+            />
+            <textarea
+              name="answer"
+              rows="2"
+              required
+              class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white text-slate-600 focus:outline-none"
+            >{faq.answer || ""}</textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-1">
+            <button
+              type="submit"
+              name="action"
+              value="update"
+              class="flex items-center gap-1 rounded-lg bg-[#0b3c5d] px-3 py-1 text-xs text-white hover:bg-[#2570a2]"
+            >
+              <ContentSaveIcon class="w-3.5 h-3.5" /> Save
+            </button>
+
+            <button
+              type="submit"
+              name="action"
+              value="delete"
+              class="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
+              onclick="return confirm('Delete this FAQ?');"
+            >
+              <DeleteIcon class="w-3.5 h-3.5" /> Delete
+            </button>
+          </div>
+        </form>
+      ))
+    )}
+  </div>
+</section>
+
+<script>
+  const openNewFaqBtn = document.getElementById("open-new-faq-modal");
+  const closeNewFaqBtn = document.getElementById("close-new-faq");
+  const newFaqForm = document.getElementById("new-faq-form");
+
+  if (openNewFaqBtn && newFaqForm && closeNewFaqBtn) {
+    openNewFaqBtn.addEventListener("click", () => {
+      newFaqForm.classList.toggle("hidden");
+    });
+    closeNewFaqBtn.addEventListener("click", () => {
+      newFaqForm.classList.add("hidden");
+    });
+  }
+</script>

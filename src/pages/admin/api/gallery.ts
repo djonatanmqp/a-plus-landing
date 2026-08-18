@@ -1,8 +1,8 @@
+// src/pages/admin/api/gallery.ts
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
-import { uploadAndCommitImage } from "../../../lib/github-storage.ts";
 import { validateImage } from "../../../lib/image-optimizer.ts";
-import { adminDb } from "../../../lib/firebase-server.ts";
+import { supabase } from "../../../lib/supabase.ts"; // Usando o cliente padrão
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -18,60 +18,67 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return redirect("/admin?tab=galleries&message=Please+select+a+service", 303);
   }
 
-  // Filtra apenas arquivos válidos e preenchidos
   const validFiles = galleryFiles.filter((file) => file && file instanceof File && file.size > 0);
-
   if (validFiles.length === 0) {
     return redirect("/admin?tab=galleries&message=Error:+No+images+selected", 303);
   }
 
-  // Validação de formato e tamanho (máx 5MB e formatos aceitos) para cada imagem
   for (const file of validFiles) {
     if (!validateImage(file)) {
-      return redirect(
-        "/admin?tab=galleries&message=Error:+Invalid+image+format+or+size+exceeds+5MB",
-        303
-      );
+      return redirect("/admin?tab=galleries&message=Error:+Invalid+image+format", 303);
     }
   }
 
   try {
     const uploadedImageUrls: string[] = [];
-    const targetFolder = `public/assets/services/${serviceId}`;
+    
+    // 1. Busca o array atual no banco
+    const { data: service, error: fetchError } = await supabase
+      .from("services")
+      .select("images")
+      .eq("id", serviceId)
+      .single();
 
-    const serviceRef = adminDb.collection("services").doc(serviceId);
-    const doc = await serviceRef.get();
-    const currentGallery = doc.exists ? doc.data()?.galleryImages || [] : [];
+    if (fetchError) throw fetchError;
+    const currentGallery: string[] = service?.images || [];
 
-    for (let i = 0; i < validFiles.length; i++) {
-      const file = validFiles[i];
-      const buffer = Buffer.from(await file.arrayBuffer());
-
-      // Gera nome único usando timestamp para evitar colisões e sobrescritas (A-3)
+    // 2. Upload para o Supabase Storage
+    for (const file of validFiles) {
       const timestamp = Date.now();
-      const filename = `gallery-${timestamp}-${i + 1}`;
-      
-      const relativeUrl = await uploadAndCommitImage(buffer, targetFolder, filename);
-      uploadedImageUrls.push(relativeUrl);
+      const fileName = `gallery/${serviceId}/${timestamp}-${file.name.replace(/\s+/g, '-')}`;
+
+      // Upload do arquivo
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("images") // Substitua pelo nome do seu bucket no Supabase
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Pegar URL pública
+      const { data: publicUrlData } = supabase.storage
+        .from("images")
+        .getPublicUrl(uploadData.path);
+
+      uploadedImageUrls.push(publicUrlData.publicUrl);
     }
 
-    if (uploadedImageUrls.length > 0) {
-      await serviceRef.set(
-        {
-          galleryImages: [...currentGallery, ...uploadedImageUrls],
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
-    }
+    // 3. Atualizar o banco com as novas URLs
+    const { error: updateError } = await supabase
+      .from("services")
+      .update({
+        images: [...currentGallery, ...uploadedImageUrls],
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", serviceId);
+
+    if (updateError) throw updateError;
 
     return redirect("/admin?tab=galleries&message=Gallery+updated+successfully", 303);
-  } catch (error: unknown) {
-    console.error("Error uploading gallery images:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return redirect(
-      `/admin?tab=galleries&message=${encodeURIComponent("Error: " + errorMessage)}`,
-      303
-    );
+  } catch (error: any) {
+    console.error("Error uploading to Supabase Storage:", error);
+    return redirect(`/admin?tab=galleries&message=${encodeURIComponent("Error: " + error.message)}`, 303);
   }
 };

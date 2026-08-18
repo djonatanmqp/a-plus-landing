@@ -1,7 +1,7 @@
 // src/pages/admin/api/testimonials/delete.ts
 import type { APIRoute } from "astro";
-import { getFirestore } from "firebase-admin/firestore";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin.ts";
+import { supabase } from "../../../../lib/supabase.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -17,8 +17,14 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirect("/admin?tab=testimonials&message=Invalid+ID", 303);
     }
 
-    const db = getFirestore();
-    await db.collection("testimonials").doc(id).delete();
+    const { error: deleteError } = await supabase
+      .from("testimonials")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
 
     return redirect("/admin?tab=testimonials&message=Testimonial+deleted+successfully!", 303);
   } catch (error: any) {

@@ -8,6 +8,7 @@ import {
   recordLoginAttempt,
   getLoginAttemptInfo,
 } from "../../../lib/admin";
+import { supabase } from "../../../lib/supabase.js";
 
 export async function POST({ request, cookies, redirect }: APIContext) {
   try {
@@ -16,14 +17,13 @@ export async function POST({ request, cookies, redirect }: APIContext) {
     const password = formData.get("password")?.toString();
 
     if (!email || !password) {
-      // A1 — mensagens de erro sempre prefixadas com "Error:"
       return redirect(
         `/admin?message=${encodeURIComponent("Error: Email and password are required")}`,
         303
       );
     }
 
-    // C2 — Rate limiting por IP + e-mail para bloquear ataques de força bruta
+    // Rate limiting por IP + e-mail para bloquear ataques de força bruta
     const clientIp =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const rateLimitKey = `${clientIp}:${email.toLowerCase()}`;
@@ -38,32 +38,14 @@ export async function POST({ request, cookies, redirect }: APIContext) {
       );
     }
 
-    // Autentica as credenciais na REST API do Firebase Auth
-    const apiKey = import.meta.env.PUBLIC_FIREBASE_API_KEY;
-
-    if (!apiKey) {
-      return redirect(
-        `/admin?message=${encodeURIComponent("Error: Firebase is not configured on the server.")}`,
-        303
-      );
-    }
-
-    const firebaseUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
-
-    const response = await fetch(firebaseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password,
-        returnSecureToken: true,
-      }),
+    // Autentica as credenciais via Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Firebase Auth error:", data);
+    if (error || !data.user || !data.user.email) {
+      console.error("Supabase Auth error:", error);
       recordLoginAttempt(rateLimitKey, false);
       return redirect(
         `/admin?message=${encodeURIComponent("Error: Invalid email or password.")}`,
@@ -71,9 +53,11 @@ export async function POST({ request, cookies, redirect }: APIContext) {
       );
     }
 
-    // C1 — Allowlist: somente e-mails autorizados recebem cookie de sessão
-    if (!isAdminEmail(data.email)) {
-      console.error("Unauthorized admin login attempt:", data.email);
+    const userEmail = data.user.email.toLowerCase();
+
+    // Allowlist: somente e-mails autorizados recebem cookie de sessão
+    if (!isAdminEmail(userEmail)) {
+      console.error("Unauthorized admin login attempt:", userEmail);
       recordLoginAttempt(rateLimitKey, false);
       return redirect(
         `/admin?message=${encodeURIComponent(
@@ -86,7 +70,7 @@ export async function POST({ request, cookies, redirect }: APIContext) {
     recordLoginAttempt(rateLimitKey, true);
 
     // Gera o token/sessão do admin
-    const token = createAdminToken(data.email);
+    const token = createAdminToken(userEmail);
 
     // Grava o cookie HTTP de sessão no Astro
     cookies.set(SESSION_COOKIE_NAME, token, {

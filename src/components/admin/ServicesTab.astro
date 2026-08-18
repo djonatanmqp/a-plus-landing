@@ -1,0 +1,253 @@
+---
+// src/components/admin/ServicesTab.astro
+import ContentSaveIcon from "~icons/mdi/content-save";
+import PencilIcon from "~icons/mdi/pencil";
+import PlusIcon from "~icons/mdi/plus";
+import DeleteIcon from "~icons/mdi/delete";
+import CloudUploadIcon from "~icons/mdi/cloud-upload";
+
+const { services = [] } = Astro.props;
+const selectedId = Astro.url.searchParams.get("service_id") || (services[0]?.id ?? "");
+const selectedService = services.find((s: any) => s.id === selectedId) || services[0] || null;
+
+const highlights = Array.isArray(selectedService?.highlights) ? selectedService.highlights : [];
+---
+
+<section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 border-b pb-3">
+    <div>
+      <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d]">Services Management</h2>
+      <p class="text-xs text-slate-500">Select a service to edit its details, images, and highlights.</p>
+    </div>
+
+    <!-- Seletor de Serviço (Dropdown) com opção padrão -->
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <select
+        id="service-selector"
+        class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white text-slate-800 font-medium focus:outline-none flex-1 sm:w-64"
+        onchange="window.location.href = `/admin?tab=services&service_id=${this.value}`"
+      >
+        <option value="" disabled selected={!selectedId}>Select a service...</option>
+        {services.length === 0 ? (
+          <option value="" disabled>No services available</option>
+        ) : (
+          services.map((s: any) => (
+            <option value={s.id} selected={s.id === selectedService?.id}>
+              {s.title}
+            </option>
+          ))
+        )}
+      </select>
+
+      <button
+        type="button"
+        id="open-new-service-modal"
+        class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2570a2] whitespace-nowrap"
+      >
+        <PlusIcon class="w-4 h-4" /> New Service
+      </button>
+    </div>
+  </div>
+
+  {/* Formulário para Adicionar Novo Serviço */}
+  <form
+    id="new-service-form"
+    method="POST"
+    action="/admin/api/services"
+    class="hidden mb-6 rounded-xl border border-slate-300 bg-slate-50 p-4 gap-3 shadow-inner"
+  >
+    <input type="hidden" name="action" value="create" />
+    <div class="flex items-center justify-between">
+      <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Create New Service</h3>
+      <button type="button" id="close-new-service" class="text-xs text-slate-500 hover:text-slate-800 font-bold">✕ Cancel</button>
+    </div>
+    <div class="grid gap-2 sm:grid-cols-3">
+      <label class="grid gap-1 text-xs font-semibold text-slate-700 sm:col-span-2">
+        Title *
+        <input type="text" name="title" required placeholder="Service Title" class="rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none" />
+      </label>
+      <label class="grid gap-1 text-xs font-semibold text-slate-700">
+        Display Order
+        <input type="number" name="display_order" placeholder="0" value="0" class="rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none" />
+      </label>
+    </div>
+    <div class="grid gap-2 sm:grid-cols-2">
+      <label class="grid gap-1 text-xs font-semibold text-slate-700">
+        Subtitle
+        <input type="text" name="subtitle" placeholder="Service Subtitle" class="rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none" />
+      </label>
+      <label class="grid gap-1 text-xs font-semibold text-slate-700">
+        Short Description
+        <input type="text" name="short_description" placeholder="Brief summary..." class="rounded-lg border border-slate-300 px-3 py-2 text-xs bg-white focus:outline-none" />
+      </label>
+    </div>
+    <div class="flex justify-end pt-2">
+      <button type="submit" class="flex items-center gap-1 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+        <PlusIcon class="w-4 h-4" /> Save & Create Service
+      </button>
+    </div>
+  </form>
+
+  {/* Formulário de Edição do Serviço Selecionado */}
+  {selectedService ? (
+    <form method="POST" action="/admin/api/services" class="grid gap-5" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="update" />
+      <input type="hidden" name="id" value={selectedService.id} />
+
+      <div class="grid gap-3 sm:grid-cols-3">
+        <label class="grid gap-1 text-xs font-semibold text-slate-700 sm:col-span-2">
+          Title
+          <input type="text" name="title" value={selectedService.title || ""} required class="rounded-lg border border-slate-300 px-3 py-2 text-xs focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Display Order
+          <input type="number" name="display_order" value={selectedService.display_order ?? 0} class="rounded-lg border border-slate-300 px-3 py-2 text-xs focus:outline-none" />
+        </label>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Subtitle
+          <input type="text" name="subtitle" value={selectedService.subtitle || ""} class="rounded-lg border border-slate-300 px-3 py-2 text-xs focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Short Description
+          <input type="text" name="short_description" value={selectedService.short_description || ""} class="rounded-lg border border-slate-300 px-3 py-2 text-xs focus:outline-none" />
+        </label>
+      </div>
+
+      <label class="grid gap-1 text-xs font-semibold text-slate-700">
+        Full Description
+        <textarea name="description" rows="3" class="rounded-lg border border-slate-300 px-3 py-2 text-xs focus:outline-none">{selectedService.description || ""}</textarea>
+      </label>
+
+      {/* Áreas de Upload Compactas para Cover e Hero Image */}
+      <div class="grid gap-4 sm:grid-cols-2 border-t pt-4">
+        <div class="grid gap-1.5">
+          <span class="text-xs font-semibold text-slate-700">Cover Image</span>
+          <div class="rounded-xl border border-dashed border-slate-300 p-2.5 text-center bg-slate-50 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-left overflow-hidden">
+              <CloudUploadIcon class="w-5 h-5 text-slate-400 shrink-0" />
+              <span class="text-[11px] text-slate-500 truncate">
+                Drag and drop project images here or click to upload.
+              </span>
+            </div>
+            <label class="rounded-full bg-[#0b3c5d] px-3 py-1 text-[11px] font-semibold text-white cursor-pointer hover:bg-[#2570a2] whitespace-nowrap shrink-0">
+              Browse Images
+              <input type="file" name="cover_image_file" class="hidden" accept="image/*" />
+            </label>
+          </div>
+        </div>
+
+        <div class="grid gap-1.5">
+          <span class="text-xs font-semibold text-slate-700">Hero Image</span>
+          <div class="rounded-xl border border-dashed border-slate-300 p-2.5 text-center bg-slate-50 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-left overflow-hidden">
+              <CloudUploadIcon class="w-5 h-5 text-slate-400 shrink-0" />
+              <span class="text-[11px] text-slate-500 truncate">
+                Drag and drop project images here or click to upload.
+              </span>
+            </div>
+            <label class="rounded-full bg-[#0b3c5d] px-3 py-1 text-[11px] font-semibold text-white cursor-pointer hover:bg-[#2570a2] whitespace-nowrap shrink-0">
+              Browse Images
+              <input type="file" name="hero_image_file" class="hidden" accept="image/*" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Seção de Highlights */}
+      <div class="border-t pt-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold text-[#0b3c5d] uppercase tracking-wider">Service Highlights</h3>
+        </div>
+
+        {/* Formulário para Adicionar Novo Highlight */}
+        <div class="flex gap-2 mb-3">
+          <input
+            type="text"
+            name="new_highlight"
+            placeholder="New highlight item..."
+            class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white focus:outline-none flex-1"
+          />
+          <button
+            type="submit"
+            name="action"
+            value="add_highlight"
+            class="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 whitespace-nowrap"
+          >
+            <PlusIcon class="w-4 h-4" /> Add Highlight
+          </button>
+        </div>
+
+        {/* Listagem de Highlights com botões de Editar (Lápis) e Excluir */}
+        <div class="grid gap-2">
+          {highlights.length === 0 ? (
+            <p class="text-xs text-slate-400 italic">No highlights added yet.</p>
+          ) : (
+            highlights.map((item: string, index: number) => (
+              <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <input
+                  type="text"
+                  name={`highlight_${index}`}
+                  value={item}
+                  class="rounded border border-slate-300 px-2 py-1 text-xs bg-white focus:outline-none flex-1"
+                />
+
+                <button
+                  type="submit"
+                  name="action"
+                  value={`update_highlight_${index}`}
+                  class="flex items-center gap-1 rounded bg-[#0b3c5d] px-2.5 py-1 text-xs text-white hover:bg-[#2570a2]"
+                  title="Save Highlight"
+                >
+                  <PencilIcon class="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  type="submit"
+                  name="action"
+                  value={`delete_highlight_${index}`}
+                  class="flex items-center gap-1 rounded bg-red-600 px-2.5 py-1 text-xs text-white hover:bg-red-700"
+                  title="Delete Highlight"
+                  onclick="return confirm('Delete this highlight?');"
+                >
+                  <DeleteIcon class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Botão de Salvar alteração geral do serviço no final do formulário */}
+      <div class="flex justify-end pt-3 border-t">
+        <button
+          type="submit"
+          name="action"
+          value="update"
+          class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white hover:bg-[#2570a2]"
+        >
+          <ContentSaveIcon class="w-4 h-4" /> Save Service Changes
+        </button>
+      </div>
+    </form>
+  ) : (
+    <p class="text-xs text-slate-500 italic py-8 text-center">No service selected or available. Click "New Service" to create one.</p>
+  )}
+</section>
+
+<script>
+  const openNewBtn = document.getElementById("open-new-service-modal");
+  const closeNewBtn = document.getElementById("close-new-service");
+  const newForm = document.getElementById("new-service-form");
+
+  if (openNewBtn && newForm && closeNewBtn) {
+    openNewBtn.addEventListener("click", () => {
+      newForm.classList.toggle("hidden");
+    });
+    closeNewBtn.addEventListener("click", () => {
+      newForm.classList.add("hidden");
+    });
+  }
+</script>

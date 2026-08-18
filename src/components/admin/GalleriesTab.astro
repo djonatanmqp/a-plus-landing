@@ -1,0 +1,67 @@
+---
+// src/components/admin/GalleriesTab.astro
+import ContentSaveIcon from "~icons/mdi/content-save";
+import CloudUploadIcon from "~icons/mdi/cloud-upload";
+
+const { galleries = [], services = [] } = Astro.props;
+const selectedServiceId = Astro.url.searchParams.get("service_id") || "";
+---
+
+<section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 border-b pb-3">
+    <div>
+      <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d]">Galleries Management</h2>
+      <p class="text-xs text-slate-500">Upload and manage project images linked to specific services (converted & compressed to WebP).</p>
+    </div>
+
+    <!-- Seletor de Serviço (Dropdown) com opção padrão -->
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <select
+        id="gallery-service-selector"
+        class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-white text-slate-800 font-medium focus:outline-none flex-1 sm:w-64"
+        onchange="window.location.href = `/admin?tab=galleries&service_id=${this.value}`"
+      >
+        <option value="" disabled selected={!selectedServiceId}>Select a service...</option>
+        {services.map((s: any) => (
+          <option value={s.id} selected={s.id === selectedServiceId}>
+            {s.title}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Formulário para Adicionar Múltiplas Imagens */}
+  <form
+    method="POST"
+    action="/admin/api/galleries"
+    enctype="multipart/form-data"
+    class="grid gap-5"
+  >
+    <input type="hidden" name="action" value="add_images" />
+    <input type="hidden" name="service_id" value={selectedServiceId} />
+
+    <div class="grid gap-1.5">
+      <span class="text-xs font-semibold text-slate-700">Add Photos to Gallery (Multiple)</span>
+      <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center bg-slate-50 flex flex-col items-center justify-center gap-2">
+        <CloudUploadIcon class="w-8 h-8 text-slate-400" />
+        <p class="text-xs text-slate-500">Drag and drop project images here or click to upload.</p>
+        <span class="text-[10px] text-slate-400">Images will be automatically converted and compressed into WebP format.</span>
+        <label class="mt-2 rounded-full bg-[#0b3c5d] px-4 py-1.5 text-xs font-semibold text-white cursor-pointer hover:bg-[#2570a2] whitespace-nowrap">
+          Browse Images
+          <input type="file" name="gallery_images" multiple accept="image/*" class="hidden" />
+        </label>
+      </div>
+    </div>
+
+    {/* Botão de Salvar / Enviar Imagens */}
+    <div class="flex justify-end pt-3 border-t">
+      <button
+        type="submit"
+        class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white hover:bg-[#2570a2]"
+      >
+        <ContentSaveIcon class="w-4 h-4" /> Save Gallery Images
+      </button>
+    </div>
+  </form>
+</section>

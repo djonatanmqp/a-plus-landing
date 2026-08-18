@@ -1,0 +1,115 @@
+---
+// src/components/admin/CompanyTab.astro
+import ContentSaveIcon from "~icons/mdi/content-save";
+const { company } = Astro.props;
+---
+<section class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+  <h2 class="text-base sm:text-lg font-semibold text-[#0b3c5d] mb-1">
+    Company Information
+  </h2>
+  <p class="text-xs text-slate-500 mb-4">
+    Update core company details, contacts, address, and social links.
+  </p>
+
+  <form id="company-form" method="POST" action="/admin/api/company" class="grid gap-4">
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="grid gap-1 text-xs font-semibold text-slate-700">
+        Company Name
+        <input type="text" name="name" value={company.name} required class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+      </label>
+      <label class="grid gap-1 text-xs font-semibold text-slate-700">
+        Tagline
+        <input type="text" name="tagline" value={company.tagline} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+      </label>
+    </div>
+
+    <label class="grid gap-1 text-xs font-semibold text-slate-700">
+      Description
+      <textarea name="description" rows="2" class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none">{company.description}</textarea>
+    </label>
+
+    <div class="border-t pt-3">
+      <h3 class="text-sm font-semibold text-[#0b3c5d] mb-2">Contact Information</h3>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Phone (Formatted)
+          <input type="text" name="contact_phone" value={company.contact.phone} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Phone Raw
+          <input type="text" name="contact_phoneRaw" value={company.contact.phoneRaw} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          FaceTime
+          <input type="text" name="contact_facetime" value={company.contact.facetime} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Email
+          <input type="email" name="contact_email" value={company.contact.email} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+      </div>
+    </div>
+
+    <div class="border-t pt-3">
+      <h3 class="text-sm font-semibold text-[#0b3c5d] mb-2">Address & Service Area</h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="grid gap-1 text-xs font-semibold text-slate-700 sm:col-span-2">
+          Full Address
+          <input type="text" name="address_full" value={company.address.full} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Street
+          <input type="text" name="address_street" value={company.address.street} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          City
+          <input type="text" name="address_city" value={company.address.city} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          State & Zip
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" name="address_state" value={company.address.state} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+            <input type="text" name="address_zip" value={company.address.zip} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+          </div>
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Service Area
+          <input type="text" name="address_serviceArea" value={company.address.serviceArea} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+      </div>
+    </div>
+
+    <div class="border-t pt-3">
+      <h3 class="text-sm font-semibold text-[#0b3c5d] mb-2">Social Links & Maps</h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Facebook URL
+          <input type="text" name="links_facebook" value={company.links.facebook} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Instagram URL
+          <input type="text" name="links_instagram" value={company.links.instagram} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          TikTok URL
+          <input type="text" name="links_tiktok" value={company.links.tiktok} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700">
+          Google Review Link
+          <input type="text" name="links_googleReview" value={company.links.googleReview} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+        <label class="grid gap-1 text-xs font-semibold text-slate-700 sm:col-span-2">
+          Google Maps Embed URL
+          <input type="text" name="links_googleMapsEmbed" value={company.links.googleMapsEmbed} class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal focus:border-[#0b3c5d] focus:outline-none" />
+        </label>
+      </div>
+    </div>
+
+    <div class="flex justify-end pt-2">
+      <button type="submit" class="flex items-center gap-1.5 rounded-full bg-[#0b3c5d] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#2570a2]">
+        <ContentSaveIcon class="w-4 h-4" />
+        <span>Save Changes</span>
+      </button>
+    </div>
+  </form>
+</section>

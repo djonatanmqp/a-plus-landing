@@ -1,15 +1,15 @@
-// src/utils/services.ts
-import { type Service } from '../types/firebase';
+// src/lib/services.ts
+import type { Database } from '../types/supabase';
+
+// Extrai o tipo Service diretamente do schema do Supabase
+type Service = Database['public']['Tables']['services']['Row'];
 
 export type ServiceImageType = "hero" | "cover" | "gallery";
 
 /**
- * Gera o caminho padrão para as imagens dos serviços.
- *
- * Nomenclatura:
- * - hero: /assets/services/{serviceId}/{serviceId}-hero.webp
- * - cover: /assets/services/{serviceId}/{serviceId}-cover.webp
- * - gallery: /assets/services/{serviceId}/{serviceId}-01.webp
+ * Função utilitária para fallback ou compatibilidade de caminhos de imagem.
+ * Com o Supabase Storage, as imagens já salvam a URL pública completa, 
+ * mas esta função pode ser usada caso precise de uma estrutura padrão.
  */
 export function getServiceImagePath(
   serviceId: Service['id'],
@@ -26,7 +26,6 @@ export function getServiceImagePath(
     return `${basePath}/${serviceId}-cover.webp`;
   }
 
-  // Galeria: formata index com 2 dígitos (01, 02, 03...)
   const formattedIndex = String(index ?? 1).padStart(2, "0");
   return `${basePath}/${serviceId}-${formattedIndex}.webp`;
 }

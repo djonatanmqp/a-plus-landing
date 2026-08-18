@@ -46,3 +46,15 @@ CREATE TABLE faqs (
     category TEXT,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- Adiciona a coluna display_order se ela ainda não existir
+ALTER TABLE services 
+ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+
+-- Atualiza a ordem dos serviços existentes de forma segura e organizada
+UPDATE services SET display_order = 1 WHERE title ILIKE '%Driveways%';
+UPDATE services SET display_order = 2 WHERE title ILIKE '%Patios & Walkways%';
+UPDATE services SET display_order = 3 WHERE title ILIKE '%Pool Decks%';
+UPDATE services SET display_order = 4 WHERE title ILIKE '%Pergolas & Summer Kitchens%';
+UPDATE services SET display_order = 5 WHERE title ILIKE '%Artificial Turf & Sod%';
+UPDATE services SET display_order = 10 WHERE title ILIKE '%Others%' OR title ILIKE '%Outros%';
