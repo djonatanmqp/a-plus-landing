@@ -1,7 +1,7 @@
 // src/pages/admin/api/gallery/delete.ts
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin.ts";
-import { supabase } from "../../../../lib/supabase.ts";
+import { supabase } from "../../../../lib/supabase.js";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;

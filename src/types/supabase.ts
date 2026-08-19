@@ -17,23 +17,23 @@ export type Database = {
       faqs: {
         Row: {
           answer: string
-          category: string | null
           id: string
           question: string
+          service_id: string | null
           updated_at: string | null
         }
         Insert: {
           answer: string
-          category?: string | null
           id: string
           question: string
+          service_id?: string | null
           updated_at?: string | null
         }
         Update: {
           answer?: string
-          category?: string | null
           id?: string
           question?: string
+          service_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -42,7 +42,7 @@ export type Database = {
         Row: {
           cover_image: string | null
           description: string | null
-          faq: Json | null
+          display_order: number | null
           hero_image: string | null
           highlights: string[] | null
           id: string
@@ -55,7 +55,7 @@ export type Database = {
         Insert: {
           cover_image?: string | null
           description?: string | null
-          faq?: Json | null
+          display_order?: number | null
           hero_image?: string | null
           highlights?: string[] | null
           id: string
@@ -68,7 +68,7 @@ export type Database = {
         Update: {
           cover_image?: string | null
           description?: string | null
-          faq?: Json | null
+          display_order?: number | null
           hero_image?: string | null
           highlights?: string[] | null
           id?: string
@@ -114,37 +114,37 @@ export type Database = {
         Row: {
           after_image: string | null
           before_image: string | null
+          content: string | null
           date: string | null
           id: string
           location: string | null
           name: string | null
           rating: number | null
-          service: string | null
-          text: string | null
+          service_id: string | null
           updated_at: string | null
         }
         Insert: {
           after_image?: string | null
           before_image?: string | null
+          content?: string | null
           date?: string | null
           id: string
           location?: string | null
           name?: string | null
           rating?: number | null
-          service?: string | null
-          text?: string | null
+          service_id?: string | null
           updated_at?: string | null
         }
         Update: {
           after_image?: string | null
           before_image?: string | null
+          content?: string | null
           date?: string | null
           id?: string
           location?: string | null
           name?: string | null
           rating?: number | null
-          service?: string | null
-          text?: string | null
+          service_id?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -3,7 +3,7 @@
 ![Astro](https://img.shields.io/badge/Astro-v4.15.0-252525?style=for-the-badge&logo=astro&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-v5.4.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3.4.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-v10.12.0-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Supabase](https://img.shields.io/badge/Supabase-v2.0-3FCF8E?style=for-the-badge&logo=supabase&logoColor=black)
 ![Node.js](https://img.shields.io/badge/Node.js-v20.14.0-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 
 Este repositório contém a solução digital completa para a **A-Plus Pavers & Grass LLC.**, localizada em Orlando, Flórida. O projeto integra um site institucional de alta performance com foco em conversão e um painel administrativo exclusivo para gestão de conteúdo.
@@ -13,15 +13,15 @@ Este repositório contém a solução digital completa para a **A-Plus Pavers & 
 O projeto foi desenhado para unir performance extrema no frontend com autonomia operacional para o cliente final:
 
 * **Site Institucional**: Apresentação dos serviços (Pavers, Grass, Driveways, Patios, Pergolas e Pools), galeria de fotos dinâmicas, FAQ e depoimentos de clientes, otimizado para SEO local em Orlando.
-* **Painel Administrativo**: Interface segura onde o cliente pode gerenciar serviços, FAQs, galerias e depoimentos.
-* **Persistência de Mídia via GitHub API**: As mídias e uploads realizados pelo painel são comitados automaticamente no repositório GitHub via API REST (`@octokit/rest`), garantindo que o armazenamento permaneça versionado e integrado ao build.
+* **Painel Administrativo**: Interface segura modularizada e separada por abas/arquivos, onde o cliente gerencia serviços, FAQs, galerias e depoimentos com suporte completo a CRUD.
+* **Persistência de Dados e Mídia**: Gerenciamento integrado com **Supabase** (Banco de Dados PostgreSQL) e **Supabase Storage** para upload e armazenamento otimizado de imagens.
 
 ## 🛠 Tecnologias Utilizadas
 
 * **Framework:** [Astro](https://astro.build/) (SSR / Hybrid rendering para suporte às rotas de API do painel).
 * **Estilização:** [Tailwind CSS](https://tailwindcss.com/) (Classes utilitárias e design responsivo).
-* **Autenticação e Serviços:** [Firebase Admin / Server](https://firebase.google.com/) (Gerenciamento de autenticação e sessão no painel admin).
-* **Armazenamento de Mídia:** GitHub REST API (Upload automático de imagens diretamente para a pasta `/public`).
+* **Banco de Dados e Armazenamento:** [Supabase](https://supabase.com/) (PostgreSQL e Supabase Storage para arquivos).
+* **Autenticação:** Sistema de sessão seguro baseado em tokens e cookies SSR.
 * **Ícones:** [unplugin-icons](https://github.com/antfu/unplugin-icons) (Material Design Icons).
 * **Linguagens:** TypeScript e Astro Core.
 
@@ -30,19 +30,13 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 ```text
 /
 ├── public/                  # Ativos estáticos públicos
-│   ├── assets/              # Assets organizados por entidade
-│   │   ├── content/         # Mídias dinâmicas (testimonials)
-│   │   ├── services/        # Imagens dedicadas por serviço (driveways, lawn, etc)
-│   │   ├── company.json     # Informações gerais da empresa
-│   │   ├── faq.json         # Perguntas frequentes
-│   │   └── services.json    # Dados dos serviços
 │   ├── favicon.ico
 │   ├── logo.png
 │   └── robots.txt
 ├── src/                     # Código-fonte da aplicação
-│   ├── components/          # Componentes de interface (Header, Footer, ZoomModal, etc.)
+│   ├── components/          # Componentes de interface (incluindo abas do Admin separadas por arquivo)
 │   ├── layouts/             # Estrutura base de renderização (Layout.astro)
-│   ├── lib/                 # Integrações de backend (github-storage.ts, firebase-admin.ts, admin.ts)
+│   ├── lib/                 # Integrações de backend (supabase.js, admin.ts)
 │   ├── pages/               # Roteamento e APIs
 │   │   ├── admin/           # Dashboard e Endpoints de API (/admin/api/*)
 │   │   ├── services/        # Páginas dinâmicas de serviços ([id].astro)
@@ -50,7 +44,7 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 │   │   ├── index.astro      # Homepage
 │   │   └── sitemap.xml.ts   # Geração dinâmica do Sitemap
 │   ├── styles/              # CSS global e integrações Tailwind
-│   └── types/               # Tipagens TypeScript (icons.d.ts)
+│   └── types/               # Tipagens TypeScript (Supabase Types)
 ├── .env.example             # Exemplo de variáveis de ambiente necessárias
 ├── astro.config.mjs         # Configurações do Astro
 └── package.json
@@ -61,16 +55,10 @@ O projeto foi desenhado para unir performance extrema no frontend com autonomia 
 Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 
 ```env
-# Configurações do GitHub para upload pelo Admin
-GITHUB_TOKEN=ghp_SeuTokenAqui
-GITHUB_OWNER=SeuUsuario
-GITHUB_REPO=NomeDoRepositorio
-GITHUB_BRANCH=main
-
-# Configurações do Firebase
-FIREBASE_PROJECT_ID=seu-project-id
-FIREBASE_CLIENT_EMAIL=seu-client-email
-FIREBASE_PRIVATE_KEY="sua-chave-privada"
+# Configurações do Supabase
+PUBLIC_SUPABASE_URL=sua_supabase_url
+PUBLIC_SUPABASE_ANON_KEY=sua_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
 ```
 
 ## 🧞 Comandos de Desenvolvimento
@@ -91,9 +79,9 @@ Todos os comandos devem ser executados na raiz do projeto:
 
 1. O painel está acessível na rota `/admin`.
 
-2. A autenticação utiliza Firebase Auth e cookies de sessão gerenciados via Server-Side Rendering (SSR).
+2. A autenticação valida a sessão via cookies seguros no servidor.
 
-3. Ao cadastrar ou atualizar imagens no painel, elas são automaticamente enviadas para o repositório no GitHub via `github-storage.ts`. Para visualizar os arquivos atualizados em seu ambiente local de desenvolvimento, execute um `git pull origin main`.
+3. As operações de cadastro, edição e exclusão (incluindo gerenciamento de mídias no Storage e campos detalhados como localização e datas em depoimentos) refletem diretamente nas tabelas do Supabase.
 
 ## 👀 Mais informações
 

@@ -184,7 +184,7 @@ const tabs = [
           {currentTab === "services" && <ServicesTab services={servicesData} />}
           {currentTab === "galleries" && <GalleriesTab services={servicesData} />}
           {currentTab === "faq" && <FaqTab faqs={faqsData} services={servicesData} />}
-          {currentTab === "testimonials" && <TestimonialsTab testimonials={testimonialsData} />}
+          {currentTab === "testimonials" && <TestimonialsTab testimonials={testimonialsData} services={servicesData} />}
         </div>
       ) : (
         <LoginCard />

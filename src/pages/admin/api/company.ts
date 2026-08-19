@@ -1,7 +1,7 @@
 // src/pages/admin/api/company.ts
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
-import { supabase } from "../../../lib/supabase.ts";
+import { supabase } from "../../../lib/supabase.js";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -13,37 +13,35 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   try {
     const formData = await request.formData();
 
-    // Construção dos dados seguindo a estrutura esperada pelo Supabase
+    // Construção dos dados sem o campo description
     const updateData = {
-      id: "company", // Garante que o upsert sempre afete o mesmo registro
+      id: "company",
       name: formData.get("name")?.toString().trim() || "",
       tagline: formData.get("tagline")?.toString().trim() || "",
-      description: formData.get("description")?.toString().trim() || "",
       address: {
-        street: formData.get("street")?.toString().trim() || "",
-        city: formData.get("city")?.toString().trim() || "",
-        state: formData.get("state")?.toString().trim() || "FL",
-        zip: formData.get("zip")?.toString().trim() || "",
-        full: formData.get("fullAddress")?.toString().trim() || "",
-        serviceArea: formData.get("serviceArea")?.toString().trim() || "",
+        street: formData.get("address_street")?.toString().trim() || "",
+        city: formData.get("address_city")?.toString().trim() || "",
+        state: formData.get("address_state")?.toString().trim() || "FL",
+        zip: formData.get("address_zip")?.toString().trim() || "",
+        full: formData.get("address_full")?.toString().trim() || "",
+        serviceArea: formData.get("address_serviceArea")?.toString().trim() || "",
       },
       contact: {
-        phone: formData.get("phone")?.toString().trim() || "",
-        phoneRaw: formData.get("phoneRaw")?.toString().trim() || "",
-        facetime: formData.get("facetime")?.toString().trim() || "",
-        email: formData.get("email")?.toString().trim() || "",
+        phone: formData.get("contact_phone")?.toString().trim() || "",
+        phoneRaw: formData.get("contact_phoneRaw")?.toString().trim() || "",
+        facetime: formData.get("contact_facetime")?.toString().trim() || "",
+        email: formData.get("contact_email")?.toString().trim() || "",
       },
       links: {
-        facebook: formData.get("facebook")?.toString().trim() || "#",
-        instagram: formData.get("instagram")?.toString().trim() || "#",
-        tiktok: formData.get("tiktok")?.toString().trim() || "#",
-        googleReview: formData.get("googleReview")?.toString().trim() || "",
-        googleMapsEmbed: formData.get("googleMapsEmbed")?.toString().trim() || "",
+        facebook: formData.get("links_facebook")?.toString().trim() || "#",
+        instagram: formData.get("links_instagram")?.toString().trim() || "#",
+        tiktok: formData.get("links_tiktok")?.toString().trim() || "#",
+        googleReview: formData.get("links_googleReview")?.toString().trim() || "",
+        googleMapsEmbed: formData.get("links_googleMapsEmbed")?.toString().trim() || "",
       },
       updated_at: new Date().toISOString(),
     };
 
-    // Upsert no Supabase
     const { error: upsertError } = await supabase
       .from("settings")
       .upsert(updateData, { onConflict: "id" });

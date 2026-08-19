@@ -1,7 +1,7 @@
 // src/pages/admin/api/auth-google.ts
 import type { APIContext } from "astro";
 import { createAdminToken, SESSION_COOKIE_NAME, isAdminEmail } from "../../../lib/admin.ts";
-import { supabase } from "../../../lib/supabase.ts"; // ou o caminho correto do seu cliente supabase
+import { supabase } from "../../../lib/supabase.js"; // ou o caminho correto do seu cliente supabase
 
 // Armazenamento em memória para rate limiting (por IP)
 const googleLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
