@@ -9,9 +9,16 @@ import Instagram from "~icons/simple-icons/instagram";
 import Tiktok from "~icons/simple-icons/tiktok";
 import GoogleIcon from "~icons/simple-icons/google";
 
-import { getCompanyData } from "../lib/firebase-admin.ts";
+import { supabase } from "../lib/supabase.js";
 
-const company: any = (await getCompanyData()) || {};
+// Busca as configurações globais da empresa no Supabase
+const { data: settings } = await supabase
+  .from("settings")
+  .select("*")
+  .eq("id", "company")
+  .single();
+
+const company: any = settings || {};
 ---
 
 <section id="contact" class="max-w-6xl mx-auto px-4 py-2">
@@ -90,7 +97,7 @@ const company: any = (await getCompanyData()) || {};
             </div>
         </div>
 
-        <div class="w-full h-64 md:h-auto min-h-[250px] rounded-xl overflow-hidden border border-gray-100 shadow-inner">
+        <div class="w-full h-64 md:h-auto min-h-62.5 rounded-xl overflow-hidden border border-gray-100 shadow-inner">
             {company?.links?.googleMapsEmbed ? (
                 <iframe
                     width="100%"

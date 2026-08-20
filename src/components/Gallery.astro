@@ -1,22 +1,40 @@
 ---
 // src/components/Gallery.astro
-import { getServicesData } from "../lib/firebase-admin.ts";
+import { supabase } from "../lib/supabase.js";
 import MagnifyIcon from "~icons/mdi/magnify";
 import ZoomModal from "./ZoomModal.astro";
 
-const rawServicesData = await getServicesData();
+// Busca os serviços ordenados pelo display_order ou título no Supabase
+const { data: rawServicesData } = await supabase
+  .from("services")
+  .select("*")
+  .order("display_order", { ascending: true });
 
-// Adiciona o parâmetro v= (cache buster) nos dados do serviço com segurança
+// Função auxiliar para converter caminhos do Storage em URLs públicas
+const getStorageUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const { data } = supabase.storage.from('services').getPublicUrl(path);
+    return data?.publicUrl || '';
+};
+
+// Processa as URLs públicas e adiciona o parâmetro de versão com segurança
 const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((service: any) => {
-    const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
+    const version = service.updated_at ? new Date(service.updated_at).getTime() : Date.now();
     const addVersion = (url: string) => url ? `${url}${url.includes('?') ? '&' : '?'}v=${version}` : url;
+
+    const rawCover = service.cover_image || service.hero_image || '';
+    const coverUrl = getStorageUrl(rawCover);
+
+    const rawImages = Array.isArray(service.images) ? service.images : [];
+    // Adicionada a tipagem (img: string) para satisfazer o TypeScript
+    const imagesUrls = rawImages.map((img: string) => getStorageUrl(img)).filter(Boolean);
 
     return {
         ...service,
-        coverImage: addVersion(service.coverImage),
-        heroImage: addVersion(service.heroImage),
-        images: Array.isArray(service.images) ? service.images.map(addVersion) : [],
-        galleryImages: Array.isArray(service.galleryImages) ? service.galleryImages.map(addVersion) : []
+        coverImage: addVersion(coverUrl),
+        heroImage: addVersion(getStorageUrl(service.hero_image)),
+        images: imagesUrls.map((img: string) => addVersion(img)),
     };
 }) : [];
 ---
@@ -117,12 +135,8 @@ const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((servi
                 modalDescription.textContent = serviceData.description || "";
                 modalImagesGrid.innerHTML = "";
 
-                const rawImages = (serviceData.galleryImages && serviceData.galleryImages.length > 0)
-                    ? serviceData.galleryImages
-                    : (serviceData.images && serviceData.images.length > 0 ? serviceData.images : []);
-
-                const projectImages = rawImages.length > 0 
-                    ? rawImages 
+                const projectImages = (serviceData.images && serviceData.images.length > 0) 
+                    ? serviceData.images 
                     : [`https://placehold.co/600x400?text=${encodeURIComponent(serviceData.title || 'Project')}+Photos+Coming+Soon`];
 
                 projectImages.forEach((imgUrl: string, index: number) => {

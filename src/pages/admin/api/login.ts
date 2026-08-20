@@ -19,22 +19,23 @@ export async function POST({ request, cookies, redirect }: APIContext) {
     if (!email || !password) {
       return redirect(
         `/admin?message=${encodeURIComponent("Error: Email and password are required")}`,
-        303
+        303,
       );
     }
 
     // Rate limiting por IP + e-mail para bloquear ataques de força bruta
     const clientIp =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
     const rateLimitKey = `${clientIp}:${email.toLowerCase()}`;
 
     if (!isLoginAllowed(rateLimitKey)) {
       const { remainingSeconds } = getLoginAttemptInfo(rateLimitKey);
       return redirect(
         `/admin?message=${encodeURIComponent(
-          `Error: Too many login attempts. Try again in ${remainingSeconds}s.`
+          `Error: Too many login attempts. Try again in ${remainingSeconds}s.`,
         )}`,
-        303
+        303,
       );
     }
 
@@ -49,7 +50,7 @@ export async function POST({ request, cookies, redirect }: APIContext) {
       recordLoginAttempt(rateLimitKey, false);
       return redirect(
         `/admin?message=${encodeURIComponent("Error: Invalid email or password.")}`,
-        303
+        303,
       );
     }
 
@@ -61,9 +62,9 @@ export async function POST({ request, cookies, redirect }: APIContext) {
       recordLoginAttempt(rateLimitKey, false);
       return redirect(
         `/admin?message=${encodeURIComponent(
-          "Error: This account is not authorized to access the admin panel."
+          "Error: This account is not authorized to access the admin panel.",
         )}`,
-        303
+        303,
       );
     }
 
@@ -78,7 +79,11 @@ export async function POST({ request, cookies, redirect }: APIContext) {
       httpOnly: true,
       secure: import.meta.env.PROD,
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 dias
+      // REMOVA OU COMENTE A LINHA ABAIXO:
+      // maxAge: 60 * 60 * 24 * 7,
+
+      // Sem o maxAge, o navegador entende que é um "Session Cookie"
+      // e o deletará automaticamente ao fechar o navegador/aba.
     });
 
     return redirect("/admin?message=Login+successful", 303);
@@ -86,7 +91,7 @@ export async function POST({ request, cookies, redirect }: APIContext) {
     console.error("Login processing error:", error);
     return redirect(
       `/admin?message=${encodeURIComponent("Error: Internal server error.")}`,
-      303
+      303,
     );
   }
 }

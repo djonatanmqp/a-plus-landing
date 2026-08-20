@@ -1,16 +1,41 @@
 ---
 // src/components/Testimonials.astro
 import TestimonialCard from "./TestimonialCard.astro";
-import { getTestimonialsData } from "../lib/firebase-admin.ts";
+import { supabase } from "../lib/supabase.js";
 
 import CloseIcon from "~icons/mdi/close";
 import CalendarIcon from "~icons/mdi/calendar-blank";
 import MapMarkerIcon from "~icons/mdi/map-marker";
 
-// 🚀 BUSCA DIRETA DO FIRESTORE
-const testimonialsList = await getTestimonialsData();
+// 🚀 BUSCA DIRETA DO SUPABASE COM TRATAMENTO DE ERRO
+const { data: rawTestimonials, error } = await supabase
+  .from("testimonials")
+  .select("*")
+  .order("created_at", { ascending: false });
 
-const testimonialsJson = JSON.stringify(testimonialsList);
+const testimonialsList = Array.isArray(rawTestimonials) ? rawTestimonials : [];
+
+// Pré-calcula as URLs públicas com proteção contra objetos nulos
+const processedTestimonials = testimonialsList.map((t: any) => {
+    const safeT = t || {};
+    const beforeVal = safeT.before_image || safeT.beforeImage || '';
+    const afterVal = safeT.after_image || safeT.afterImage || '';
+
+    const getStorageUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        const { data } = supabase.storage.from('testimonials').getPublicUrl(path);
+        return data?.publicUrl || '';
+    };
+
+    return {
+        ...safeT,
+        beforeImageResolved: getStorageUrl(beforeVal) || `https://placehold.co/600x400?text=Before`,
+        afterImageResolved: getStorageUrl(afterVal) || `https://placehold.co/600x400?text=After`
+    };
+});
+
+const testimonialsJson = JSON.stringify(processedTestimonials);
 const testimonialsScript = `
 const testimonials = ${testimonialsJson};
 const grid = document.getElementById("testimonials-grid");
@@ -28,18 +53,18 @@ if (grid && modal) {
 
     function openModal(t) {
         if (!t) return;
-        serviceEl.textContent = t.serviceType || "";
-        clientEl.textContent = t.clientName || "";
+        serviceEl.textContent = t.serviceType || t.service || "";
+        clientEl.textContent = t.clientName || t.name || "";
         dateEl.querySelector('span').textContent = t.date ? new Date(t.date).toLocaleString("en-US", { month: "long", year: "numeric" }) : "";
-        locEl.querySelector('span').textContent = t.city && t.state ? t.city + ", " + t.state : "";
+        
+        const city = t.city || t.location || "";
+        const state = t.state || "";
+        locEl.querySelector('span').textContent = city && state ? city + ", " + state : (city || "");
+        
         bodyEl.textContent = t.message || "";
         
-        // Tratamento limpo e seguro para os caminhos das imagens
-        const beforeImagePath = t.beforeImage ? (t.beforeImage.startsWith('/') ? t.beforeImage : '/' + t.beforeImage) : \`/assets/testimonials/\${t.id}-before.webp\`;
-        const afterImagePath = t.afterImage ? (t.afterImage.startsWith('/') ? t.afterImage : '/' + t.afterImage) : \`/assets/testimonials/\${t.id}-after.webp\`;
-
-        beforeImg.src = beforeImagePath;
-        afterImg.src = afterImagePath;
+        beforeImg.src = t.beforeImageResolved;
+        afterImg.src = t.afterImageResolved;
         
         modal.classList.remove("hidden");
         modal.classList.add("flex");
@@ -55,7 +80,7 @@ if (grid && modal) {
     grid.addEventListener("click", (event) => {
         const card = event.target.closest("[data-testimonial-id]");
         if (!card) return;
-        openModal(testimonials.find(t => t.id === card.getAttribute("data-testimonial-id")));
+        openModal(testimonials.find(t => String(t.id) === card.getAttribute("data-testimonial-id")));
     });
 
     closeModalButton.addEventListener("click", closeModal);
@@ -74,9 +99,9 @@ if (grid && modal) {
             {testimonialsList.map((t: any) => (
                 <article
                     class="testimonial-card cursor-pointer rounded-3xl border border-slate-200 bg-white p-0 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                    data-testimonial-id={t.id}
+                    data-testimonial-id={t?.id}
                 >
-                    <TestimonialCard data={t}>{t.message}</TestimonialCard>
+                    <TestimonialCard data={t}>{t?.message}</TestimonialCard>
                 </article>
             ))}
         </div>
@@ -89,7 +114,7 @@ if (grid && modal) {
 </section>
 
 <div id="testimonial-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4">
-    <div class="relative w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white px-6 py-8 shadow-2xl sm:px-8">
+    <div class="relative w-full max-w-4xl overflow-hidden rounded-4xl bg-white px-6 py8 shadow-2xl sm:px-8">
         <button id="testimonial-modal-close" class="absolute right-4 top-4 rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200 transition-colors" aria-label="Close modal">
             <CloseIcon class="w-5 h-5" />
         </button>

@@ -1,3 +1,4 @@
+// src/lib/admin.ts
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -22,9 +23,8 @@ export const ADMIN_USER = process.env.ADMIN_USER ?? "admin";
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Str0ngP@ssw0rd!2026";
 export const SESSION_COOKIE_NAME = "a_plus_admin_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
-// C1 — Allowlist centralizada de e-mails autorizados no painel.
-// Aceita ADMIN_USER (quando for um e-mail) e ADMIN_ALLOWED_EMAILS
-// (lista separada por vírgulas no .env).
+
+// Allowlist centralizada de e-mails autorizados no painel.
 const ADMIN_ALLOWED_EMAILS = (
   process.env.ADMIN_ALLOWED_EMAILS ?? "djonatanmqp@gmail.com,detlev@apluspaversgrass.com"
 )
@@ -39,17 +39,16 @@ export function isAdminEmail(email?: string | null): boolean {
   const adminUser = (ADMIN_USER ?? "").trim().toLowerCase();
   return adminUser.includes("@") && adminUser === normalized;
 }
+
 const COOKIE_SECRET = process.env.ADMIN_COOKIE_SECRET ?? "change-this-secret-to-a-long-random-value";
 const COOKIE_SECURE = process.env.NODE_ENV === "production";
-// No src/lib/admin.ts
+
 export const SESSION_COOKIE_FLAGS = "Path=/; HttpOnly; SameSite=Lax"; 
-// Certifique-se de NÃO colocar "Secure" se estiver em localhost sem HTTPS
-/* export const SESSION_COOKIE_FLAGS = `Path=/admin; HttpOnly; SameSite=Strict; Max-Age=${SESSION_MAX_AGE}${COOKIE_SECURE ? "; Secure" : ""}`; */
 export const SESSION_COOKIE_DELETE_FLAGS = `Path=/admin; HttpOnly; SameSite=Strict; Max-Age=0${COOKIE_SECURE ? "; Secure" : ""}`;
+
 const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = Number(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS ?? 5);
 const LOGIN_RATE_LIMIT_WINDOW_SECONDS = Number(process.env.LOGIN_RATE_LIMIT_WINDOW_SEC ?? 300);
 const loginAttempts = new Map<string, { count: number; firstAttempt: number }>();
-const googleLoginAttempts = new Map<string, { count: number; firstAttempt: number }>();
 
 export function isLoginAllowed(key: string) {
   const now = Date.now();
@@ -119,7 +118,6 @@ export function validateAdminToken(token?: string) {
     const expectedBuffer = Buffer.from(expected, "hex");
     if (signatureBuffer.length !== expectedBuffer.length) return false;
 
-    // C1 — Apenas e-mails autorizados (allowlist) podem manter uma sessão ativa
     const isValidUser = isAdminEmail(username);
 
     return isValidUser && crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
@@ -130,38 +128,6 @@ export function validateAdminToken(token?: string) {
 
 export async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
-}
-
-const SERVICES_PERSISTENT_PATH = path.join(process.cwd(), "public/assets/services.json");
-const SERVICES_FALLBACK_PATH = path.join(process.cwd(), "src/data/services.json");
-
-export async function readServicesConfig() {
-  try {
-    const raw = await fs.readFile(SERVICES_PERSISTENT_PATH, "utf8");
-    return JSON.parse(raw);
-  } catch (error) {
-    try {
-      const fallbackRaw = await fs.readFile(SERVICES_FALLBACK_PATH, "utf8");
-      const config = JSON.parse(fallbackRaw);
-      await ensureDir(path.dirname(SERVICES_PERSISTENT_PATH));
-      await fs.writeFile(SERVICES_PERSISTENT_PATH, JSON.stringify(config, null, 2) + "\n", "utf8");
-      return config;
-    } catch {
-      return [];
-    }
-  }
-}
-
-export async function writeServicesConfig(config: unknown) {
-  await ensureDir(path.dirname(SERVICES_PERSISTENT_PATH));
-  await fs.writeFile(SERVICES_PERSISTENT_PATH, JSON.stringify(config, null, 2) + "\n", "utf8");
-}
-
-export async function listTestimonials() {
-  const testimonialsDir = path.join(process.cwd(), "public/assets/content/testimonials");
-  await ensureDir(testimonialsDir);
-  const entries = await fs.readdir(testimonialsDir);
-  return entries.filter((name) => name.endsWith(".md")).sort();
 }
 
 export function sanitizeSlug(value: string) {

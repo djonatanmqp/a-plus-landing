@@ -1,9 +1,10 @@
 ---
+// src/components/ZoomDialog.astro
 ---
-<dialog id="zoom-dialog" class="fixed inset-0 m-0 h-full w-full max-w-none bg-transparent p-0 border-none outline-none z-[9999]">
+<dialog id="zoom-dialog" class="fixed inset-0 m-0 h-full w-full max-w-none bg-transparent p-0 border-none outline-none z-9999">
     <div class="flex h-full w-full items-center justify-center p-4 sm:p-10">
         <div class="relative w-fit">
-            <button id="close-zoom" class="absolute -top-4 -right-4 text-white bg-black/50 hover:bg-[#0b3c5d] rounded-full w-10 h-10 flex items-center justify-center text-2xl z-[100] shadow-lg transition-all" aria-label="Close zoom">&times;</button>
+            <button id="close-zoom" class="absolute -top-4 -right-4 text-white bg-black/50 hover:bg-[#0b3c5d] rounded-full w-10 h-10 flex items-center justify-center text-2xl z-100 shadow-lg transition-all" aria-label="Close zoom">&times;</button>
             <img id="zoom-img" src="" alt="Full view" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
         </div>
     </div>

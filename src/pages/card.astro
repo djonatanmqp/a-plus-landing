@@ -2,7 +2,7 @@
 // src/pages/card.astro
 import Layout from "../layouts/Layout.astro";
 import VCardHeader from "../components/VCardHeader.astro";
-import { getCompanyData } from "../lib/firebase-admin";
+import { supabase } from "../lib/supabase.js";
 
 // Ícone para o botão fixo
 import DownloadIcon from "~icons/mdi/download";
@@ -30,35 +30,30 @@ const defaultCompany = {
   },
 };
 
-const companyData = await getCompanyData();
-const company: any = companyData || defaultCompany;
+// Busca os dados da empresa no Supabase
+const { data: settings } = await supabase
+  .from("settings")
+  .select("*")
+  .eq("id", "company")
+  .single();
 
-const phoneRaw = company?.contact?.phoneRaw || defaultCompany.contact.phoneRaw;
-const whatsapp = company?.contact?.whatsapp || defaultCompany.contact.whatsapp;
-const email = company?.contact?.email || defaultCompany.contact.email;
+const company: any = settings || defaultCompany;
+
+const phoneRaw = company?.contact?.phoneRaw || company?.phone || defaultCompany.contact.phoneRaw;
+const whatsapp = company?.contact?.whatsapp || company?.whatsapp || defaultCompany.contact.whatsapp;
+const email = company?.contact?.email || company?.email || defaultCompany.contact.email;
 const facetime = company?.contact?.facetime || phoneRaw;
 
 const serviceAreaText =
   company?.address?.serviceArea || defaultCompany.address.serviceArea;
-const fullAddress = company?.address?.full || defaultCompany.address.full;
+const fullAddress = company?.address?.full || company?.address || defaultCompany.address.full;
 
 // URL do Iframe do Google Maps
 const customMapEmbed =
-  company?.links?.googleMapsEmbed || company?.links?.googleMapsEmbed;
-const mapsIframeUrl =
-  customMapEmbed && customMapEmbed !== "#"
-    ? customMapEmbed
-    : `https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+  company?.links?.googleMapsEmbed || company?.googleMapsEmbed;
 
-// MESMA LÓGICA DO CONTACT.ASTRO PARA O CLIQUE DO MAPA
-const googleMapsRedirectUrl = company?.links?.googleReview
-  ? company.links.googleReview.replace("writereview?placeid=", "?q=")
-  : company?.links?.googleMapsEmbed ||
-    company?.links?.googleMapsEmbed ||
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
-
-const instagram = company?.links?.instagram || "#";
-const facebook = company?.links?.facebook || "#";
+const instagram = company?.links?.instagram || company?.instagram || "#";
+const facebook = company?.links?.facebook || company?.facebook || "#";
 
 // 8 Ícones rápidos (4x2)
 const quickActions = [
@@ -268,19 +263,19 @@ const quickActions = [
           </span>
         </div>
 
-        <!-- Google Maps exatamente como no Contact.astro -->
+        <!-- Google Maps -->
         <div
           class="w-full h-48 rounded-2xl overflow-hidden border border-slate-100 shadow-inner bg-slate-50"
         >
           {
-            company?.links?.googleMapsEmbed ? (
+            customMapEmbed ? (
               <iframe
                 width="100%"
                 height="100%"
                 style="border:0;"
                 loading="lazy"
                 allowfullscreen=""
-                src={company.links.googleMapsEmbed}
+                src={customMapEmbed}
                 referrerpolicy="no-referrer-when-downgrade"
               />
             ) : (

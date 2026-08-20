@@ -1,9 +1,15 @@
 ---
 // src/components/Footer.astro
 import ArrowUp from "~icons/mdi/chevron-up";
-import { getCompanyData } from "../lib/firebase-admin.ts";
+import { supabase } from "../lib/supabase.js";
 
-const company = await getCompanyData();
+const { data: settings } = await supabase
+  .from("settings")
+  .select("*")
+  .eq("id", "company")
+  .single();
+
+const company: any = settings || {};
 
 const companyName = company?.name || "A-Plus Pavers & Grass";
 ---

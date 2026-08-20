@@ -1,21 +1,21 @@
 ---
 // src/components/Hero.astro
-import { getServicesData } from "../lib/firebase-admin.ts";
+import { supabase } from "../lib/supabase.js";
+import { getServiceImageUrl } from "../lib/services.js";
 
-const servicesData = await getServicesData();
+const { data: rawServicesData } = await supabase
+  .from("services")
+  .select("*")
+  .order("display_order", { ascending: true });
 
-const servicesCarousel = Array.isArray(servicesData) ? servicesData.map((service: any) => {
-    const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
-
-    // Força o caminho estruturado padrão diretamente usando o ID do serviço,
-    // garantindo que sempre aponte para a pasta correta independentemente do banco.
-    const basePath = `/assets/services/${service.id}/${service.id}-hero.webp`;
-    const image = `${basePath}?v=${version}`;
+const servicesCarousel = Array.isArray(rawServicesData) ? rawServicesData.map((service: any) => {
+    // Usa a função auxiliar para obter a imagem de capa do serviço integrada ao Supabase
+    const image = getServiceImageUrl(service, 'cover');
 
     return {
         title: service.title || "",
-        subtitle: service.subtitle || service.shortDescription || "",
-        shortDescription: service.shortDescription || "",
+        subtitle: service.subtitle || service.short_description || "",
+        shortDescription: service.short_description || "",
         description: service.description || "",
         image,
         galleryId: service.id,
@@ -29,13 +29,13 @@ const servicesCarousel = Array.isArray(servicesData) ? servicesData.map((service
     >
         <div
             id="carousel-wrapper"
-            class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-none sm:rounded-lg shadow-xl aspect-[16/9] md:aspect-[21/9] no-scrollbar"
+            class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth rounded-none sm:rounded-lg shadow-xl aspect-video md:aspect-21/9 no-scrollbar"
         >
             {
                 servicesCarousel.map((service: any, index: number) => (
                     <div
                         id={`slide-${index}`}
-                        class="w-full h-full flex-shrink-0 snap-start relative"
+                        class="w-full h-full shrink-0 snap-start relative"
                     >
                         <img
                             src={service.image}
@@ -45,7 +45,7 @@ const servicesCarousel = Array.isArray(servicesData) ? servicesData.map((service
                             onerror={`this.onerror=null; this.src='https://placehold.co/1200x600?text=${encodeURIComponent(service.title)}';`}
                         />
 
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                        <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
 
                         <div class="absolute bottom-6 left-6 right-6 md:left-12 md:bottom-10 text-white max-w-lg z-10">
                             <span class="text-[#d9b310] font-bold text-xs uppercase tracking-widest bg-black/40 px-2 py-1 rounded">
@@ -58,7 +58,7 @@ const servicesCarousel = Array.isArray(servicesData) ? servicesData.map((service
                                 {service.subtitle}
                             </p>
                             <a
-                                href={`#gallery-${service.galleryId}`}
+                                href={`/services/${service.galleryId}`}
                                 class="bg-[#328cc1] hover:bg-[#0b3c5d] text-white font-bold py-2.5 px-5 sm:py-3 sm:px-6 rounded-md shadow-lg transition-all inline-block text-xs uppercase tracking-wider border border-white/20"
                             >
                                 View {service.title} Gallery

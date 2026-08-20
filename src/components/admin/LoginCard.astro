@@ -5,7 +5,7 @@
   <h2 class="text-base font-bold text-[#0b3c5d] mb-1 text-center">Admin Access</h2>
   <p class="text-xs text-slate-500 mb-4 text-center">Sign in with your email and password or Google account.</p>
   
-  <form method="POST" action="/admin/api/login" class="grid gap-3">
+  <form id="login-form" method="POST" action="/admin/api/login" class="grid gap-3">
     <label class="grid gap-1 text-xs font-semibold text-slate-700">
       Email
       <input
@@ -18,7 +18,10 @@
     </label>
 
     <label class="grid gap-1 text-xs font-semibold text-slate-700">
-      Password
+      <div class="flex items-center justify-between">
+        <span>Password</span>
+        <a href="#forgot" id="forgot-password-link" class="text-[11px] font-normal text-[#0b3c5d] hover:underline">Forgot password?</a>
+      </div>
       <input
         type="password"
         name="password"
@@ -55,3 +58,65 @@
     <span>Sign in with Google</span>
   </button>
 </section>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+
+  // Marca a flag de sessão ao submeter o form normal
+  document.getElementById('login-form')?.addEventListener('submit', () => {
+    sessionStorage.setItem('admin_active_session', 'true');
+  });
+
+  // Funcionalidade de recuperar senha
+  document.getElementById('forgot-password-link')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = prompt("Enter your admin email to receive a password reset link:");
+    if (!email) return;
+
+    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return;
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin`,
+    });
+
+    if (error) {
+      alert("Error: " + error.message);
+    } else {
+      alert("Password reset instructions sent to your email!");
+    }
+  });
+
+  // Login com Google corrigido para redirecionar de volta ao painel corretamente
+  const googleBtn = document.getElementById("google-login-btn");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", async () => {
+      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        alert("Supabase public credentials not found.");
+        return;
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      
+      // Marca a flag antes de sair para o fluxo do Google
+      sessionStorage.setItem('admin_active_session', 'true');
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/admin`
+        }
+      });
+
+      if (error) {
+        console.error("Google login error:", error.message);
+        alert("Error: " + error.message);
+      }
+    });
+  }
+</script>

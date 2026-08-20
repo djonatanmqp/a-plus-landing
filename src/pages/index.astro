@@ -9,9 +9,16 @@ import Testimonials from "../components/Testimonials.astro";
 import FAQ from "../components/FAQ.astro";
 import Contact from "../components/Contact.astro";
 import Footer from "../components/Footer.astro";
-import { getCompanyData } from "../lib/firebase-admin";
+import { supabase } from "../lib/supabase.js";
 
-const companyData = await getCompanyData();
+// Busca os dados da empresa na tabela 'settings' do Supabase
+const { data: settingsData } = await supabase
+  .from("settings")
+  .select("*")
+  .eq("id", "company")
+  .single();
+
+const companyData = settingsData;
 
 const pageTitle = companyData?.name || "A-Plus Pavers & Grass | Orlando Driveways, Patios & Turf";
 const pageDescription = companyData?.tagline || "A-Plus Pavers & Grass LLC creates premium driveway pavers, patios, walkways and artificial turf for Orlando, FL homeowners and businesses.";

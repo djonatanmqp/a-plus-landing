@@ -1,9 +1,11 @@
 ---
+// src/pages/services.astro
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
-import { getCompanyData, getServicesData } from "../lib/firebase-admin";
+import { supabase } from "../lib/supabase.js";
+import { getServicesData, getServiceImageUrl } from "../lib/services.js";
 
 const defaultCompany = {
   name: "A-Plus Pavers & Grass",
@@ -13,8 +15,14 @@ const defaultCompany = {
   links: { googleReview: "", facebook: "", instagram: "", tiktok: "", googleMapsEmbed: "" }
 };
 
-const fetchedCompany = await getCompanyData();
-const company = fetchedCompany || defaultCompany;
+// Busca as configurações da empresa no Supabase
+const { data: settings } = await supabase
+  .from("settings")
+  .select("*")
+  .eq("id", "company")
+  .single();
+
+const company = settings || defaultCompany;
 
 const servicesData = (await getServicesData()) || [];
 
@@ -40,11 +48,8 @@ const breadcrumbData = [
         <div class="grid gap-6 md:grid-cols-3">
             {
                 servicesData.map((service: any) => {
-                    const rawCover = service.coverImage ?? null;
-                    const imageVersion = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
-                    const cover = rawCover ? `${rawCover}${rawCover.includes('?') ? '&' : '?'}v=${imageVersion}` : null;
-
-                    const cardDescription = service.shortDescription || service.subtitle || service.description;
+                    const cover = getServiceImageUrl(service, 'cover');
+                    const cardDescription = service.short_description || service.subtitle || service.description;
 
                     return (
                         <article class="flex flex-col justify-between rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">

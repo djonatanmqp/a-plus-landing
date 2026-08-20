@@ -2,11 +2,25 @@
 // src/components/TestimonialCard.astro
 import CalendarIcon from "~icons/mdi/calendar-blank";
 import MapMarkerIcon from "~icons/mdi/map-marker";
+import { supabase } from "../lib/supabase.js";
 
-const { data } = Astro.props;
+const props = Astro.props || {};
+const data = props.data || {};
 
-const beforePath = data.beforeImage?.startsWith("/") ? data.beforeImage : `/${data.beforeImage}`;
-const afterPath = data.afterImage?.startsWith("/") ? data.afterImage : `/${data.afterImage}`;
+const rawBefore = data.beforeImage || data.before_image || "";
+const rawAfter = data.afterImage || data.after_image || "";
+
+// Função auxiliar para obter a URL pública correta do Supabase Storage
+const getStorageUrl = (path: string, fallbackText: string) => {
+    if (!path) return `https://placehold.co/600x400?text=${fallbackText}`;
+    if (path.startsWith("http") || path.startsWith("/")) return path;
+    
+    const { data: storageData } = supabase.storage.from("testimonials").getPublicUrl(path);
+    return storageData?.publicUrl || `https://placehold.co/600x400?text=${fallbackText}`;
+};
+
+const beforePath = getStorageUrl(rawBefore, "Before");
+const afterPath = getStorageUrl(rawAfter, "After");
 
 const dateDisplay = data.date
     ? new Date(data.date).toLocaleString("en-US", {
@@ -14,6 +28,11 @@ const dateDisplay = data.date
           year: "numeric",
       })
     : null;
+
+const serviceType = data.serviceType || data.service || "";
+const clientName = data.clientName || data.name || "";
+const cityName = data.city || data.location || "";
+const stateName = data.state || "";
 ---
 
 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
@@ -29,7 +48,7 @@ const dateDisplay = data.date
     </div>
 
     <span class="text-[#328cc1] font-bold text-[10px] uppercase tracking-widest">
-        {data.serviceType}
+        {serviceType}
     </span>
 
     <div class="flex items-center gap-4 mt-1">
@@ -40,19 +59,19 @@ const dateDisplay = data.date
             </span>
         )}
 
-        {data.city && data.state && (
+        {cityName && (
             <span class="flex items-center gap-1 text-[10px] uppercase tracking-widest text-gray-400">
                 <MapMarkerIcon class="w-3.5 h-3.5 text-gray-400" />
-                {data.city}, {data.state}
+                {cityName}{stateName ? `, ${stateName}` : ''}
             </span>
         )}
     </div>
 
     <h3 class="font-bold text-lg mt-2 text-[#0b3c5d] leading-tight">
-        {data.clientName}
+        {clientName}
     </h3>
 
-    <div class="text-gray-600 mt-3 text-sm leading-relaxed flex-grow italic">
+    <div class="text-gray-600 mt-3 text-sm leading-relaxed grow italic">
         <slot />
     </div>
 </div>

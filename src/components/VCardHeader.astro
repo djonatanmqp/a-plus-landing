@@ -1,14 +1,38 @@
 ---
-import { getCompanyData, getServicesData } from "../lib/firebase-admin.ts";
+// src/components/VCardHeader.astro
+import { supabase } from "../lib/supabase.js";
 
-const company: any = (await getCompanyData()) || {};
-const servicesData = (await getServicesData()) || [];
+const { data: settings } = await supabase
+  .from("settings")
+  .select("*")
+  .eq("id", "company")
+  .single();
+
+const company: any = settings || {};
+
+const { data: rawServicesData } = await supabase
+  .from("services")
+  .select("*")
+  .order("display_order", { ascending: true });
+
+const servicesData = Array.isArray(rawServicesData) ? rawServicesData : [];
+
+// Função auxiliar para converter caminhos do Supabase Storage em URLs públicas
+const getStorageUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('/')) return path;
+    const { data } = supabase.storage.from('services').getPublicUrl(path);
+    return data?.publicUrl || '';
+};
 
 const serviceHeros = servicesData
   .map((service: any) => {
-    const rawImage = service.heroImage || service.coverImage || "";
-    const version = service.updatedAt ? new Date(service.updatedAt).getTime() : Date.now();
-    return rawImage ? `${rawImage}${rawImage.includes('?') ? '&' : '?'}v=${version}` : "";
+    const rawImage = service.hero_image || service.heroImage || service.cover_image || "";
+    const version = service.updated_at ? new Date(service.updated_at).getTime() : Date.now();
+    
+    const resolvedImage = getStorageUrl(rawImage);
+    const basePath = resolvedImage || `/assets/services/${service.id}/${service.id}-hero.webp`;
+    return `${basePath}${basePath.includes('?') ? '&' : '?'}v=${version}`;
   })
   .filter(Boolean);
 
@@ -28,7 +52,7 @@ const {
             <div id="vcard-carousel" class="flex w-full h-full transition-transform duration-700 ease-in-out">
                 {serviceHeros.length > 0 ? (
                     serviceHeros.map((imgUrl: string, index: number) => (
-                        <div class="w-full h-full flex-shrink-0 relative">
+                        <div class="w-full h-full shrink-0 relative">
                             <img src={imgUrl} alt={`Service Hero ${index + 1}`} class="w-full h-full object-cover" />
                         </div>
                     ))
@@ -40,7 +64,7 @@ const {
             </div>
 
             <!-- Overlay para legibilidade do título -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none"></div>
+            <div class="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent pointer-events-none"></div>
 
             <!-- Título em Branco no Canto Inferior Direito -->
             <div class="absolute bottom-3 right-4 z-25 text-right max-w-[70%]">
@@ -67,7 +91,7 @@ const {
 
         <!-- 3. LOGO NA DIVISÃO DA LINHA AZUL COM SOMBRA PROFUNDA -->
         <div class="max-w-md mx-auto px-4 absolute inset-0 pointer-events-none z-30">
-            <div class="absolute top-[208px] sm:top-[240px] -translate-y-1/2 left-4 w-28 sm:w-32">
+            <div class="absolute top-52 sm:top-60 -translate-y-1/2 left-4 w-28 sm:w-32">
                 <a href="/" aria-label="Go to homepage" class="inline-block pointer-events-auto">
                     <img
                         src="/logo.png"

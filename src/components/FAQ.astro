@@ -1,6 +1,6 @@
 ---
 // src/components/FAQ.astro
-import { getFaqData } from "../lib/firebase-admin.ts";
+import { supabase } from "../lib/supabase.js";
 
 interface Props {
   serviceId?: string;
@@ -8,15 +8,19 @@ interface Props {
 
 const { serviceId = "global" } = Astro.props;
 
-// 1. Busca os dados com segurança garantindo que seja um array
-const allFaqData = (await getFaqData()) || [];
+// 1. Busca os dados da tabela 'faqs' do Supabase
+const { data: allFaqData = [] } = await supabase
+  .from("faqs")
+  .select("*");
 
-// 2. Filtra as FAQs uma única vez
-const faqData = allFaqData.filter((item: any) => {
+const faqsList = allFaqData || [];
+
+// 2. Filtra as FAQs considerando a categoria ou ID do serviço correspondente
+const faqData = faqsList.filter((item: any) => {
   if (serviceId === "global") {
-    return !item.serviceId || item.serviceId === "global";
+    return !item.category || item.category === "global";
   }
-  return item.serviceId === serviceId;
+  return item.category === serviceId;
 });
 ---
 

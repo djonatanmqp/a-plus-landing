@@ -71,7 +71,9 @@ const defaultCompany = {
   },
 };
 
-const fetchedCompany: CompanyData | null = isLoggedIn ? await getCompanyData() : null;
+const fetchedCompany: CompanyData | null = isLoggedIn
+  ? await getCompanyData()
+  : null;
 
 const company = {
   ...defaultCompany,
@@ -105,17 +107,24 @@ const tabs = [
 
 <Layout title="Admin | A-Plus Landing">
   <header class="border-b bg-white py-2">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2">
+    <div
+      class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2"
+    >
       <div class="flex items-center gap-2">
         <img src="/logo.png" alt="A-Plus logo" class="w-10 sm:w-14 h-auto" />
         <div>
-          <div class="text-sm sm:text-base font-extrabold text-[#0b3c5d] leading-none">
+          <div
+            class="text-sm sm:text-base font-extrabold text-[#0b3c5d] leading-none"
+          >
             {company.name}
           </div>
           <div class="text-[10px] sm:text-xs text-slate-500">Control Panel</div>
         </div>
       </div>
-      <a href="/" class="text-xs text-slate-600 hover:text-slate-900 whitespace-nowrap">
+      <a
+        href="/"
+        class="text-xs text-slate-600 hover:text-slate-900 whitespace-nowrap"
+      >
         ← Back
       </a>
     </div>
@@ -182,9 +191,18 @@ const tabs = [
 
           {currentTab === "company" && <CompanyTab company={company} />}
           {currentTab === "services" && <ServicesTab services={servicesData} />}
-          {currentTab === "galleries" && <GalleriesTab services={servicesData} />}
-          {currentTab === "faq" && <FaqTab faqs={faqsData} services={servicesData} />}
-          {currentTab === "testimonials" && <TestimonialsTab testimonials={testimonialsData} services={servicesData} />}
+          {currentTab === "galleries" && (
+            <GalleriesTab services={servicesData} />
+          )}
+          {currentTab === "faq" && (
+            <FaqTab faqs={faqsData} services={servicesData} />
+          )}
+          {currentTab === "testimonials" && (
+            <TestimonialsTab
+              testimonials={testimonialsData}
+              services={servicesData}
+            />
+          )}
         </div>
       ) : (
         <LoginCard />
@@ -194,12 +212,15 @@ const tabs = [
 </Layout>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { createClient } from "@supabase/supabase-js";
 
+  // 1. Botão de Logout explicito
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       try {
+        // Limpa a flag do sessionStorage ao sair explicitamente
+        sessionStorage.removeItem("admin_active_session");
         const res = await fetch("/admin/api/logout", { method: "POST" });
         if (res.ok) {
           window.location.href = "/admin";
@@ -210,24 +231,28 @@ const tabs = [
     });
   }
 
+  // 2. Botão de Login com Google
   const googleBtn = document.getElementById("google-login-btn");
   if (googleBtn) {
     googleBtn.addEventListener("click", async () => {
       const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-      
+
       if (!supabaseUrl || !supabaseAnonKey) {
         alert("Supabase public credentials not found.");
         return;
       }
 
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      
+
+      // Marca a flag antes de redirecionar para o Google
+      sessionStorage.setItem("admin_active_session", "true");
+
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/admin`
-        }
+          redirectTo: `${window.location.origin}/admin`,
+        },
       });
 
       if (error) {
@@ -235,5 +260,39 @@ const tabs = [
         alert("Error: " + error.message);
       }
     });
+  }
+
+  // 3. Tratamento de Retorno do Google OAuth
+  async function handleGoogleRedirect() {
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data?.session?.access_token;
+
+      if (accessToken) {
+        const res = await fetch('/admin/api/auth-google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken })
+        });
+
+        if (res.ok) {
+          sessionStorage.setItem('admin_active_session', 'true');
+          window.location.href = '/admin';
+        } else {
+          const errData = await res.json();
+          alert(errData.error || "Google authentication failed.");
+        }
+      }
+    }
+  }
+  handleGoogleRedirect();
+
+  // 4. Garante que se o usuário está logado (painel visível), a flag da aba está ativa
+  if (logoutBtn) {
+    sessionStorage.setItem("admin_active_session", "true");
   }
 </script>

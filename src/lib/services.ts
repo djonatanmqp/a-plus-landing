@@ -1,31 +1,57 @@
 // src/lib/services.ts
+import { supabase } from "./supabase.js";
 import type { Database } from '../types/supabase';
 
-// Extrai o tipo Service diretamente do schema do Supabase
-type Service = Database['public']['Tables']['services']['Row'];
-
-export type ServiceImageType = "hero" | "cover" | "gallery";
+export type Service = Database['public']['Tables']['services']['Row'];
 
 /**
- * Função utilitária para fallback ou compatibilidade de caminhos de imagem.
- * Com o Supabase Storage, as imagens já salvam a URL pública completa, 
- * mas esta função pode ser usada caso precise de uma estrutura padrão.
+ * Retorna a URL pública da imagem do Supabase Storage ou um placeholder se não houver.
  */
-export function getServiceImagePath(
-  serviceId: Service['id'],
-  type: ServiceImageType,
-  index?: number
-): string {
-  const basePath = `/assets/services/${serviceId}`;
+export function getServiceImageUrl(service: Service, type: 'hero' | 'cover' | 'gallery' | string = 'hero', index: number = 0): string {
+  let imagePath = '';
 
-  if (type === "hero") {
-    return `${basePath}/${serviceId}-hero.webp`;
+  if (type === 'hero') imagePath = service.hero_image || '';
+  else if (type === 'cover') imagePath = service.cover_image || '';
+  else if (type === 'gallery') {
+    const gallery = service.images || [];
+    imagePath = gallery[index] || '';
   }
 
-  if (type === "cover") {
-    return `${basePath}/${serviceId}-cover.webp`;
+  if (imagePath) {
+    if (imagePath.startsWith('http')) return imagePath;
+    const { data } = supabase.storage.from('services').getPublicUrl(imagePath);
+    if (data?.publicUrl) return data.publicUrl;
+  }
+  
+  const label = encodeURIComponent(`${service.title || 'Service'} (${type})`);
+  return `https://placehold.co/1200x600/0b3c5d/ffffff?text=${label}`;
+}
+
+export async function getServicesData(): Promise<Service[]> {
+  const { data, error } = await supabase
+    .from("services")
+    .select("*")
+    .order("display_order", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar serviços do Supabase:", error.message);
+    return [];
   }
 
-  const formattedIndex = String(index ?? 1).padStart(2, "0");
-  return `${basePath}/${serviceId}-${formattedIndex}.webp`;
+  return data || [];
+}
+
+export async function getServiceById(id: string): Promise<Service | null> {
+  const { data, error } = await supabase
+    .from("services")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error(`Erro ao buscar o serviço ${id}:`, error.message);
+    return null;
+  }
+
+  return data;
 }
