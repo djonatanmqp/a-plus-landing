@@ -1,7 +1,26 @@
 ---
 // src/components/Hero.astro
 import { supabase } from "../lib/supabase.js";
-import { getServiceImageUrl } from "../lib/services.js";
+
+// Função otimizada para buscar e redimensionar a imagem do banner (largura 1200px para o Hero)
+const getHeroImageUrl = (service: any) => {
+    const path = service.cover_image || service.hero_image || '';
+    if (!path) return '';
+    if (path.startsWith('http')) {
+        if (path.includes('supabase.co/storage')) {
+            const separator = path.includes('?') ? '&' : '?';
+            return `${path}${separator}width=1200&quality=85`;
+        }
+        return path;
+    }
+    const { data } = supabase.storage.from('services').getPublicUrl(path, {
+        transform: {
+            width: 1200,
+            quality: 85,
+        }
+    });
+    return data?.publicUrl || '';
+};
 
 const { data: rawServicesData } = await supabase
   .from("services")
@@ -9,8 +28,7 @@ const { data: rawServicesData } = await supabase
   .order("display_order", { ascending: true });
 
 const servicesCarousel = Array.isArray(rawServicesData) ? rawServicesData.map((service: any) => {
-    // Usa a função auxiliar para obter a imagem de capa do serviço integrada ao Supabase
-    const image = getServiceImageUrl(service, 'cover');
+    const image = getHeroImageUrl(service);
 
     return {
         title: service.title || "",
@@ -42,6 +60,9 @@ const servicesCarousel = Array.isArray(rawServicesData) ? rawServicesData.map((s
                             alt={service.title}
                             class="w-full h-full object-cover"
                             loading={index === 0 ? "eager" : "lazy"}
+                            {...(index === 0 ? { fetchpriority: "high" } : {})}
+                            width="1200"
+                            height="514"
                             onerror={`this.onerror=null; this.src='https://placehold.co/1200x600?text=${encodeURIComponent(service.title)}';`}
                         />
 

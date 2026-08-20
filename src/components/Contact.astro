@@ -11,7 +11,7 @@ import GoogleIcon from "~icons/simple-icons/google";
 
 import { supabase } from "../lib/supabase.js";
 
-// Busca as configurações globais da empresa no Supabase
+// Busca as configurações globais da empresa no Supabase[cite: 3]
 const { data: settings } = await supabase
   .from("settings")
   .select("*")
@@ -107,6 +107,7 @@ const company: any = settings || {};
                     allowfullscreen
                     src={company.links.googleMapsEmbed}
                     referrerpolicy="no-referrer-when-downgrade"
+                    title="Company Location Map"
                 >
                 </iframe>
             ) : (
