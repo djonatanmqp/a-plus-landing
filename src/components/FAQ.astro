@@ -15,12 +15,16 @@ const { data: allFaqData = [] } = await supabase
 
 const faqsList = allFaqData || [];
 
-// 2. Filtra as FAQs considerando a categoria ou ID do serviço correspondente
+// 2. Filtra as FAQs usando o campo 'service_id' que existe no seu Supabase
 const faqData = faqsList.filter((item: any) => {
+  // Se for solicitado o modo 'global' (ex: página inicial)
   if (serviceId === "global") {
-    return !item.category || item.category === "global";
+    // Traz apenas as perguntas que NÃO têm um service_id associado (ou seja, são gerais)
+    return item.service_id === null;
   }
-  return item.category === serviceId;
+  
+  // Se for uma página de serviço, traz apenas as que correspondem exatamente àquele ID
+  return item.service_id === serviceId;
 });
 ---
 
@@ -28,7 +32,7 @@ const faqData = faqsList.filter((item: any) => {
   <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
     <h2 class="text-3xl font-extrabold text-[#0b3c5d] mb-4">Frequently Asked Questions</h2>
     <p class="text-sm text-gray-600 mb-8">
-      Answers to the most common questions from homeowners in Orlando and surrounding neighborhoods.
+      Answers to the most common questions from homeowners.
     </p>
 
     {faqData && faqData.length > 0 ? (
@@ -45,7 +49,7 @@ const faqData = faqsList.filter((item: any) => {
         ))}
       </div>
     ) : (
-      <p class="text-gray-500 italic">Frequently asked questions coming soon.</p>
+      <p class="text-gray-500 italic">No frequently asked questions available.</p>
     )}
   </div>
 </section>
