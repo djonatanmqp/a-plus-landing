@@ -1,16 +1,19 @@
-import { getServicesData } from "../lib/firebase-admin";
+import { supabase } from "../lib/supabase";
 
 export async function GET({ request }: { request: Request }) {
   const baseUrl = process.env.SITE_URL || new URL(request.url).origin;
 
   let servicesData: Array<{ id: string }> = [];
   try {
-    const fetchedServices = await getServicesData();
-    if (Array.isArray(fetchedServices)) {
-      servicesData = fetchedServices;
+    // Ajuste "services" se o nome da sua tabela no Supabase for diferente
+    const { data, error } = await supabase.from("services").select("id");
+    
+    if (error) throw error;
+    if (data) {
+      servicesData = data;
     }
   } catch (error) {
-    console.error("Erro ao carregar serviços para o sitemap:", error);
+    console.error("Erro ao carregar serviços do Supabase para o sitemap:", error);
   }
 
   const urls = [
