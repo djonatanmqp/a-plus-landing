@@ -10,6 +10,12 @@ import Video from "~icons/mdi/video";
 import { supabase } from "../../lib/supabase.js";
 import { getServicesData, getServiceImageUrl } from "../../lib/services.js";
 
+// Função necessária para gerar as páginas dinâmicas durante o build
+export async function getStaticPaths() {
+  const { data: services } = await supabase.from("services").select("id");
+  return (services || []).map((s) => ({ params: { id: s.id } }));
+}
+
 const { id } = Astro.params;
 const servicesData = await getServicesData();
 
@@ -48,9 +54,8 @@ const heroOrCover = rawHeroOrCover ? getServiceImageUrl(s, s.hero_image ? 'hero'
 // Função auxiliar local segura para pegar a URL pública de qualquer imagem do bucket do Supabase
 const getPublicUrl = (imagePath: string) => {
     if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath; // Se já for URL completa
+    if (imagePath.startsWith('http')) return imagePath; 
     
-    // Ajuste o nome do bucket ('services' ou o que estiver usando no seu projeto) se necessário
     const { data } = supabase.storage.from('services').getPublicUrl(imagePath);
     return data?.publicUrl || '';
 };

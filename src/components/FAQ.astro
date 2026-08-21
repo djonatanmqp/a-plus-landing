@@ -8,24 +8,16 @@ interface Props {
 
 const { serviceId = "global" } = Astro.props;
 
-// 1. Busca os dados da tabela 'faqs' do Supabase
-const { data: allFaqData = [] } = await supabase
-  .from("faqs")
-  .select("*");
+// 1. Busca os dados filtrando diretamente na query do Supabase
+let query = supabase.from("faqs").select("*");
 
-const faqsList = allFaqData || [];
+if (serviceId === "global") {
+  query = query.is("service_id", null);
+} else {
+  query = query.eq("service_id", serviceId);
+}
 
-// 2. Filtra as FAQs usando o campo 'service_id' que existe no seu Supabase
-const faqData = faqsList.filter((item: any) => {
-  // Se for solicitado o modo 'global' (ex: página inicial)
-  if (serviceId === "global") {
-    // Traz apenas as perguntas que NÃO têm um service_id associado (ou seja, são gerais)
-    return item.service_id === null;
-  }
-  
-  // Se for uma página de serviço, traz apenas as que correspondem exatamente àquele ID
-  return item.service_id === serviceId;
-});
+const { data: faqData = [] } = await query;
 ---
 
 <section id="faq" class="max-w-6xl mx-auto px-4 py-2">

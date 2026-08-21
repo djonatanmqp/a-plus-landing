@@ -41,7 +41,7 @@ const contactHref = isHome ? "#contact" : "/#contact";
 
 <header
     class="relative z-40 text-white py-2 sm:py-3 md:py-4 px-4 sm:px-6 lg:px-8 border-b-4 border-[#328cc1] bg-repeat bg-center"
-    style="background-image: linear-gradient(rgba(128, 128, 128, 0.50), rgba(128, 128, 128, 0.50)), url('/paver-pattern.png'); background-size: auto, 180px;"
+    style="background-image: linear-gradient(rgba(128, 128, 128, 0.50), rgba(128, 128, 128, 0.50)), url('/assets/images/paver-pattern.webp'); background-size: auto, 180px;"
 >
     <div
         class="max-w-6xl mx-auto flex flex-row items-center justify-between gap-4 sm:gap-6 relative"
@@ -53,8 +53,10 @@ const contactHref = isHome ? "#contact" : "/#contact";
                 class="absolute left-0 z-30 -bottom-2 sm:-bottom-3 md:-bottom-4 translate-y-1/2 inline-flex"
             >
                 <img
-                    src="/logo.png"
+                    src="/assets/images/logo.webp"
                     alt={`${company?.name || 'Company'} Logo`}
+                    width="144"
+                    height="144"
                     class="w-20 sm:w-28 md:w-36 h-auto drop-shadow-lg transition-transform duration-300 hover:scale-105"
                     loading="eager"
                     fetchpriority="high"
@@ -215,7 +217,7 @@ const contactHref = isHome ? "#contact" : "/#contact";
         </nav>
     )
 }
-
+<!-- (Restante do script permanece inalterado) -->
 <script>
     function setupMobileMenu() {
         const toggleBtn = document.getElementById('menu-toggle');

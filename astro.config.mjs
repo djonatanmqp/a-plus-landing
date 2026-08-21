@@ -4,13 +4,13 @@ import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 import icons from 'unplugin-icons/vite';
 
-// https://astro.build/config
+// Verifica se estamos rodando na Vercel ou localmente
+const isVercel = process.env.VERCEL === '1';
+
 export default defineConfig({
-  // Vercel exige output 'server' ou 'hybrid'
-  output: 'server',
-  adapter: vercel({
-    webAnalytics: { enabled: true },
-  }),
+  // Se for Vercel, usa 'server', se for local, usa 'static' (padrão)
+  output: isVercel ? 'server' : 'static',
+  adapter: isVercel ? vercel({ webAnalytics: { enabled: true } }) : undefined,
   
   vite: {
     plugins: [

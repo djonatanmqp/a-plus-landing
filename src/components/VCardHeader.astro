@@ -58,7 +58,7 @@ const {
                     ))
                 ) : (
                     <div class="w-full h-full relative">
-                        <img src="/paver-pattern.png" alt="Default Hero" class="w-full h-full object-cover" />
+                        <img src="/assets/images/paver-pattern.webp" alt="Default Hero" class="w-full h-full object-cover" />
                     </div>
                 )}
             </div>
@@ -86,7 +86,7 @@ const {
         <!-- 2. FAIXA DE PAVERS (sincronizada com o fundo do card) -->
         <div 
             class="relative w-full h-20 bg-repeat bg-top"
-            style="background-image: url('/paver-pattern.png'); background-size: 240px;"
+            style="background-image: url('/assets/images/paver-pattern.webp'); background-size: 240px;"
         ></div>
 
         <!-- 3. LOGO NA DIVISÃO DA LINHA AZUL COM SOMBRA PROFUNDA -->
@@ -94,8 +94,10 @@ const {
             <div class="absolute top-52 sm:top-60 -translate-y-1/2 left-4 w-28 sm:w-32">
                 <a href="/" aria-label="Go to homepage" class="inline-block pointer-events-auto">
                     <img
-                        src="/logo.png"
+                        src="/assets/images/logo.webp"
                         alt={`${title} Logo`}
+                        width="128"
+                        height="128"
                         class="w-full h-auto drop-shadow-[0_12px_20px_rgba(0,0,0,0.65)] transition-transform duration-300 hover:scale-105"
                     />
                 </a>
