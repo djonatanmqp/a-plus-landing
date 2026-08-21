@@ -113,12 +113,12 @@ const tabs = [
       class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2"
     >
       <div class="flex items-center gap-2">
-        <img 
-            src="/assets/images/logo.webp" 
-            alt="A-Plus logo" 
-            width="56"
-            height="56"
-            class="w-10 sm:w-14 h-auto" 
+        <img
+          src="/assets/images/logo.webp"
+          alt="A-Plus logo"
+          width="56"
+          height="56"
+          class="w-10 sm:w-14 h-auto"
         />
         <div>
           <div
@@ -139,7 +139,6 @@ const tabs = [
   </header>
 
   <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3">
-    <!-- ... resto do código permanece inalterado ... -->
     <div class="flex items-center justify-between gap-2 mb-3">
       <div>
         <h1 class="text-lg sm:text-xl font-bold text-slate-900">Admin Panel</h1>
@@ -149,14 +148,13 @@ const tabs = [
       </div>
       {
         isLoggedIn && (
-          <button
-            type="button"
-            id="logout-btn"
+          <a
+            href="/admin/api/logout"
             class="flex items-center gap-1 rounded-full bg-[#0b3c5d] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[#2570a2]"
           >
             <LogoutIcon class="w-3.5 h-3.5" />
             <span>Sign Out</span>
-          </button>
+          </a>
         )
       }
     </div>
@@ -219,4 +217,10 @@ const tabs = [
     }
   </main>
 </Layout>
-<!-- ... resto da tag script permanece igual ... -->
+
+<script>
+  // Limpa o hash de acesso da barra de endereços após a autenticação via OAuth
+  if (window.location.hash.includes('access_token')) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script>

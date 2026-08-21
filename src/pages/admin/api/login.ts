@@ -10,6 +10,8 @@ import {
 } from "../../../lib/admin";
 import { supabase } from "../../../lib/supabase.js";
 
+export const prerender = false;
+
 export async function POST({ request, cookies, redirect }: APIContext) {
   try {
     const formData = await request.formData();
