@@ -116,5 +116,26 @@ import Analytics from '@vercel/analytics/astro';
 		<ZoomModal />
     	<script src="/assets/zoom.js" type="module"></script>
     	<Analytics />
+
+    	<script>
+    		// Redirect any OAuth authorization code (e.g. ?code=...) to the admin callback
+    		// This helps when the provider redirects to the apex or www root instead of the intended callback path.
+    		(function () {
+    			try {
+    				if (typeof window === 'undefined') return;
+    				const url = new URL(window.location.href);
+    				const code = url.searchParams.get('code');
+    				if (code) {
+    					// If we're already on the server callback path, do nothing
+    					if (!window.location.pathname.startsWith('/admin/api/auth-callback')) {
+    						const dest = '/admin/api/auth-callback' + window.location.search;
+    						window.location.replace(dest);
+    					}
+    				}
+    			} catch (e) {
+    				console.error('OAuth redirect helper error', e);
+    			}
+    		})();
+    	</script>
 	</body>
 </html>
