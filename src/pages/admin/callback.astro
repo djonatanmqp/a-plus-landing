@@ -1,0 +1,43 @@
+---
+// src/pages/admin/callback.astro
+---
+<html>
+  <head>
+    <title>Authenticating...</title>
+  </head>
+  <body style="background: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <p style="color: #64748b; font-size: 14px;">Authenticating with Google, please wait...</p>
+
+    <script>
+      import { createClient } from '@supabase/supabase-js';
+
+      const supabase = createClient(
+        import.meta.env.PUBLIC_SUPABASE_URL,
+        import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+      );
+
+      async function handleAuth() {
+        // O Supabase lida automaticamente com o hash code/token nesta página isolada
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (session?.access_token && !error) {
+          const response = await fetch('/admin/api/set-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken: session.access_token }),
+          });
+
+          if (response.ok) {
+            window.location.href = '/admin';
+            return;
+          }
+        }
+
+        // Se falhar, joga de volta para o login
+        window.location.href = '/admin';
+      }
+
+      handleAuth();
+    </script>
+  </body>
+</html>

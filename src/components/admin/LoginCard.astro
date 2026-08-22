@@ -68,33 +68,6 @@
     import.meta.env.PUBLIC_SUPABASE_ANON_KEY
   );
 
-  // --- TRATAMENTO MANUAL DO HASH DO OAUTH ---
-  async function processOAuthHash() {
-    const hash = window.location.hash;
-    if (hash && hash.includes('access_token')) {
-      // Converte o hash string em parâmetros de URL utilizáveis
-      const params = new URLSearchParams(hash.substring(1));
-      const accessToken = params.get('access_token');
-
-      if (accessToken) {
-        // Envia direto para a API gravar o cookie e liberar a sessão no servidor
-        const response = await fetch('/admin/api/set-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken }),
-        });
-
-        if (response.ok) {
-          // Limpa o hash da URL e redireciona para o admin limpo
-          window.location.href = '/admin';
-        }
-      }
-    }
-  }
-
-  processOAuthHash();
-  // ------------------------------------------
-
   document.getElementById('forgot-password-link')?.addEventListener('click', async (e) => {
     e.preventDefault();
     const email = prompt("Enter your admin email to receive a password reset link:");
@@ -114,7 +87,8 @@
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/admin`,
+          // Redireciona para a página de callback isolada para evitar conflitos de hash
+          redirectTo: `${window.location.origin}/admin/callback`,
         }
       });
 
