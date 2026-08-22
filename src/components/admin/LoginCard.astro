@@ -63,7 +63,15 @@
 <script>
   import { createClient } from '@supabase/supabase-js';
 
-  const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+  const supabase = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL, 
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+    {
+      auth: {
+        flowType: 'pkce'
+      }
+    }
+  );
 
   // Intercepta a alteração de estado da autenticação ao retornar do provedor
   supabase.auth.onAuthStateChange(async (event, session) => {
