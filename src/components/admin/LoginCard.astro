@@ -115,8 +115,28 @@
 
   const googleBtn = document.getElementById("google-login-btn");
   if (googleBtn) {
-    googleBtn.addEventListener("click", () => {
-      window.location.href = '/admin/api/auth-google';
+    googleBtn.addEventListener("click", async (e) => {
+      try {
+        // Initiate OAuth from the browser so the PKCE code_verifier is saved to browser storage
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/admin`,
+          },
+        });
+
+        if (error || !data?.url) {
+          console.error('Supabase signInWithOAuth error:', error);
+          alert('Error: Could not initialize Google login');
+          return;
+        }
+
+        // Redirect the browser to the provider URL
+        window.location.href = data.url;
+      } catch (err) {
+        console.error(err);
+        alert('Error: Could not initialize Google login');
+      }
     });
   }
 </script>
