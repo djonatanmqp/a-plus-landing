@@ -115,21 +115,8 @@
 
   const googleBtn = document.getElementById("google-login-btn");
   if (googleBtn) {
-    googleBtn.addEventListener("click", async () => {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/admin/api/auth-callback`,
-          skipBrowserRedirect: true, // Evita que o client abra janelas extras ou falhe no redirecionamento direto
-        },
-      });
-
-      if (error) {
-        console.error("Google login error:", error.message);
-      } else if (data?.url) {
-        // Redireciona o navegador diretamente para a URL oficial de login do Google gerada pelo Supabase
-        window.location.href = data.url;
-      }
+    googleBtn.addEventListener("click", () => {
+      window.location.href = '/admin/api/auth-google';
     });
   }
 </script>
