@@ -65,28 +65,35 @@
 
   const supabase = createClient(
     import.meta.env.PUBLIC_SUPABASE_URL, 
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-    {
-      auth: {
-        flowType: 'pkce'
-      }
-    }
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
   );
 
-  // Intercepta a alteração de estado da autenticação ao retornar do provedor
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.access_token) {
-      const response = await fetch('/admin/api/set-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: session.access_token }),
-      });
+  // --- TRATAMENTO MANUAL DO HASH DO OAUTH ---
+  async function processOAuthHash() {
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      // Converte o hash string em parâmetros de URL utilizáveis
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
 
-      if (response.ok) {
-        window.location.href = '/admin';
+      if (accessToken) {
+        // Envia direto para a API gravar o cookie e liberar a sessão no servidor
+        const response = await fetch('/admin/api/set-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken }),
+        });
+
+        if (response.ok) {
+          // Limpa o hash da URL e redireciona para o admin limpo
+          window.location.href = '/admin';
+        }
       }
     }
-  });
+  }
+
+  processOAuthHash();
+  // ------------------------------------------
 
   document.getElementById('forgot-password-link')?.addEventListener('click', async (e) => {
     e.preventDefault();
