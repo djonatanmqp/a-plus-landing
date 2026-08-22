@@ -1,3 +1,4 @@
+// src/lib/supabase.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
@@ -5,15 +6,15 @@ const supabaseKey = import.meta.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    flowType: 'pkce', // <--- Força o fluxo de authorization code seguro (evita access_token na URL)
-    // Força o uso do sessionStorage da aba em vez do localStorage permanente
-    storage: typeof window !== 'undefined' ? window.sessionStorage : null,
+    flowType: 'pkce',
     persistSession: true,
     autoRefreshToken: true,
+    // Permite que o cliente funcione tanto no browser quanto no servidor sem estourar erro de 'window'
+    storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
   }
 });
 
-// Limpa os dados da sessão ao fechar a aba ou o navegador
+// Limpa os dados da sessão ao fechar a aba ou o navegador (Apenas no browser)
 if (typeof window !== 'undefined') {
   window.addEventListener('pagehide', () => {
     const keysToRemove = [];
@@ -23,7 +24,6 @@ if (typeof window !== 'undefined') {
         keysToRemove.push(key);
       }
     }
-    // Correção: usando .forEach() corretamente
     keysToRemove.forEach(k => window.sessionStorage.removeItem(k));
   });
 }
