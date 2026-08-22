@@ -11,14 +11,18 @@ export async function GET({ request, cookies, redirect }: APIContext) {
 
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
+
+    // Log detalhado para diagnóstico (visível nos logs do deploy)
+    if (error) console.error('Supabase exchangeCodeForSession error:', error);
+    else console.info('Supabase exchangeCodeForSession data:', data);
+
     if (!error && data.user?.email) {
       const userEmail = data.user.email.toLowerCase();
 
       // Valida se o e-mail está na allowlist de administradores
       if (isAdminEmail(userEmail)) {
         const token = createAdminToken(userEmail);
-        
+
         // Grava o cookie de sessão do painel admin
         cookies.set(SESSION_COOKIE_NAME, token, {
           path: "/",
@@ -30,10 +34,26 @@ export async function GET({ request, cookies, redirect }: APIContext) {
         // Redireciona com sucesso para o painel protegido
         return redirect("/admin", 303);
       } else {
-        return redirect("/admin?message=" + encodeURIComponent("Error: Email not authorized"), 303);
+        return redirect(
+          "/admin?message=" +
+            encodeURIComponent(
+              "Error: Email not authorized"
+            ),
+          303,
+        );
       }
     }
+
+    // Se houve um erro ou não veio usuário, expor a mensagem retornada pelo Supabase para auxiliar debug
+    const debugMsg = error?.message || (data && !data.user ? 'No user in response' : 'Unknown error');
+    return redirect(
+      "/admin?message=" + encodeURIComponent("Error: Google authentication failed: " + debugMsg),
+      303,
+    );
   }
 
-  return redirect("/admin?message=" + encodeURIComponent("Error: Google authentication failed"), 303);
+  return redirect(
+    "/admin?message=" + encodeURIComponent("Error: Google authentication failed"),
+    303,
+  );
 }
