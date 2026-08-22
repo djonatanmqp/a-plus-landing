@@ -118,13 +118,26 @@ import Analytics from '@vercel/analytics/astro';
     	<Analytics />
 
     	<script>
-    		// Redirect any OAuth authorization code (e.g. ?code=...) to the admin callback
-    		// This helps when the provider redirects to the apex or www root instead of the intended callback path.
+    		// Redirect OAuth responses to the appropriate handlers:
+    		// - If the provider returns an access_token in the hash, forward to /admin#access_token=... so the admin page can process it client-side.
+    		// - If the provider returns a ?code=... on the root, forward it to /admin/api/auth-callback so the server can exchange it.
     		(function () {
     			try {
     				if (typeof window === 'undefined') return;
     				const url = new URL(window.location.href);
     				const code = url.searchParams.get('code');
+    				const hash = window.location.hash || '';
+
+    				// If hash contains access_token and we're not on /admin, redirect to /admin with the hash
+    				if (hash.includes('access_token')) {
+    					if (!window.location.pathname.startsWith('/admin')) {
+    						window.location.replace('/admin' + hash + window.location.search);
+    						return;
+    					}
+    					// If we're already on /admin, admin.astro will handle the hash
+    				}
+
+    				// Handle code query param redirected to root — forward to server callback handler
     				if (code) {
     					// If we're already on the server callback path, do nothing
     					if (!window.location.pathname.startsWith('/admin/api/auth-callback')) {
