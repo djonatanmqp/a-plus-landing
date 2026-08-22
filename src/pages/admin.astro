@@ -219,8 +219,44 @@ const tabs = [
 </Layout>
 
 <script>
-  // Limpa o hash de acesso da barra de endereços após a autenticação via OAuth
-  if (window.location.hash.includes('access_token')) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
+  // Captura o access_token retornado no hash pelo Supabase OAuth (quando redirectTo foi definido para /admin)
+  // Envia o token ao endpoint /admin/api/set-session para que o servidor grave o cookie do painel.
+  // Depois de bem-sucedido recarrega a página limpa (sem hash) para que o painel seja renderizado como autenticado.
+  (async function () {
+    try {
+      const hash = window.location.hash || "";
+      // Suporta o formato #access_token=...&expires_in=... ou a presença de ?code=... na query (fallback existem outras rotas)
+      if (hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.replace(/^#/, ""));
+        const accessToken = params.get("access_token");
+        if (accessToken) {
+          const resp = await fetch("/admin/api/set-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accessToken }),
+          });
+
+          if (resp.ok) {
+            // Limpa o hash e recarrega para que o servidor veja o cookie de sessão recém-setado
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            window.location.reload();
+            return;
+          } else if (resp.status === 403) {
+            // Token não autorizado — informa o usuário
+            window.location.href = "/admin?message=" + encodeURIComponent("Error: Email not authorized");
+            return;
+          } else {
+            console.error("Failed to set session", resp.status);
+            window.location.href = "/admin?message=" + encodeURIComponent("Error: Could not establish session");
+            return;
+          }
+        }
+      }
+
+      // Fallback: se o provedor retornou ?code=... (flow com código) o endpoint server-side /admin/api/auth-callback já existe
+      // e fará a troca de código pela sessão; nada a fazer no cliente nesse caso.
+    } catch (err) {
+      console.error(err);
+    }
+  })();
 </script>

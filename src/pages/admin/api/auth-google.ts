@@ -6,8 +6,9 @@ export const prerender = false;
 
 export async function GET({ request, redirect }: APIContext) {
   const url = new URL(request.url);
-  // Garante explicitamente a rota exata de callback que processará o código
-  const redirectTo = `${url.origin}/admin/api/auth-callback`;
+  // Redireciona de volta para /admin — o Supabase adicionará o access_token no hash
+  // O cliente no /admin captura o token e chama /admin/api/set-session para gravar o cookie do painel
+  const redirectTo = `${url.origin}/admin`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
