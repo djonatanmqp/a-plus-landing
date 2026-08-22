@@ -5,6 +5,7 @@ const supabaseKey = import.meta.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
+    flowType: 'pkce', // <--- Força o fluxo de authorization code seguro (evita access_token na URL)
     // Força o uso do sessionStorage da aba em vez do localStorage permanente
     storage: typeof window !== 'undefined' ? window.sessionStorage : null,
     persistSession: true,
