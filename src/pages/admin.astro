@@ -246,7 +246,6 @@ const tabs = [
             window.location.href = "/admin?message=" + encodeURIComponent("Error: Email not authorized");
             return;
           } else {
-            console.error("Failed to set session", resp.status);
             window.location.href = "/admin?message=" + encodeURIComponent("Error: Could not establish session");
             return;
           }
@@ -256,7 +255,7 @@ const tabs = [
       // Fallback: se o provedor retornou ?code=... (flow com código) o endpoint server-side /admin/api/auth-callback já existe
       // e fará a troca de código pela sessão; nada a fazer no cliente nesse caso.
     } catch (err) {
-      console.error(err);
+      // Silenciar erros de diagnóstico no cliente
     }
   })();
 </script>

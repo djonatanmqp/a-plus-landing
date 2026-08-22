@@ -12,9 +12,6 @@ export async function GET({ request, cookies, redirect }: APIContext) {
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    // Log detalhado para diagnóstico (visível nos logs do deploy)
-    if (error) console.error('Supabase exchangeCodeForSession error:', error);
-    else console.info('Supabase exchangeCodeForSession data:', data);
 
     if (!error && data.user?.email) {
       const userEmail = data.user.email.toLowerCase();
