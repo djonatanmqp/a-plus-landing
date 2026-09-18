@@ -1,7 +1,7 @@
 // src/pages/admin/api/gallery/delete.ts
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin.ts";
-import { supabase } from "../../../../lib/supabase.js";
+import { supabaseAdmin } from "../../../../lib/supabase-admin.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
 
     // 1. Busca o serviço atual no Supabase
-    const { data: service, error: fetchError } = await supabase
+    const { data: service, error: fetchError } = await supabaseAdmin
       .from("services")
       .select("images")
       .eq("id", serviceId)
@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       const updatedGallery = currentGallery.filter((url) => url !== imageUrl);
 
       // 2. Atualiza o array filtrado no banco de dados
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from("services")
         .update({
           images: updatedGallery,
@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
         if (pathParts.length > 1) {
           const filePath = pathParts[1]; // Ex: gallery/123/file.webp
           
-          const { error: storageError } = await supabase.storage
+          const { error: storageError } = await supabaseAdmin.storage
             .from("images")
             .remove([filePath]);
 

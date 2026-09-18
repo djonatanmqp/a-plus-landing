@@ -1,0 +1,112 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/auth-callback/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/auth-google/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/company/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/faq/delete/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/faq/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/gallery/delete/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/gallery/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/logout/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/service/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/set-session/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/testimonial/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/api/testimonials/delete/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/vcard\\.vcf$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/card/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/sitemap\\.xml$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/404/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/.*$",
+			"dest": "_render",
+			"status": 404
+		}
+	]
+}

@@ -2,7 +2,7 @@
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
 import { validateImage } from "../../../lib/image-optimizer.ts";
-import { supabase } from "../../../lib/supabase.js";
+import { supabaseAdmin } from "../../../lib/supabase-admin.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
   try {
     // 1. Busca o array atual de imagens na tabela services
-    const { data: service, error: fetchError } = await supabase
+    const { data: service, error: fetchError } = await supabaseAdmin
       .from("services")
       .select("images")
       .eq("id", serviceId)
@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       const sanitizedName = file.name.replace(/\s+/g, '-');
       const filePath = `gallery/${serviceId}/${sanitizedName}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from("images")
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       if (uploadError) throw uploadError;
 
       // 3. Captura a URL pública definitiva
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = supabaseAdmin.storage
         .from("images")
         .getPublicUrl(uploadData.path);
 
@@ -73,7 +73,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const combinedGallery = Array.from(new Set([...currentGallery, ...uploadedImageUrls]));
 
     // 5. Atualiza o banco de dados com as URLs públicas do Storage
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("services")
       .update({
         images: combinedGallery,
