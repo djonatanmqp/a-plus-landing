@@ -2,7 +2,8 @@
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
 import { validateImage } from "../../../lib/image-optimizer.ts";
-import { supabase } from "../../../lib/supabase.js";
+import { supabaseAdmin } from "../../../lib/supabase-admin.ts";
+import type { Database } from "../../../types/supabase";
 
 interface ServiceData {
   hero_image?: string | null;
@@ -34,7 +35,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const description = formData.get("description")?.toString().trim() || "";
 
     // Busca o registro atual no Supabase para preservar os dados existentes
-    const { data: existingService, error: fetchError } = serviceId ? await supabase
+    const { data: existingService, error: fetchError } = serviceId ? await supabaseAdmin
       .from("services")
       .select("hero_image, cover_image, highlights")
       .eq("id", serviceId)
@@ -69,7 +70,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       }
     }
 
-    const updateData: Record<string, unknown> = {
+    const updateData: Database["public"]["Tables"]["services"]["Insert"] = {
+      id: serviceId || `service-${Date.now()}`,
       title,
       subtitle,
       short_description,
@@ -80,22 +82,18 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       cover_image: existingData.cover_image || "",
     };
 
-    if (serviceId) {
-      updateData.id = serviceId;
-    }
-
     const uploadImageToSupabase = async (file: File, type: "hero" | "cover"): Promise<string> => {
       const targetId = serviceId || 'new';
       // Nome fixo (ex: services/uuid/hero.webp) para que o upsert substitua o arquivo anterior perfeitamente
       const fileName = `services/${targetId}/${type}.webp`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from("images")
         .upload(fileName, file, { cacheControl: "3600", upsert: true });
 
       if (uploadError) throw new Error(uploadError.message);
 
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = supabaseAdmin.storage
         .from("images")
         .getPublicUrl(uploadData.path);
 
@@ -120,7 +118,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       updateData.cover_image = await uploadImageToSupabase(coverFile, "cover");
     }
 
-    const { error: upsertError } = await supabase
+    const { error: upsertError } = await supabaseAdmin
       .from("services")
       .upsert(updateData);
 
