@@ -4,7 +4,7 @@ const MAX_WIDTH = 1600;
 const MAX_HEIGHT = 1600;
 let logoPromise: Promise<HTMLImageElement | null> | undefined;
 
-async function compressImage(file: File, targetBytes: number): Promise<File> {
+async function compressImage(file: File, targetBytes: number, addWatermark: boolean): Promise<File> {
   if (!file.type.startsWith("image/")) return file;
 
   const bitmap = await createImageBitmap(file);
@@ -22,7 +22,7 @@ async function compressImage(file: File, targetBytes: number): Promise<File> {
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
 
-  const logo = await loadWatermarkLogo();
+  const logo = addWatermark ? await loadWatermarkLogo() : null;
   if (logo) {
     const watermarkWidth = canvas.width * 0.3;
     const watermarkHeight = watermarkWidth * (logo.naturalHeight / logo.naturalWidth);
@@ -76,6 +76,17 @@ function canvasToWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob>
 
 export function setupAdminImageCompression(): void {
   document.querySelectorAll<HTMLInputElement>(".file-input").forEach((input) => {
+    const warningElement = input.form?.querySelector<HTMLElement>("[data-image-limit-warning]");
+
+    const showWarning = (message: string) => {
+      if (warningElement) {
+        warningElement.textContent = message;
+        warningElement.classList.remove("hidden");
+      }
+    };
+
+    const clearWarning = () => warningElement?.classList.add("hidden");
+
     input.addEventListener("change", async () => {
       if (!input.files?.length) return;
 
@@ -91,8 +102,10 @@ export function setupAdminImageCompression(): void {
           throw new Error(`Select up to ${MAX_FILES_PER_SUBMISSION} images per upload`);
         }
 
+        clearWarning();
+        const addWatermark = !["cover_image_file", "hero_image_file"].includes(input.name);
         const compressedFiles = await Promise.all(
-          originalFiles.map((file) => compressImage(file, TARGET_BYTES_PER_IMAGE)),
+          originalFiles.map((file) => compressImage(file, TARGET_BYTES_PER_IMAGE, addWatermark)),
         );
         const transfer = new DataTransfer();
         compressedFiles.forEach((file) => transfer.items.add(file));
@@ -107,6 +120,7 @@ export function setupAdminImageCompression(): void {
       } catch (error) {
         console.error("Image compression failed:", error);
         input.value = "";
+        showWarning(error instanceof Error ? error.message : "Could not process image");
         if (fileNameElement) {
           fileNameElement.textContent = error instanceof Error
             ? error.message
@@ -114,6 +128,13 @@ export function setupAdminImageCompression(): void {
         }
       } finally {
         input.disabled = false;
+      }
+    });
+
+    input.form?.addEventListener("submit", (event) => {
+      if (input.files && input.files.length > MAX_FILES_PER_SUBMISSION) {
+        event.preventDefault();
+        showWarning(`Select up to ${MAX_FILES_PER_SUBMISSION} images per upload`);
       }
     });
   });

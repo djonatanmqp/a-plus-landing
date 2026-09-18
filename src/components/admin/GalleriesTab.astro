@@ -59,6 +59,7 @@ const currentImages: string[] = selectedService?.images || [];
         <CloudUploadIcon class="w-8 h-8 text-slate-400" />
         <p class="file-name-display text-xs text-slate-500">Drag and drop project images here or click to upload.</p>
         <span class="text-[10px] text-slate-400">Images will be automatically converted and compressed into WebP format.</span>
+        <p data-image-limit-warning class="hidden text-xs font-semibold text-red-600" role="alert"></p>
         
         <label class="mt-2 rounded-full bg-[#0b3c5d] px-4 py-1.5 text-xs font-semibold text-white cursor-pointer hover:bg-[#2570a2] whitespace-nowrap z-10">
           Browse Images

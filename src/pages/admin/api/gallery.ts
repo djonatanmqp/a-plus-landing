@@ -4,6 +4,8 @@ import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
 import { validateImage } from "../../../lib/image-optimizer.ts";
 import { supabaseAdmin } from "../../../lib/supabase-admin.ts";
 
+const MAX_GALLERY_FILES = 4;
+
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
   if (!validateAdminToken(token)) {
@@ -18,6 +20,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   }
 
   const galleryFiles = formData.getAll("gallery_images") as File[];
+  if (galleryFiles.length > MAX_GALLERY_FILES) {
+    return redirect(
+      `/admin?tab=galleries&service_id=${serviceId}&message=${encodeURIComponent(`Select up to ${MAX_GALLERY_FILES} images per upload`)}`,
+      303,
+    );
+  }
   const validFiles = galleryFiles.filter((file) => file && file instanceof File && file.size > 0);
 
   if (validFiles.length === 0) {
