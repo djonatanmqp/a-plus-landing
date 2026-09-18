@@ -133,6 +133,10 @@ const currentImages: string[] = selectedService?.images || [];
 </section>
 
 <script>
+  import { setupAdminImageCompression } from "../../scripts/admin-image-compression";
+
+  setupAdminImageCompression();
+
   // Script para atualizar os nomes dos arquivos selecionados em tempo real
   document.querySelectorAll('.file-input').forEach((input) => {
     input.addEventListener('change', (e) => {

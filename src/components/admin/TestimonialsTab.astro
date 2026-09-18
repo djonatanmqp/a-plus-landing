@@ -187,9 +187,13 @@ const filteredTestimonials = selectedServiceId === ""
 </section>
 
 <script>
+  import { setupAdminImageCompression } from "../../scripts/admin-image-compression";
+
   const openNewBtn = document.getElementById("open-new-testimonial-modal");
   const newForm = document.getElementById("new-testimonial-form");
   openNewBtn?.addEventListener("click", () => newForm?.classList.toggle("hidden"));
+
+  setupAdminImageCompression();
 
   document.querySelectorAll('.file-input').forEach((input) => {
     input.addEventListener('change', (e) => {

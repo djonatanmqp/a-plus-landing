@@ -413,6 +413,8 @@ const highlights = Array.isArray(selectedService?.highlights)
 </section>
 
 <script>
+  import { setupAdminImageCompression } from "../../scripts/admin-image-compression";
+
   const openNewBtn = document.getElementById("open-new-service-modal");
   const closeNewBtn = document.getElementById("close-new-service");
   const newForm = document.getElementById("new-service-form");
@@ -519,6 +521,8 @@ const highlights = Array.isArray(selectedService?.highlights)
     "edit-highlights-container",
     "edit-no-highlights-text",
   );
+
+  setupAdminImageCompression();
 
   // Script para atualizar o nome do arquivo selecionado visualmente em tempo real
   document.querySelectorAll('.file-input').forEach((input) => {
