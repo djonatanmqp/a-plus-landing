@@ -9,6 +9,7 @@
     "dev": "astro dev --host 0.0.0.0 --port $PORT",
     "start": "astro preview --host 0.0.0.0 --port $PORT",
     "build": "astro build",
+    "check": "astro check",
     "astro": "astro"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/simple-icons": "^1.2.85",
     "@types/node": "^25.9.5",
