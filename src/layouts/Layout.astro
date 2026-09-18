@@ -116,6 +116,14 @@ import Analytics from '@vercel/analytics/astro';
 		<ZoomModal />
     	<script src="/assets/zoom.js" type="module"></script>
     	<Analytics />
+		<script>
+			document.addEventListener("contextmenu", (event) => {
+				if ((event.target as HTMLElement).tagName === "IMG") event.preventDefault();
+			});
+			document.addEventListener("dragstart", (event) => {
+				if ((event.target as HTMLElement).tagName === "IMG") event.preventDefault();
+			});
+		</script>
 
     	<script>
     		// Redirect OAuth responses to the appropriate handlers:

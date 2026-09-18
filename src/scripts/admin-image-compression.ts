@@ -1,8 +1,10 @@
-const MAX_OUTPUT_BYTES = 3 * 1024 * 1024;
-const MAX_WIDTH = 1600;
-const MAX_HEIGHT = 1600;
+const MAX_TOTAL_BYTES = 3 * 1024 * 1024;
+const MAX_BYTES_PER_IMAGE = 1.2 * 1024 * 1024;
+const MAX_WIDTH = 1400;
+const MAX_HEIGHT = 1400;
+let logoPromise: Promise<HTMLImageElement | null> | undefined;
 
-async function compressImage(file: File): Promise<File> {
+async function compressImage(file: File, targetBytes: number): Promise<File> {
   if (!file.type.startsWith("image/")) return file;
 
   const bitmap = await createImageBitmap(file);
@@ -20,9 +22,26 @@ async function compressImage(file: File): Promise<File> {
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
 
+  const logo = await loadWatermarkLogo();
+  if (logo) {
+    const watermarkWidth = canvas.width * 0.3;
+    const watermarkHeight = watermarkWidth * (logo.naturalHeight / logo.naturalWidth);
+    context.save();
+    context.globalAlpha = 0.16;
+    context.globalCompositeOperation = "multiply";
+    context.drawImage(
+      logo,
+      (canvas.width - watermarkWidth) / 2,
+      (canvas.height - watermarkHeight) / 2,
+      watermarkWidth,
+      watermarkHeight,
+    );
+    context.restore();
+  }
+
   let quality = 0.82;
   let blob = await canvasToWebp(canvas, quality);
-  while (blob.size > MAX_OUTPUT_BYTES && quality > 0.45) {
+  while (blob.size > targetBytes && quality > 0.45) {
     quality -= 0.08;
     blob = await canvasToWebp(canvas, quality);
   }
@@ -32,6 +51,18 @@ async function compressImage(file: File): Promise<File> {
     type: "image/webp",
     lastModified: Date.now(),
   });
+}
+
+function loadWatermarkLogo(): Promise<HTMLImageElement | null> {
+  if (!logoPromise) {
+    logoPromise = new Promise((resolve) => {
+      const logo = new Image();
+      logo.onload = () => resolve(logo);
+      logo.onerror = () => resolve(null);
+      logo.src = "/logo.png";
+    });
+  }
+  return logoPromise;
 }
 
 function canvasToWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
@@ -56,7 +87,13 @@ export function setupAdminImageCompression(): void {
       input.disabled = true;
 
       try {
-        const compressedFiles = await Promise.all(originalFiles.map(compressImage));
+        const targetBytes = Math.min(
+          MAX_BYTES_PER_IMAGE,
+          Math.floor(MAX_TOTAL_BYTES / originalFiles.length),
+        );
+        const compressedFiles = await Promise.all(
+          originalFiles.map((file) => compressImage(file, targetBytes)),
+        );
         const transfer = new DataTransfer();
         compressedFiles.forEach((file) => transfer.items.add(file));
         input.files = transfer.files;
