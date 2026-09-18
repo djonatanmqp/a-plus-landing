@@ -1,7 +1,7 @@
-const MAX_TOTAL_BYTES = 3 * 1024 * 1024;
-const MAX_BYTES_PER_IMAGE = 1.2 * 1024 * 1024;
-const MAX_WIDTH = 1400;
-const MAX_HEIGHT = 1400;
+const MAX_FILES_PER_SUBMISSION = 4;
+const TARGET_BYTES_PER_IMAGE = 900 * 1024;
+const MAX_WIDTH = 1600;
+const MAX_HEIGHT = 1600;
 let logoPromise: Promise<HTMLImageElement | null> | undefined;
 
 async function compressImage(file: File, targetBytes: number): Promise<File> {
@@ -87,12 +87,12 @@ export function setupAdminImageCompression(): void {
       input.disabled = true;
 
       try {
-        const targetBytes = Math.min(
-          MAX_BYTES_PER_IMAGE,
-          Math.floor(MAX_TOTAL_BYTES / originalFiles.length),
-        );
+        if (originalFiles.length > MAX_FILES_PER_SUBMISSION) {
+          throw new Error(`Select up to ${MAX_FILES_PER_SUBMISSION} images per upload`);
+        }
+
         const compressedFiles = await Promise.all(
-          originalFiles.map((file) => compressImage(file, targetBytes)),
+          originalFiles.map((file) => compressImage(file, TARGET_BYTES_PER_IMAGE)),
         );
         const transfer = new DataTransfer();
         compressedFiles.forEach((file) => transfer.items.add(file));
@@ -107,7 +107,11 @@ export function setupAdminImageCompression(): void {
       } catch (error) {
         console.error("Image compression failed:", error);
         input.value = "";
-        if (fileNameElement) fileNameElement.textContent = "Could not process image";
+        if (fileNameElement) {
+          fileNameElement.textContent = error instanceof Error
+            ? error.message
+            : "Could not process image";
+        }
       } finally {
         input.disabled = false;
       }
