@@ -1,7 +1,7 @@
 // src/pages/admin/api/testimonials/delete.ts
 import type { APIRoute } from "astro";
 import { validateAdminToken, SESSION_COOKIE_NAME } from "../../../../lib/admin.ts";
-import { supabase } from "../../../../lib/supabase.js";
+import { supabaseAdmin } from "../../../../lib/supabase-admin.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const token = cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirect("/admin?tab=testimonials&message=Invalid+ID", 303);
     }
 
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabaseAdmin
       .from("testimonials")
       .delete()
       .eq("id", id);

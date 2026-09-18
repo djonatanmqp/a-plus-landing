@@ -1,7 +1,8 @@
 // src/pages/admin/api/testimonial.ts
 import type { APIRoute } from "astro";
 import { parseCookies, validateAdminToken, SESSION_COOKIE_NAME } from "../../../lib/admin.ts";
-import { supabase } from "../../../lib/supabase.js";
+import { supabaseAdmin } from "../../../lib/supabase-admin.ts";
+import type { Database } from "../../../types/supabase";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -23,7 +24,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const idInput = (formData.get("id") ?? "").toString().trim();
 
     if (action === "delete" && idInput) {
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await supabaseAdmin
         .from("testimonials")
         .delete()
         .eq("id", idInput);
@@ -56,7 +57,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       const sanitizedName = file.name.replace(/\s+/g, '-');
       const fileName = `testimonials/${testimonialId}/${type}-${sanitizedName}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from("images")
         .upload(fileName, file, {
           cacheControl: "3600",
@@ -65,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
       if (uploadError) throw new Error(uploadError.message);
 
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = supabaseAdmin.storage
         .from("images")
         .getPublicUrl(uploadData.path);
 
@@ -83,7 +84,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       afterImagePath = await uploadImageToSupabase(afterFile, "after");
     }
 
-    const testimonialData: Record<string, unknown> = {
+    const testimonialData: Database["public"]["Tables"]["testimonials"]["Insert"] = {
       id: testimonialId,
       service_id,
       name,
@@ -98,7 +99,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     if (afterImagePath) testimonialData.after_image = afterImagePath;
 
     if (idInput) {
-      const { data: existing } = await supabase
+      const { data: existing } = await supabaseAdmin
         .from("testimonials")
         .select("before_image, after_image")
         .eq("id", idInput)
@@ -109,7 +110,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       if (!afterImagePath && existingData.after_image) testimonialData.after_image = existingData.after_image;
     }
 
-    const { error: upsertError } = await supabase
+    const { error: upsertError } = await supabaseAdmin
       .from("testimonials")
       .upsert(testimonialData);
 
