@@ -6,8 +6,7 @@ CREATE TABLE services (
     short_description TEXT,
     description TEXT,
     highlights TEXT[],
-    hero_image TEXT,
-    cover_image TEXT,
+    main_image TEXT,
     images TEXT[],
     faq JSONB,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
@@ -50,6 +49,18 @@ CREATE TABLE faqs (
 -- Adiciona a coluna display_order se ela ainda não existir
 ALTER TABLE services 
 ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
+
+-- Migra imagens existentes para a coluna única usada pelo site.
+ALTER TABLE services ADD COLUMN IF NOT EXISTS main_image TEXT;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'services' AND column_name = 'hero_image')
+       OR EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'services' AND column_name = 'cover_image') THEN
+        EXECUTE 'UPDATE services SET main_image = COALESCE(main_image, hero_image, cover_image) WHERE main_image IS NULL';
+    END IF;
+END $$;
+ALTER TABLE services DROP COLUMN IF EXISTS hero_image;
+ALTER TABLE services DROP COLUMN IF EXISTS cover_image;
 
 -- Atualiza a ordem dos serviços existentes de forma segura e organizada
 UPDATE services SET display_order = 1 WHERE title ILIKE '%Driveways%';

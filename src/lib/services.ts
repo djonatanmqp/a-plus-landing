@@ -10,8 +10,7 @@ export type Service = Database['public']['Tables']['services']['Row'];
 export function getServiceImageUrl(service: Service, type: 'hero' | 'cover' | 'gallery' | string = 'hero', index: number = 0): string {
   let imagePath = '';
 
-  if (type === 'hero') imagePath = service.hero_image || '';
-  else if (type === 'cover') imagePath = service.cover_image || '';
+  if (type === 'hero' || type === 'cover') imagePath = service.main_image || service.hero_image || service.cover_image || '';
   else if (type === 'gallery') {
     const gallery = service.images || [];
     imagePath = gallery[index] || '';

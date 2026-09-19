@@ -27,7 +27,7 @@ const getStorageUrl = (path: string) => {
 
 const serviceHeros = servicesData
   .map((service: any) => {
-    const rawImage = service.hero_image || service.heroImage || service.cover_image || "";
+    const rawImage = service.main_image || service.hero_image || service.heroImage || service.cover_image || "";
     const version = service.updated_at ? new Date(service.updated_at).getTime() : Date.now();
     
     const resolvedImage = getStorageUrl(rawImage);

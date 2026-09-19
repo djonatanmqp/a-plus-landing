@@ -47,6 +47,7 @@ export type Database = {
           highlights: string[] | null
           id: string
           images: string[] | null
+          main_image: string | null
           short_description: string | null
           subtitle: string | null
           title: string
@@ -60,6 +61,7 @@ export type Database = {
           highlights?: string[] | null
           id: string
           images?: string[] | null
+          main_image?: string | null
           short_description?: string | null
           subtitle?: string | null
           title: string
@@ -73,6 +75,7 @@ export type Database = {
           highlights?: string[] | null
           id?: string
           images?: string[] | null
+          main_image?: string | null
           short_description?: string | null
           subtitle?: string | null
           title?: string

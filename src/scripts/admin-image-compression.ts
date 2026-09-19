@@ -103,7 +103,7 @@ export function setupAdminImageCompression(): void {
         }
 
         clearWarning();
-        const addWatermark = !["cover_image_file", "hero_image_file"].includes(input.name);
+        const addWatermark = input.name !== "main_image_file";
         const compressedFiles = await Promise.all(
           originalFiles.map((file) => compressImage(file, TARGET_BYTES_PER_IMAGE, addWatermark)),
         );

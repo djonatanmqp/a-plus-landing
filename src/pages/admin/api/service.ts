@@ -6,8 +6,7 @@ import { supabaseAdmin } from "../../../lib/supabase-admin.ts";
 import type { Database } from "../../../types/supabase";
 
 interface ServiceData {
-  hero_image?: string | null;
-  cover_image?: string | null;
+  main_image?: string | null;
   highlights?: string[];
 }
 
@@ -37,7 +36,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     // Busca o registro atual no Supabase para preservar os dados existentes
     const { data: existingService, error: fetchError } = serviceId ? await supabaseAdmin
       .from("services")
-      .select("hero_image, cover_image, highlights")
+      .select("main_image, highlights")
       .eq("id", serviceId)
       .single() : { data: null, error: null };
 
@@ -78,14 +77,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       description,
       highlights,
       updated_at: new Date().toISOString(),
-      hero_image: existingData.hero_image || "",
-      cover_image: existingData.cover_image || "",
+      main_image: existingData.main_image || "",
     };
 
-    const uploadImageToSupabase = async (file: File, type: "hero" | "cover"): Promise<string> => {
-      const targetId = serviceId || 'new';
-      // Nome fixo (ex: services/uuid/hero.webp) para que o upsert substitua o arquivo anterior perfeitamente
-      const fileName = `services/${targetId}/${type}.webp`;
+    const uploadImageToSupabase = async (file: File): Promise<string> => {
+      const targetId = updateData.id;
+      const fileName = `services/${targetId}/main.webp`;
 
       const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from("images")
@@ -102,20 +99,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return `${publicUrlData.publicUrl}?t=${Date.now()}`;
     };
 
-    const heroFile = formData.get("hero_image_file");
-    if (heroFile && heroFile instanceof File && heroFile.size > 0) {
-      if (!validateImage(heroFile)) {
-        return redirect("/admin?tab=services&message=Error:+Invalid+hero+image+format+or+size", 303);
+    const mainFile = formData.get("main_image_file");
+    if (mainFile && mainFile instanceof File && mainFile.size > 0) {
+      if (!validateImage(mainFile)) {
+        return redirect("/admin?tab=services&message=Error:+Invalid+main+image+format+or+size", 303);
       }
-      updateData.hero_image = await uploadImageToSupabase(heroFile, "hero");
-    }
-
-    const coverFile = formData.get("cover_image_file");
-    if (coverFile && coverFile instanceof File && coverFile.size > 0) {
-      if (!validateImage(coverFile)) {
-        return redirect("/admin?tab=services&message=Error:+Invalid+cover+image+format+or+size", 303);
-      }
-      updateData.cover_image = await uploadImageToSupabase(coverFile, "cover");
+      updateData.main_image = await uploadImageToSupabase(mainFile);
     }
 
     const { error: upsertError } = await supabaseAdmin

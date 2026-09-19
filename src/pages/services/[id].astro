@@ -47,9 +47,9 @@ const bulletItems = Array.isArray(s.highlights)
   : (Array.isArray(s.features) ? s.features : []);
 
 const galleryImages = Array.isArray(s.images) ? s.images : (Array.isArray(s.gallery_images) ? s.gallery_images : []);
-const rawHeroOrCover = s.hero_image || s.cover_image || (galleryImages.length > 0 ? galleryImages[0] : null);
+const rawHeroOrCover = s.main_image || s.hero_image || s.cover_image || (galleryImages.length > 0 ? galleryImages[0] : null);
 
-const heroOrCover = rawHeroOrCover ? getServiceImageUrl(s, s.hero_image ? 'hero' : 'cover') : null;
+const heroOrCover = rawHeroOrCover ? getServiceImageUrl(s, 'hero') : null;
 
 // Função auxiliar local segura para pegar a URL pública de qualquer imagem do bucket do Supabase
 const getPublicUrl = (imagePath: string) => {

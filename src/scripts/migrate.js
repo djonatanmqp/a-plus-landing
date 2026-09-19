@@ -39,8 +39,7 @@ async function runMigration() {
         short_description: data.shortDescription,
         description: data.description,
         highlights: data.highlights || [],
-        hero_image: data.heroImage,
-        cover_image: data.coverImage,
+        main_image: data.mainImage || data.heroImage || data.coverImage,
         images: data.images || [],
         faq: data.faq || []
       });

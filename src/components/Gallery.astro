@@ -34,7 +34,7 @@ const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((servi
     const version = service.updated_at ? new Date(service.updated_at).getTime() : Date.now();
     const addVersion = (url: string) => url ? `${url}${url.includes('?') ? '&' : '?'}v=${version}` : url;
 
-    const rawCover = service.cover_image || service.hero_image || '';
+    const rawCover = service.main_image || service.cover_image || service.hero_image || '';
     const coverUrl = getStorageUrl(rawCover, 600); // Otimizado para o tamanho do card
 
     const rawImages = Array.isArray(service.images) ? service.images : [];
@@ -44,7 +44,7 @@ const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((servi
     return {
         ...service,
         coverImage: addVersion(coverUrl),
-        heroImage: addVersion(getStorageUrl(service.hero_image, 1000)),
+        heroImage: addVersion(getStorageUrl(service.main_image || service.hero_image || service.cover_image, 1000)),
         images: imagesUrls.map((img: string) => addVersion(img)),
     };
 }) : [];

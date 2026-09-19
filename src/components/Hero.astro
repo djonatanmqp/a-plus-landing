@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase.js";
 
 // Função otimizada para buscar e redimensionar a imagem do banner (largura 1200px para o Hero)
 const getHeroImageUrl = (service: any) => {
-    const path = service.hero_image || service.cover_image || '';
+    const path = service.main_image || service.hero_image || service.cover_image || '';
     if (!path) return '';
     if (path.startsWith('http')) {
         if (path.includes('supabase.co/storage')) {
