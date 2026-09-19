@@ -7,6 +7,8 @@ import type { Database } from "../../../types/supabase";
 
 interface ServiceData {
   main_image?: string | null;
+  hero_image?: string | null;
+  cover_image?: string | null;
   highlights?: string[];
 }
 
@@ -33,18 +35,35 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const short_description = formData.get("short_description")?.toString().trim() || "";
     const description = formData.get("description")?.toString().trim() || "";
 
-    // Busca o registro atual no Supabase para preservar os dados existentes
-    const { data: existingService, error: fetchError } = serviceId ? await supabaseAdmin
+    // Permite que o deploy funcione antes de o schema cache do Supabase ser atualizado.
+    let usesLegacyImageColumns = false;
+    let existingService: ServiceData | null = null;
+    let fetchError: { code?: string; message?: string } | null = null;
+
+    const schemaProbe = await supabaseAdmin
       .from("services")
-      .select("main_image, highlights")
-      .eq("id", serviceId)
-      .single() : { data: null, error: null };
+      .select("main_image")
+      .limit(1);
+
+    if (schemaProbe.error?.message?.includes("main_image")) {
+      usesLegacyImageColumns = true;
+    }
+
+    if (serviceId) {
+      const result = await supabaseAdmin
+        .from("services")
+        .select(usesLegacyImageColumns ? "hero_image, cover_image, highlights" : "main_image, highlights")
+        .eq("id", serviceId)
+        .single();
+      existingService = result.data as ServiceData | null;
+      fetchError = result.error;
+    }
 
     if (fetchError && fetchError.code !== "PGRST116") {
       console.warn("Notice fetching existing service:", fetchError.message);
     }
 
-    const existingData = (existingService as ServiceData) || {};
+    const existingData = existingService || {};
     let highlights: string[] = Array.isArray(existingData.highlights) ? [...existingData.highlights] : [];
 
     // Tratamento das ações de destaques ou salvamento geral
@@ -77,7 +96,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       description,
       highlights,
       updated_at: new Date().toISOString(),
-      main_image: existingData.main_image || "",
+      ...(usesLegacyImageColumns
+        ? {
+            hero_image: existingData.hero_image || "",
+            cover_image: existingData.cover_image || "",
+          }
+        : { main_image: existingData.main_image || "" }),
     };
 
     const uploadImageToSupabase = async (file: File): Promise<string> => {
@@ -104,7 +128,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       if (!validateImage(mainFile)) {
         return redirect("/admin?tab=services&message=Error:+Invalid+main+image+format+or+size", 303);
       }
-      updateData.main_image = await uploadImageToSupabase(mainFile);
+      const imageUrl = await uploadImageToSupabase(mainFile);
+      if (usesLegacyImageColumns) {
+        updateData.hero_image = imageUrl;
+        updateData.cover_image = imageUrl;
+      } else {
+        updateData.main_image = imageUrl;
+      }
     }
 
     const { error: upsertError } = await supabaseAdmin

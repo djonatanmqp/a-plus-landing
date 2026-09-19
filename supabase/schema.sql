@@ -1,5 +1,5 @@
 -- 1. Tabela de Serviços
-CREATE TABLE services (
+CREATE TABLE IF NOT EXISTS services (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     subtitle TEXT,
@@ -13,7 +13,7 @@ CREATE TABLE services (
 );
 
 -- 2. Tabela de Configurações da Empresa (Settings/Company)
-CREATE TABLE settings (
+CREATE TABLE IF NOT EXISTS settings (
     id TEXT PRIMARY KEY DEFAULT 'company',
     name TEXT,
     tagline TEXT,
@@ -24,7 +24,7 @@ CREATE TABLE settings (
 );
 
 -- 3. Tabela de Depoimentos (Testimonials)
-CREATE TABLE testimonials (
+CREATE TABLE IF NOT EXISTS testimonials (
     id TEXT PRIMARY KEY,
     name TEXT,
     location TEXT,
@@ -38,7 +38,7 @@ CREATE TABLE testimonials (
 );
 
 -- 4. Tabela de FAQ Geral
-CREATE TABLE faqs (
+CREATE TABLE IF NOT EXISTS faqs (
     id TEXT PRIMARY KEY,
     question TEXT NOT NULL,
     answer TEXT NOT NULL,
@@ -61,6 +61,28 @@ BEGIN
 END $$;
 ALTER TABLE services DROP COLUMN IF EXISTS hero_image;
 ALTER TABLE services DROP COLUMN IF EXISTS cover_image;
+
+-- Permite que o site público leia o conteúdo sem expor operações de escrita.
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE faqs ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'public_read_services' AND tablename = 'services') THEN
+        CREATE POLICY public_read_services ON services FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'public_read_settings' AND tablename = 'settings') THEN
+        CREATE POLICY public_read_settings ON settings FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'public_read_testimonials' AND tablename = 'testimonials') THEN
+        CREATE POLICY public_read_testimonials ON testimonials FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'public_read_faqs' AND tablename = 'faqs') THEN
+        CREATE POLICY public_read_faqs ON faqs FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+END $$;
 
 -- Atualiza a ordem dos serviços existentes de forma segura e organizada
 UPDATE services SET display_order = 1 WHERE title ILIKE '%Driveways%';

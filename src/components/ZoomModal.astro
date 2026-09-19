@@ -3,10 +3,13 @@
 ---
 <dialog id="zoom-dialog" class="fixed inset-0 m-0 h-full w-full max-w-none bg-transparent p-0 border-none outline-none z-9999">
     <div class="flex h-full w-full items-center justify-center p-4 sm:p-10">
+        <button id="prev-zoom" class="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-[#0b3c5d] rounded-full w-11 h-11 flex items-center justify-center text-3xl z-100 shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Previous image">&#8249;</button>
         <div class="relative w-fit">
             <button id="close-zoom" class="absolute -top-4 -right-4 text-white bg-black/50 hover:bg-[#0b3c5d] rounded-full w-10 h-10 flex items-center justify-center text-2xl z-100 shadow-lg transition-all" aria-label="Close zoom">&times;</button>
             <img id="zoom-img" src="" alt="Full view" class="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+            <p id="zoom-counter" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-white/90 whitespace-nowrap"></p>
         </div>
+        <button id="next-zoom" class="absolute right-3 sm:right-8 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-[#0b3c5d] rounded-full w-11 h-11 flex items-center justify-center text-3xl z-100 shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Next image">&#8250;</button>
     </div>
 </dialog>
 
@@ -16,13 +19,26 @@
 
 <script>
     // Esta função será chamada diretamente pelas imagens
-    const openZoom = (src: string) => {
+    let zoomImages: string[] = [];
+    let zoomIndex = 0;
+
+    const renderZoomImage = () => {
         const dialog = document.getElementById("zoom-dialog") as HTMLDialogElement;
         const img = document.getElementById("zoom-img") as HTMLImageElement;
-        if (img && dialog) {
-            img.src = src;
-            dialog.showModal();
-        }
+        const counter = document.getElementById("zoom-counter");
+        const hasNavigation = zoomImages.length > 1;
+        if (!img) return;
+        img.src = zoomImages[zoomIndex] || "";
+        counter!.textContent = hasNavigation ? `${zoomIndex + 1} / ${zoomImages.length}` : "";
+        (document.getElementById("prev-zoom") as HTMLButtonElement).disabled = !hasNavigation;
+        (document.getElementById("next-zoom") as HTMLButtonElement).disabled = !hasNavigation;
+        if (dialog && !dialog.open) dialog.showModal();
+    };
+
+    const openZoom = (src: string, images: string[] = []) => {
+        zoomImages = images.length ? images : [src];
+        zoomIndex = Math.max(0, zoomImages.indexOf(src));
+        renderZoomImage();
     };
 
     // Expõe a função para o objeto global de forma garantida
@@ -31,5 +47,25 @@
     // Lógica de fechamento
     const dialog = document.getElementById("zoom-dialog") as HTMLDialogElement;
     document.getElementById("close-zoom")?.addEventListener("click", () => dialog.close());
+    document.getElementById("prev-zoom")?.addEventListener("click", () => {
+        zoomIndex = (zoomIndex - 1 + zoomImages.length) % zoomImages.length;
+        renderZoomImage();
+    });
+    document.getElementById("next-zoom")?.addEventListener("click", () => {
+        zoomIndex = (zoomIndex + 1) % zoomImages.length;
+        renderZoomImage();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (!dialog.open) return;
+        if (event.key === "ArrowLeft") {
+            zoomIndex = (zoomIndex - 1 + zoomImages.length) % zoomImages.length;
+            renderZoomImage();
+        } else if (event.key === "ArrowRight") {
+            zoomIndex = (zoomIndex + 1) % zoomImages.length;
+            renderZoomImage();
+        } else if (event.key === "Escape") {
+            dialog.close();
+        }
+    });
     dialog?.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
 </script>

@@ -3,7 +3,6 @@
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-import ZoomModal from "../../components/ZoomModal.astro";
 import FAQ from "../../components/FAQ.astro";
 import Phone from "~icons/mdi/phone";
 import Video from "~icons/mdi/video";
@@ -190,20 +189,22 @@ const breadcrumbData = [
         </div>
     </div>
 
-    <ZoomModal />
     <Footer />
 </Layout>
 
 <script>
     const setupIdPageScripts = () => {
         const zoomTriggers = document.querySelectorAll(".js-zoom-trigger");
+        const zoomImages = Array.from(document.querySelectorAll(".js-zoom-trigger"))
+            .map((image) => (image as HTMLImageElement).src);
+
         zoomTriggers.forEach((img) => {
             img.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const target = img as HTMLImageElement;
                 
                 if (typeof (window as any).openZoom === 'function') {
-                    (window as any).openZoom(target.src);
+                    (window as any).openZoom(target.src, zoomImages);
                 } else {
                     console.error("Zoom function not available yet");
                 }

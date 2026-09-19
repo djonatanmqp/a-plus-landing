@@ -2,7 +2,6 @@
 // src/components/Gallery.astro
 import { supabase } from "../lib/supabase.js";
 import MagnifyIcon from "~icons/mdi/magnify";
-import ZoomModal from "./ZoomModal.astro";
 
 // Busca os serviços ordenados pelo display_order ou título no Supabase[cite: 4, 5]
 const { data: rawServicesData } = await supabase
@@ -121,8 +120,6 @@ const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((servi
     </div>
 </dialog>
 
-<ZoomModal />
-
 <style>
     dialog::backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s ease; }
     dialog.modal-open { opacity: 1; transform: scale(1); }
@@ -165,7 +162,7 @@ const servicesData = Array.isArray(rawServicesData) ? rawServicesData.map((servi
                     img.addEventListener("click", (e) => {
                         e.stopPropagation();
                         if (typeof (window as any).openZoom === 'function') {
-                            (window as any).openZoom(img.src);
+                            (window as any).openZoom(img.src, projectImages);
                         } else {
                             console.error("Função openZoom não encontrada no window.");
                         }
